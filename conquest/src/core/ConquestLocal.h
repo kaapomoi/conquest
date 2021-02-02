@@ -1,9 +1,8 @@
 #pragma once 
 
 #include <core/Engine.h>
-#include <core/Unit.h>
+#include <core/GameObject.h>
 #include <core/UIElement.h>
-#include <core/UIUnitCard.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -35,7 +34,6 @@ public:
 
 	int create_objects();
 	int create_ui();
-	int create_ui_unit_card();
 	int run();
 
 	int create_ai();
@@ -124,14 +122,6 @@ private:
 
 	// Tile map
 	std::vector<std::vector<tile>> tilemap;
-
-	// Helpers for pathfinding
-	struct smaller {
-		bool operator()(const k2d::vi2d& lhs, const k2d::vi2d rhs) const
-		{
-			return std::tie(lhs.x, lhs.y) < std::tie(rhs.x, rhs.y);
-		}
-	}; 
 	
 
 	// Fonts
@@ -146,8 +136,6 @@ private:
 	UIElement*				turns_text;
 
 
-
-	UIUnitCard*				ui_unit_card;
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;
 	std::vector<k2d::Color> skins;
@@ -158,10 +146,7 @@ private:
 	/// The client sends this value to the server
 	/// </summary>
 	std::vector<player_t> players;
-	
-	int input_num;
 
-	float send_packets_every_ms;
 	double timer_counter;
 	k2d::vi2d map_size;
 
@@ -175,27 +160,10 @@ private:
 
 	std::vector<bool> taken_colors;
 	std::vector<std::pair<int, int>> num_of_each_color;
-	bool should_send_ready;
-	bool should_send_reset;
-	bool should_send_drop_all;
-	int turn_id;
-	int this_player_index;
+
 	std::mt19937 random_engine;
-	int header_size;
 
 	std::vector<k2d::vi2d> sc;
-
-	float blink_timer;
-	float blink_every_second;
-
-	int winner_index;
-	bool game_over;
-
-	int try_to_play_best;
-
-	bool AI_CONTROL;
-	bool should_update_ai;
-	bool input_pressed;
 
 	ServerSim server_sim;
 

@@ -1,14 +1,7 @@
 #include <core/ConquestLocal.h>
 
-const int packet_type_input_data = 1;
-const int packet_type_tile_data = 2;
-const int packet_type_command = 3;
-const int packet_type_invalid_color = 4;
-const int packet_type_turn_change = 5;
-const int packet_type_game_end = 6;
-
 ConquestLocal::ConquestLocal() :
-	server_sim(k2d::vi2d(40, 30), 5)
+	server_sim(k2d::vi2d(40, 30), 6)
 {
 	window_title = "Conquest AI Training";
 	window_width = 1200;
@@ -112,30 +105,12 @@ int ConquestLocal::init_game()
 	// magenta
 
 	// Send packets every 33ms = 30hz
-	send_packets_every_ms = 0.033f;
 	timer_counter = 0.0f;
 	// TODO set this somehow
-	map_size = { 40, 30 };
+	map_size = server_sim.GetMapSize();
 
 	// Net code
 	random_engine.seed((unsigned int) time(NULL));
-	std::uniform_int_distribution<int> num(1000, 1000000);
-	player_id = num(random_engine);
-
-	input_num = -1;
-	should_send_ready = false;
-	should_send_reset = false;
-	should_send_drop_all = false;
-	scoreboard_init = false;
-
-	this_player_index = 0;
-	
-	blink_timer = 0.f;
-	blink_every_second = 1.0f;
-	
-	header_size = sizeof(packet_header_t);
-
-	winner_index = 0;
 
 	return 0;
 }
@@ -152,7 +127,7 @@ int ConquestLocal::create_ai()
 {
 	int pop_size = 10;
 
-	ai_agents.push_back(new BadAI(1, &server_sim));
+	ai_agents.push_back(new SimpleAI(1, &server_sim));
 	ai_agents.push_back(new SimpleAI(2, &server_sim));
 
 
@@ -232,14 +207,6 @@ int ConquestLocal::create_ui()
 	return 0;
 }
 
-int ConquestLocal::create_ui_unit_card()
-{
-	ui_unit_card = new UIUnitCard("unitcard", k2d::vi2d(0, 0), 100, 300, new k2d::Sprite(glm::vec2(0.0f, 0.0f), 100, 300, 20.0f,
-		glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255, 255, 255, 255), load_texture_from_cache("unitcard"), sprite_batch), 0, sprite_batch, font1);
-
-	return 0;
-}
-
 int ConquestLocal::run()
 {
 	engine->RunExternalLoop(fps_target);
@@ -299,6 +266,8 @@ int ConquestLocal::main_loop()
 
 		if (!server_sim.GetGameInProgress())
 		{
+			server_sim.DisconnectFromServer(ai_agents.at(0)->GetClientId());
+			server_sim.DisconnectFromServer(ai_agents.at(1)->GetClientId());
 			PlayGame(ai_agents.at(0), ai_agents.at(1));
 		}
 
@@ -320,7 +289,6 @@ int ConquestLocal::main_loop()
 			// Remove later TODO
 			if (ai->GetInGame())
 			{
-				
 				ai->Update();
 			}
 		}
@@ -331,20 +299,6 @@ int ConquestLocal::main_loop()
 		{
 			// Draw tile
 			tile->Update(dt);
-		}
-		// End Updating gameobjects
-		blink_timer += dt;
-		if (blink_timer >= blink_every_second && game_over)
-		{
-			if (ui_elements.at(winner_index)->IsActive())
-			{
-				ui_elements.at(winner_index)->SetIsActive(false);
-			}
-			else
-			{
-				ui_elements.at(winner_index)->SetIsActive(true);
-			}
-			blink_timer = 0;
 		}
 
 		// Update gameobjects
@@ -379,25 +333,6 @@ int ConquestLocal::main_loop()
 
 void ConquestLocal::update_input()
 {
-	if (engine->GetInputManager().IsKeyPressed(SDLK_a))
-	{
-		AI_CONTROL = true;
-		std::cout << "AI CONTROL ENABLED\n";
-	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_d))
-	{
-		should_send_drop_all = true;
-	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_r))
-	{
-		should_send_ready = true;
-	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_o))
-	{
-		should_send_reset = true;
-	}
-
-	input_pressed = false;
 	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_LEFT))
 	{
 		// Check which button is pressed.
@@ -420,8 +355,6 @@ void ConquestLocal::update_input()
 				{
 					//std::cout << "hit: " << i << "\n";
 					// If hit, break from loop
-					input_pressed = true;
-					input_num = i;
 					break;
 				}
 			}
@@ -482,11 +415,6 @@ void ConquestLocal::update_input()
 		UpdateButtonColors();
 		UpdateScoreboardColors();
 		UpdateBarColors();
-	}
-
-	if (input_pressed == false && AI_CONTROL == false)
-	{
-		input_num = -1;
 	}
 }
 

@@ -24,15 +24,6 @@
     <ClCompile Include="src\core\UIElement.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\Projectile.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\UIUnitCard.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\core\Unit.cpp">
-      <Filter>src\core</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\ServerSim.cpp">
       <Filter>src\core</Filter>
     </ClCompile>
@@ -66,15 +57,6 @@
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\AStarNode.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\Projectile.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\UIUnitCard.h">
-      <Filter>src\core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\core\Unit.h">
       <Filter>src\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\ServerSim.h">

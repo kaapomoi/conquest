@@ -51,6 +51,11 @@ bool ServerSim::ConnectToServer(int player_id)
 	return true;
 }
 
+void ServerSim::DisconnectFromServer(int player_id)
+{
+    players.erase(std::remove_if(players.begin(), players.end(), [player_id](player_t p) {return p.id == player_id; }), players.end());
+}
+
 void ServerSim::ReceiveInput(int player_id, int recv_num)
 {
     int id = player_id;
@@ -90,7 +95,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 uint8_t x = s_pos[whose_turn].x;
                 uint8_t y = s_pos[whose_turn].y;
 
-                k2d::KUSI_DEBUG("Client with id: %d sent number: %d\n", id, recv_num);
+                //k2d::KUSI_DEBUG("Client with id: %d sent number: %d\n", id, recv_num);
 
                 // Change the color of already owned tiles
                 flood_fill_color_change(map_size, x, y, whose_turn, recv_num);

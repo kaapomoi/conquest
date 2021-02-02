@@ -33,6 +33,8 @@ public:
 	// Connect to this game "server", returns true if it went well.
 	bool ConnectToServer(int player_id);
 
+	void DisconnectFromServer(int player_id);
+
 	// Receive input from the "clients", simulates receiving packets
 	void ReceiveInput(int player_id, int input_number);
 
@@ -58,7 +60,7 @@ public:
 
 	k2d::vi2d GetMapSize();
 
-// Private functions 
+// Private functions
 private:
 	player_t new_player(int id);
 	
