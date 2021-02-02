@@ -1,12 +1,21 @@
 #include <core/ServerSim.h>
 
-ServerSim::ServerSim() :
-    NR_OF_COLORS(DEFAULT_NR_COLORS),
+ServerSim::ServerSim(k2d::vi2d map_size, int num_colors) :
     num_turns(DEFAULT_NUM_TURNS),
     whose_turn(DEFAULT_WHOSE_TURN),
-    running_id(1)
+    running_id(1),
+    map_size(map_size),
+    NR_OF_COLORS(num_colors),
+    game_in_progress(false)
 {
     rand_engine.seed(time(NULL));
+
+    // Initialize the starting positions based on the map size
+    s_pos.resize(MAX_PLAYERS);
+    s_pos[0] = { 0, 0 };
+    s_pos[1] = { map_size.x - 1, map_size.y - 1 };
+    s_pos[2] = { 0, map_size.y - 1 };
+    s_pos[3] = { map_size.x - 1, 0 };
 
 }
 
@@ -120,6 +129,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
                     // push the end game event to the event queue
                     event_queue.AddItem(e);
+                    game_in_progress = false;
                 }
                 else
                 {
@@ -167,6 +177,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
 void ServerSim::StartGame()
 {
+    game_in_progress = true;
     create_game(players.size());
 
     init_players_and_taken_colors();
@@ -193,9 +204,19 @@ std::vector<player_t> ServerSim::GetPlayers()
     return players;
 }
 
+std::vector<k2d::vi2d> ServerSim::GetStartingPositions()
+{
+    return s_pos;
+}
+
 int ServerSim::GetTurnsPlayed()
 {
     return num_turns;
+}
+
+bool ServerSim::GetGameInProgress()
+{
+    return game_in_progress;
 }
 
 // Creates a new player with the given id. Inits other variables with 0!!
@@ -210,20 +231,13 @@ player_t ServerSim::new_player(int id)
 
 void ServerSim::create_game(int num_players)
 {
-    map_size.x = 40;
-    map_size.y = 30;
     // Random color generator
     std::uniform_int_distribution<int> num_gen(0, NR_OF_COLORS - 1);
 
     // POSSIBLE: Read mapsize and nr_colors from conf file here:
     // ...
 
-    // Initialize the starting positions based on the map size
-    s_pos.resize(MAX_PLAYERS);
-    s_pos[0] = { 0,0 };
-    s_pos[1] = { map_size.x - 1, map_size.y - 1 };
-    s_pos[2] = { 0, map_size.y - 1 };
-    s_pos[3] = { map_size.x - 1 ,0 };
+    
    /* s_pos[4] = { 0, map_size.y / 2 - 1 };
     s_pos[5] = { map_size.x - 1, map_size.y / 2 - 1 };
     s_pos[6] = { map_size.x / 2 - 1, 0 };
@@ -436,6 +450,11 @@ void ServerSim::Update()
 {
     // Update the queue
     event_queue.Update();
+}
+
+k2d::vi2d ServerSim::GetMapSize()
+{
+    return map_size;
 }
 
 bool ServerSim::valid_tile(uint8_t x, uint8_t y, k2d::vi2d map_size)

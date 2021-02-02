@@ -26,7 +26,7 @@ class ServerSim
 {
 // Public functions
 public:
-	ServerSim();
+	ServerSim(k2d::vi2d map_size, int num_colors);
 	~ServerSim();
 
 
@@ -48,10 +48,15 @@ public:
 
 	std::vector<player_t> GetPlayers();
 
+	std::vector<k2d::vi2d> GetStartingPositions();
+
 	int GetTurnsPlayed();
+	bool GetGameInProgress();
 
 	// Update every frame
 	void Update();
+
+	k2d::vi2d GetMapSize();
 
 // Private functions 
 private:
@@ -94,6 +99,7 @@ private:
 	// Running id for events
 	int running_id;
 
+	bool game_in_progress;
 
 	// Keep track of taken colors
 	std::vector<bool> taken_colors;

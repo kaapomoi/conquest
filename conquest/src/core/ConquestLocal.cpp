@@ -7,7 +7,8 @@ const int packet_type_invalid_color = 4;
 const int packet_type_turn_change = 5;
 const int packet_type_game_end = 6;
 
-ConquestLocal::ConquestLocal()
+ConquestLocal::ConquestLocal() :
+	server_sim(k2d::vi2d(40, 30), 5)
 {
 	window_title = "Conquest AI Training";
 	window_width = 1200;
@@ -17,7 +18,7 @@ ConquestLocal::ConquestLocal()
 	face = 0;
 	ft = 0;
 
-	fps_target = 1200.0f;
+	fps_target = 6000.0f;
 	dt = 0.0000000001;
 
 	camera_mvmt_speed = 200.f;
@@ -150,10 +151,9 @@ int ConquestLocal::create_objects()
 int ConquestLocal::create_ai()
 {
 	int pop_size = 10;
-	for (size_t i = 0; i < pop_size; i++)
-	{
-		ai_agents.push_back(new BadAI(i + 1, &server_sim));
-	}
+
+	ai_agents.push_back(new BadAI(1, &server_sim));
+	ai_agents.push_back(new SimpleAI(2, &server_sim));
 
 
 	return 0;
@@ -174,6 +174,7 @@ int ConquestLocal::create_ui()
 		glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(0), load_texture_from_cache("full"), sprite_batch),
 		create_text("P1", 0.15f, 25.0f));
 	p1->SetIsActive(false);
+	p1->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p1);
 
 	UIElement* p2 = new UIElement("P2Score",
@@ -182,6 +183,7 @@ int ConquestLocal::create_ui()
 		glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(1), load_texture_from_cache("full"), sprite_batch),
 		create_text("P2", 0.15f, 25.0f));
 	p2->SetIsActive(false);
+	p2->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p2);
 
 	UIElement* p3 = new UIElement("P3Score",
@@ -190,6 +192,7 @@ int ConquestLocal::create_ui()
 			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(3), load_texture_from_cache("full"), sprite_batch),
 		create_text("P4", 0.15f, 25.0f));
 	p3->SetIsActive(false);
+	p3->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p3);
 	
 	UIElement* p4 = new UIElement("P4Score",
@@ -198,6 +201,7 @@ int ConquestLocal::create_ui()
 			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(2), load_texture_from_cache("full"), sprite_batch),
 		create_text("P4", 0.15f, 25.0f));
 	p4->SetIsActive(false);
+	p4->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p4);
 	
 	UIElement* p5 = new UIElement("P5Score",
@@ -206,6 +210,7 @@ int ConquestLocal::create_ui()
 			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(4), load_texture_from_cache("full"), sprite_batch),
 		create_text("P5", 0.15f, 25.0f));
 	p5->SetIsActive(false);
+	p5->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p5);
 
 	UIElement* p6 = new UIElement("P6Score",
@@ -214,8 +219,15 @@ int ConquestLocal::create_ui()
 			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(5), load_texture_from_cache("full"), sprite_batch),
 		create_text("P6", 0.15f, 25.0f));
 	p6->SetIsActive(false);
+	p6->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p6);
 
+
+	turns_text = new UIElement("NRTurns",
+		k2d::vi2d((tile_size.x * map_size.x) / 2, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 0.0f, 0.0f, 20.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 0), load_texture_from_cache("empty"), sprite_batch),
+		create_text("NRTurns: ", 0.15f, 50.0f));
 
 	return 0;
 }
@@ -241,6 +253,23 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 {
 	game_in_progress = true;
 
+	SimpleAI* tmp1 = dynamic_cast<SimpleAI*>(first);
+	if (tmp1)
+	{
+		k2d::KUSI_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DOGS 1\n");
+		tmp1->SetMapSize(server_sim.GetMapSize());
+		tmp1->SetStartingPosition(server_sim.GetStartingPositions()[0]);
+		tmp1->SetCurrentColorOwned(0);
+	}
+
+	SimpleAI* tmp2 = dynamic_cast<SimpleAI*>(second);
+	if (tmp2)
+	{
+		k2d::KUSI_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DOGS 2\n");
+		tmp2->SetMapSize(server_sim.GetMapSize());
+		tmp2->SetStartingPosition(server_sim.GetStartingPositions()[1]);
+		tmp2->SetCurrentColorOwned(1);
+	}
 
 	server_sim.ConnectToServer(first->GetClientId());
 	server_sim.ConnectToServer(second->GetClientId());
@@ -268,22 +297,10 @@ int ConquestLocal::main_loop()
 	{
 		engine->ReadyRendering();
 
-		if (!game_in_progress)
+		if (!server_sim.GetGameInProgress())
 		{
 			PlayGame(ai_agents.at(0), ai_agents.at(1));
 		}
-
-
-		turns_text = new UIElement("NRTurns",
-			k2d::vi2d((tile_size.x * map_size.x) / 2, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-			new k2d::Sprite(glm::vec2(0.0f, 0.0f), 0.0f, 0.0f, 20.0f,
-				glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 0), load_texture_from_cache("empty"), sprite_batch),
-			create_text("NRTurns: ", 0.15f, 50.0f));
-
-		std::string turn_end_text = "Turns played: " + std::to_string(server_sim.GetTurnsPlayed());
-		turns_text->SetActualText(turn_end_text);
-		turns_text->SetTextOffset(k2d::vf2d(((float)turn_end_text.length() / 2.0f) * -20.f / 2, -2));
-		turns_text->SetIsActive(true);
 
 		server_sim.Update();
 
@@ -294,14 +311,16 @@ int ConquestLocal::main_loop()
 		UpdateButtonColors();
 		UpdateScoreboardColors();
 		UpdateBarColors();
+		UpdateTurnsPlayedText();
 
 
 
-		for (BadAI* ai : ai_agents)
+		for (AI* ai : ai_agents)
 		{
 			// Remove later TODO
 			if (ai->GetInGame())
 			{
+				
 				ai->Update();
 			}
 		}
@@ -509,6 +528,7 @@ void ConquestLocal::UpdateScoreboardColors()
 			std::string scorep1 = std::to_string(players[i].tiles_owned);
 			std::string ui_name = "P" + std::to_string(i + 1) + "Score";
 			get_ui_by_name(ui_name)->GetSprite()->SetColor(skins.at(players[i].num_owned));
+			get_ui_by_name(ui_name)->SetActualText(std::to_string(ai_agents[i]->GetGamesWon()));
 			get_ui_by_name(ui_name)->SetIsActive(true);
 		}
 	}
@@ -529,6 +549,12 @@ void ConquestLocal::UpdateBarColors()
 
 	float start = -tile_size.x / 2;
 	float map_width = tile_size.x * map_size.x;
+
+	for (UIElement* ui : bar)
+	{
+		delete ui;
+	}
+
 	bar.clear();
 
 	// player of this client always goes on the left
@@ -567,6 +593,14 @@ void ConquestLocal::UpdateBarColors()
 		}
 	}
 
+}
+
+void ConquestLocal::UpdateTurnsPlayedText()
+{
+	std::string turn_end_text = "Turns played: " + std::to_string(server_sim.GetTurnsPlayed());
+	turns_text->SetActualText(turn_end_text);
+	turns_text->SetTextOffset(k2d::vf2d(((float)turn_end_text.length() / 2.0f) * -20.f / 2, -2));
+	turns_text->SetIsActive(true);
 }
 
 void ConquestLocal::GetRandomColorFromLoadedSkins(int index)
@@ -642,68 +676,6 @@ int ConquestLocal::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint
 	}
 
 	return num_visited;
-}
-
-void ConquestLocal::HandleAI()
-{
-	num_of_each_color.clear();
-
-	// If its the AI's turn, do ai stuff
-	if (turn_id == player_id)
-	{
-		// BFS on the tilemap for each color
-		for (size_t i = 0; i < num_colors; i++)
-		{
-			num_of_each_color.push_back(std::make_pair(bfs(players[this_player_index].num_owned, i, this_player_index, sc[this_player_index].x, sc[this_player_index].y), i));
-		}
-		// highest first
-		std::sort(num_of_each_color.begin(), num_of_each_color.end(),
-			[](const std::pair<int, int>& a, const std::pair<int, int>& b) -> bool
-			{
-				return a.first > b.first;
-			}
-		);
-
-		auto it = num_of_each_color.begin();
-		while (it != num_of_each_color.end())
-		{
-			if (taken_colors.at(it->second))
-			{
-				it = num_of_each_color.erase(it);
-			}
-			else
-			{
-				it++;
-			}
-
-		}
-
-	}
-
-}
-
-bool ConquestLocal::is_in_range(Unit* finder, Unit* target)
-{
-	if (WorldToGridPos(target->GetPosition()).mag2() >= 1000)
-	{
-		return false;
-	}
-	if (WorldToGridPos(finder->GetPosition()).mag2() >= 1000)
-	{
-		return false;
-	}
-	k2d::vi2d p1 = WorldToGridPos(target->GetPosition());
-	k2d::vi2d p2 = WorldToGridPos(finder->GetPosition());
-	int dx = p1.x - p2.x;
-	int dy = p1.y - p2.y;
-	float sq = k2d::sqrt(dx, dy);
-
-	// Has reached destination?
-	if (sq <= finder->GetAtkRange() + 0.5f) {
-		return true; // while(openList.size() > 0)
-	}
-
-	return false;
 }
 
 int ConquestLocal::load_texture_into_cache(const char* friendly_name, std::string filename)

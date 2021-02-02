@@ -19,8 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\core\AI.cpp" />
-    <ClCompile Include="src\core\BadAI.cpp" />
+    <ClCompile Include="src\ai\AI.cpp" />
+    <ClCompile Include="src\ai\BadAI.cpp" />
+    <ClCompile Include="src\ai\SimpleAI.cpp" />
     <ClCompile Include="src\core\Conquest.cpp" />
     <ClCompile Include="src\core\ConquestLocal.cpp" />
     <ClCompile Include="src\core\Event.cpp" />
@@ -34,9 +35,10 @@
     <ClCompile Include="src\core\Unit.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\core\AI.h" />
+    <ClInclude Include="src\ai\AI.h" />
+    <ClInclude Include="src\ai\BadAI.h" />
+    <ClInclude Include="src\ai\SimpleAI.h" />
     <ClInclude Include="src\core\AStarNode.h" />
-    <ClInclude Include="src\core\BadAI.h" />
     <ClInclude Include="src\core\Conquest.h" />
     <ClInclude Include="src\core\ConquestLocal.h" />
     <ClInclude Include="src\core\Event.h" />

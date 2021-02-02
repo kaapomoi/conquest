@@ -5,7 +5,8 @@
 #include <core/UIElement.h>
 #include <core/UIUnitCard.h>
 #include <core/ServerSim.h>
-#include <core/BadAI.h>
+#include <ai/BadAI.h>
+#include <ai/SimpleAI.h>
 #include <inttypes.h>
 #include <time.h>
 #include <queue>
@@ -44,12 +45,10 @@ public:
 	void UpdateButtonColors();
 	void UpdateScoreboardColors();
 	void UpdateBarColors();
+	void UpdateTurnsPlayedText();
 	
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
-	void HandleAI();
-
-	bool is_in_range(Unit* finder, Unit* target);
 
 
 	int main_loop();
@@ -201,7 +200,7 @@ private:
 	ServerSim server_sim;
 
 	// Vector of AI agents
-	std::vector<BadAI*> ai_agents;
+	std::vector<AI*> ai_agents;
 
 	bool game_in_progress = false;
 };
