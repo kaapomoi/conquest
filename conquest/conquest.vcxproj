@@ -19,19 +19,31 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\AI.cpp" />
+    <ClCompile Include="src\core\BadAI.cpp" />
     <ClCompile Include="src\core\Conquest.cpp" />
+    <ClCompile Include="src\core\ConquestLocal.cpp" />
+    <ClCompile Include="src\core\Event.cpp" />
+    <ClCompile Include="src\core\EventQueue.cpp" />
     <ClCompile Include="src\core\GameObject.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\core\Projectile.cpp" />
+    <ClCompile Include="src\core\ServerSim.cpp" />
     <ClCompile Include="src\core\UIElement.cpp" />
     <ClCompile Include="src\core\UIUnitCard.cpp" />
     <ClCompile Include="src\core\Unit.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\AI.h" />
     <ClInclude Include="src\core\AStarNode.h" />
+    <ClInclude Include="src\core\BadAI.h" />
     <ClInclude Include="src\core\Conquest.h" />
+    <ClInclude Include="src\core\ConquestLocal.h" />
+    <ClInclude Include="src\core\Event.h" />
+    <ClInclude Include="src\core\EventQueue.h" />
     <ClInclude Include="src\core\GameObject.h" />
     <ClInclude Include="src\core\Projectile.h" />
+    <ClInclude Include="src\core\ServerSim.h" />
     <ClInclude Include="src\core\UIElement.h" />
     <ClInclude Include="src\core\UIUnitCard.h" />
     <ClInclude Include="src\core\Unit.h" />

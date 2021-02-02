@@ -1,12 +1,13 @@
 #include <iostream>
 #include <core/Conquest.h>
+#include <core/ConquestLocal.h>
 
 #pragma comment(lib, "Ws2_32.lib")
 
 
 int main(int argc, char** argv)
 {
-	Conquest conq;
+	ConquestLocal conqlocal;
 
 	return 0;
 }

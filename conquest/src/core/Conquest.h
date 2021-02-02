@@ -4,6 +4,7 @@
 #include <core/Unit.h>
 #include <core/UIElement.h>
 #include <core/UIUnitCard.h>
+#include <core/ServerSim.h>
 #include <inttypes.h>
 #include <time.h>
 #include <queue>
