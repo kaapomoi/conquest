@@ -1,6 +1,7 @@
 #include <core/ConquestLocal.h>
 
 ConquestLocal::ConquestLocal() :
+	// Init with mapsize, colors
 	server_sim(k2d::vi2d(40, 30), 6)
 {
 	window_title = "Conquest AI Training";
@@ -11,12 +12,28 @@ ConquestLocal::ConquestLocal() :
 	face = 0;
 	ft = 0;
 
-	fps_target = 6000.0f;
+	fps_target = 60.0f;
 	dt = 0.0000000001;
 
 	camera_mvmt_speed = 200.f;
 
-	if (init_engine() == 0) 
+	spectator_id = 0;
+
+	// Session id from time from 1-1-2000
+	time_t t;
+	struct tm y2k = { 0 };
+	y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
+	y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+	time(&t);
+	int ses_id = difftime(t, mktime(&y2k));
+
+
+	db_dir = "Data/TEST.db";
+	db_handler = new DatabaseHandler(ses_id, db_dir);
+
+	db_handler->CreateMatchesTable();
+
+	if (init_engine() == 0)
 	{
 		// Init game
 		init_game();
@@ -223,7 +240,6 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	SimpleAI* tmp1 = dynamic_cast<SimpleAI*>(first);
 	if (tmp1)
 	{
-		k2d::KUSI_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DOGS 1\n");
 		tmp1->SetMapSize(server_sim.GetMapSize());
 		tmp1->SetStartingPosition(server_sim.GetStartingPositions()[0]);
 		tmp1->SetCurrentColorOwned(0);
@@ -232,7 +248,6 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	SimpleAI* tmp2 = dynamic_cast<SimpleAI*>(second);
 	if (tmp2)
 	{
-		k2d::KUSI_DEBUG("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!DOGS 2\n");
 		tmp2->SetMapSize(server_sim.GetMapSize());
 		tmp2->SetStartingPosition(server_sim.GetStartingPositions()[1]);
 		tmp2->SetCurrentColorOwned(1);
@@ -271,7 +286,11 @@ int ConquestLocal::main_loop()
 			PlayGame(ai_agents.at(0), ai_agents.at(1));
 		}
 
+
+
+
 		server_sim.Update();
+
 
 		tilemap = server_sim.GetBoardState();
 		players = server_sim.GetPlayers();
@@ -287,11 +306,12 @@ int ConquestLocal::main_loop()
 		for (AI* ai : ai_agents)
 		{
 			// Remove later TODO
-			if (ai->GetInGame())
-			{
-				ai->Update();
-			}
+			ai->Update();
 		}
+
+		Event e = server_sim.GetNextEventFromQueue(spectator_id);
+
+		HandleEvent(e);
 
 		timer_counter += dt;
 
@@ -333,6 +353,7 @@ int ConquestLocal::main_loop()
 
 void ConquestLocal::update_input()
 {
+
 	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_LEFT))
 	{
 		// Check which button is pressed.
@@ -359,6 +380,20 @@ void ConquestLocal::update_input()
 				}
 			}
 		}
+	}
+
+
+	// Raise target fps
+	if (engine->GetInputManager().IsKeyPressed(SDLK_F2))
+	{
+		fps_target += 1.0f;
+		engine->SetTargetFps(fps_target);
+	}
+	// LOwer target fps
+	if (engine->GetInputManager().IsKeyPressed(SDLK_F3))
+	{
+		fps_target -= 1.0f;
+		engine->SetTargetFps(fps_target);
 	}
 
 	if (engine->GetInputManager().IsKeyPressed(SDLK_1))
@@ -438,10 +473,30 @@ void ConquestLocal::UpdateTileColors()
 
 void ConquestLocal::UpdateButtonColors()
 {
-	// Buttons
+	//Clear UI elements, except mousecoords
+	for (int i = 0; i < buttons.size(); i++)
+	{
+		delete buttons.at(i);
+	}
+	buttons.resize(0);
+
+
+	// Create UI Color Buttons for input
 	for (size_t i = 0; i < num_colors; i++)
 	{
-		buttons.at(i)->GetSprite()->SetColor(skins.at(i));
+		UIElement* button = new UIElement("Button",
+			k2d::vi2d(-tile_size.x / 2 + tile_size.x * 2 + tile_size.x * 4 * i, -tile_size.y * 4 + tile_size.y / 2),
+			new k2d::Sprite(glm::vec2(0.0f, 0.0f),
+				tile_size.x * 4, tile_size.y * 4, 30.0f,
+				glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(i),
+				load_texture_from_cache("full"), sprite_batch),
+			0);
+		// If the color is taken, hide the button
+		if (taken_colors.at(i) == true)
+		{
+			button->SetIsActive(false);
+		}
+		buttons.push_back(button);
 	}
 }
 
@@ -762,4 +817,60 @@ std::map<GLchar, k2d::Character> ConquestLocal::LoadChars()
 	FT_Done_FreeType(ft);
 
 	return characters;
+}
+
+
+void ConquestLocal::HandleEvent(Event& e)
+{
+	switch (e.GetType())
+	{
+	case EventType::GAME_OVER:
+	{
+		// If the game is over, create a database entry for the match
+		std::string data = e.GetData();
+
+		std::string delimiter = ":";
+
+		size_t pos = 0;
+		std::string token;
+		std::vector<std::string> tokens;
+		while ((pos = data.find(delimiter)) != std::string::npos) {
+			token = data.substr(0, pos);
+			tokens.push_back(token);
+			data.erase(0, pos + delimiter.length());
+		}
+
+		int winner_id = (std::stoi(tokens[0]));
+		int turns_played = (std::stoi(tokens[1]));
+		int match_id = std::stoi(data);
+		
+		// Get the turns made in the game
+		std::vector<int> turn_history = server_sim.GetTurnHistory();
+
+		db_handler->InsertMatchData(match_id, winner_id, turns_played, turn_history);
+
+		// Store the Match id
+		// Store the winners id 
+		// Store the num_turns
+
+		break;
+	}
+	case EventType::TURN_CHANGE:
+	{
+		std::string data = e.GetData();
+		// turn agents id = std::stoi(data));
+
+		taken_colors = server_sim.GetTakenColors();
+
+
+		break;
+	}
+	case EventType::INVALID_COLOR:
+	{
+
+		break;
+	}
+	default:
+		break;
+	}
 }

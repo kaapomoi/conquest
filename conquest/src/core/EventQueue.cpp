@@ -34,7 +34,25 @@ Event EventQueue::GetNextEvent(int client_id)
 
 		// Get the next event 
 		Event& e = events.front();
-		// Remove the subscription from the event
+
+		//// Returns the first event whose client ids contain client_id
+		//auto it = std::find_if(events.begin(), events.end(), [client_id](Event& ev) { 
+		//	std::vector<int> v = ev.GetClientIds();
+		//	if (v.empty())
+		//	{
+		//		return false;
+		//	}
+		//	// If the client ids are not empty, try to find the client_id
+		//	if (std::find(v.begin(), v.end(), client_id) != v.end()) {
+		//		return true;
+		//	}
+		//	else {
+		//		return false;
+		//	}
+		//});
+		//
+		//// Remove the subscription from the event
+		
 		e.RemoveClientID(client_id);
 	
 		// Return the event
@@ -55,11 +73,17 @@ void EventQueue::Update()
 {
 	if (events.size() > 0)
 	{
-
 		// If everyone that is suppposed to read the message have read the message, remove it from the queue
-		if (events.front().ReadyToRemove())
+		auto it = std::find_if(events.begin(), events.end(), [](Event& ev) {
+			std::vector<int> v = ev.GetClientIds();
+			if (v.empty())
+			{
+				return true;
+			}
+		});
+		if (it != events.end())
 		{
-			PopFirst();
+			events.erase(it);
 		}
 	}
 }

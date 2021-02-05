@@ -11,6 +11,8 @@ const int DEFAULT_WHOSE_TURN = 0;
 const int DEFAULT_NUM_TURNS = 0;
 const int MAX_PLAYERS = 4;
 
+const int SPECTATOR_ID = 0;
+
 typedef struct {
 	int id;
 	uint8_t num_owned;
@@ -39,7 +41,7 @@ public:
 	void ReceiveInput(int player_id, int input_number);
 
 	// Start a game with the players connected to the "server"
-	void StartGame();
+	int StartGame();
 
 	// Get the tilemap
 	std::vector<std::vector<tile>> GetBoardState();
@@ -51,6 +53,7 @@ public:
 	std::vector<player_t> GetPlayers();
 
 	std::vector<k2d::vi2d> GetStartingPositions();
+	std::vector<int> GetTurnHistory();
 
 	int GetTurnsPlayed();
 	bool GetGameInProgress();
@@ -59,6 +62,7 @@ public:
 	void Update();
 
 	k2d::vi2d GetMapSize();
+
 
 // Private functions
 private:
@@ -88,7 +92,7 @@ private:
     // Breadth-first-search algorithm that changes the owner of all floodfillable tiles
 	int bfs_owner_change(k2d::vi2d map_size, uint8_t x, uint8_t y, uint8_t new_owner, uint8_t color);
 
-	
+
 
 // Private variables
 private:
@@ -99,9 +103,13 @@ private:
 	// The number of colors in the game
 	int NR_OF_COLORS;
 	// Running id for events
-	int running_id;
+	int event_id_running;
+	// Match id, running
+	int match_id_running;
 
 	bool game_in_progress;
+
+	std::vector<int> turn_history;
 
 	// Keep track of taken colors
 	std::vector<bool> taken_colors;

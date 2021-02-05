@@ -10,6 +10,9 @@
     <Filter Include="src\ai">
       <UniqueIdentifier>{7b1812e0-435f-4452-b97a-096f6949399a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\util">
+      <UniqueIdentifier>{6ffa46d5-5621-4524-81d8-d646a50b36e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Conquest.cpp">
@@ -44,6 +47,12 @@
     </ClCompile>
     <ClCompile Include="src\ai\AI.cpp">
       <Filter>src\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\sqlite3.c">
+      <Filter>src\util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\DatabaseHandler.cpp">
+      <Filter>src\util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,5 +89,14 @@
     <ClInclude Include="src\ai\SimpleAI.h">
       <Filter>src\ai</Filter>
     </ClInclude>
+    <ClInclude Include="src\util\sqlite3.h">
+      <Filter>src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\DatabaseHandler.h">
+      <Filter>src\util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

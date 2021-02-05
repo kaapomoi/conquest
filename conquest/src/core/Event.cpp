@@ -55,3 +55,8 @@ EventType Event::GetType()
 {
 	return event_type;
 }
+
+std::vector<int> Event::GetClientIds()
+{
+	return client_ids;
+}

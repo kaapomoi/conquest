@@ -1,9 +1,4 @@
-﻿  Conquest.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\Unit.h(4,10): fatal error C1083: Cannot open include file: 'core/Projectile.h': No such file or directory
-  ConquestLocal.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\Unit.h(4,10): fatal error C1083: Cannot open include file: 'core/Projectile.h': No such file or directory
-  Unit.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\Unit.h(4,10): fatal error C1083: Cannot open include file: 'core/Projectile.h': No such file or directory
-  main.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\Unit.h(4,10): fatal error C1083: Cannot open include file: 'core/Projectile.h': No such file or directory
-  Generating Code...
+﻿  EventQueue.cpp
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\EventQueue.cpp(15,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\EventQueue.cpp(83): warning C4715: '<lambda_4866791c676a665df62f56552723412a>::operator()': not all control paths return a value
+  conquest.vcxproj -> C:\Users\Kaapo\Projects\conquest\conquest\\build\Debug\conquest.exe

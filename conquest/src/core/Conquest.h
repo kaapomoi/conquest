@@ -1,9 +1,8 @@
 #pragma once 
 
 #include <core/Engine.h>
-#include <core/Unit.h>
+#include <core/GameObject.h>
 #include <core/UIElement.h>
-#include <core/UIUnitCard.h>
 #include <core/ServerSim.h>
 #include <inttypes.h>
 #include <time.h>
@@ -43,9 +42,6 @@ public:
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
 	void HandleAI();
-
-	bool is_in_range(Unit* finder, Unit* target);
-
 
 	int SendCommandToServer(uint8_t code, bool& should_do_something);
 
@@ -170,8 +166,6 @@ private:
 	UIElement*				turns_text;
 
 
-
-	UIUnitCard*				ui_unit_card;
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;
 	std::vector<k2d::Color> skins;

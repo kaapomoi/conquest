@@ -6,6 +6,7 @@
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
+#include <util/DatabaseHandler.h>
 #include <inttypes.h>
 #include <time.h>
 #include <queue>
@@ -94,6 +95,8 @@ public:
 	}
 
 private:
+	void HandleEvent(Event &e);
+
 	// Engine variables
 	k2d::Engine* engine;
 	k2d::SpriteBatch* sprite_batch;
@@ -150,7 +153,7 @@ private:
 	double timer_counter;
 	k2d::vi2d map_size;
 
-	int player_id;
+	int spectator_id;
 
 	int num_players = 0;
 
@@ -171,4 +174,8 @@ private:
 	std::vector<AI*> ai_agents;
 
 	bool game_in_progress = false;
+
+	// Database
+	DatabaseHandler* db_handler;
+	const char* db_dir;
 };

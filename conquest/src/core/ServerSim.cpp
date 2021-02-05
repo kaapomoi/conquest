@@ -3,7 +3,8 @@
 ServerSim::ServerSim(k2d::vi2d map_size, int num_colors) :
     num_turns(DEFAULT_NUM_TURNS),
     whose_turn(DEFAULT_WHOSE_TURN),
-    running_id(1),
+    event_id_running(1),
+    match_id_running(0),
     map_size(map_size),
     NR_OF_COLORS(num_colors),
     game_in_progress(false)
@@ -53,6 +54,7 @@ bool ServerSim::ConnectToServer(int player_id)
 
 void ServerSim::DisconnectFromServer(int player_id)
 {
+    player_ids.erase(std::remove(player_ids.begin(), player_ids.end(), player_id), player_ids.end());
     players.erase(std::remove_if(players.begin(), players.end(), [player_id](player_t p) {return p.id == player_id; }), players.end());
 }
 
@@ -97,6 +99,10 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
                 //k2d::KUSI_DEBUG("Client with id: %d sent number: %d\n", id, recv_num);
 
+                // Add the color to the turn history
+                turn_history.push_back(recv_num);
+                
+
                 // Change the color of already owned tiles
                 flood_fill_color_change(map_size, x, y, whose_turn, recv_num);
                 // Change the ownership of all same colored tiles
@@ -124,13 +130,16 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 // check if all the tiles are owned 
                 if (num_tiles_owned >= (map_size.x * map_size.y))
                 {
-                    Event e(EventType::GAME_OVER, running_id++, player_ids);
-
+                    Event e(EventType::GAME_OVER, event_id_running++, player_ids);
+                    
+                    // Sub the spectator too
+                    e.SubscribeAClientId(SPECTATOR_ID);
                     // Format:
                     // <winner_id>:<num_turns>
 
                     e.SetData(std::to_string(players.at(most_tiles_index).id));
                     e.AppendToData(std::to_string(num_turns));
+                    e.AppendToData(std::to_string(match_id_running));
 
                     // push the end game event to the event queue
                     event_queue.AddItem(e);
@@ -138,8 +147,9 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 }
                 else
                 {
-                    Event e(EventType::TURN_CHANGE, running_id++, player_ids);
-
+                    Event e(EventType::TURN_CHANGE, event_id_running++, player_ids);
+                    // Sub the spectator too
+                    e.SubscribeAClientId(SPECTATOR_ID);
                     // Format:
                     // <whose_turn.id>
 
@@ -158,7 +168,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 printf("Not a valid color to change to\n");
 
                 // Only subscribe the sender of the invalid color to the event
-                Event e(EventType::INVALID_COLOR, running_id++, std::vector<int> {players[found_index].id});
+                Event e(EventType::INVALID_COLOR, event_id_running++, std::vector<int> {players[found_index].id});
 
                 // Format:
                 // <recv_num>
@@ -180,12 +190,18 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
 }
 
-void ServerSim::StartGame()
+int ServerSim::StartGame()
 {
     game_in_progress = true;
+    match_id_running++;
+
+    turn_history.clear();
+
     create_game(players.size());
 
     init_players_and_taken_colors();
+
+    return 1;
 }
 
 std::vector<std::vector<tile>> ServerSim::GetBoardState()
@@ -212,6 +228,11 @@ std::vector<player_t> ServerSim::GetPlayers()
 std::vector<k2d::vi2d> ServerSim::GetStartingPositions()
 {
     return s_pos;
+}
+
+std::vector<int> ServerSim::GetTurnHistory()
+{
+    return turn_history;
 }
 
 int ServerSim::GetTurnsPlayed()

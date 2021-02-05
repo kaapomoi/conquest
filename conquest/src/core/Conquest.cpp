@@ -257,14 +257,6 @@ int Conquest::create_ui()
 	return 0;
 }
 
-int Conquest::create_ui_unit_card()
-{
-	ui_unit_card = new UIUnitCard("unitcard", k2d::vi2d(0, 0), 100, 300, new k2d::Sprite(glm::vec2(0.0f, 0.0f), 100, 300, 20.0f,
-		glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255, 255, 255, 255), load_texture_from_cache("unitcard"), sprite_batch), 0, sprite_batch, font1);
-
-	return 0;
-}
-
 int Conquest::run()
 {
 	engine->RunExternalLoop(fps_target);
@@ -946,29 +938,7 @@ void Conquest::update_input()
 	}
 }
 
-bool Conquest::is_in_range(Unit* finder, Unit* target)
-{
-	if (WorldToGridPos(target->GetPosition()).mag2() >= 1000)
-	{
-		return false;
-	}
-	if (WorldToGridPos(finder->GetPosition()).mag2() >= 1000)
-	{
-		return false;
-	}
-	k2d::vi2d p1 = WorldToGridPos(target->GetPosition());
-	k2d::vi2d p2 = WorldToGridPos(finder->GetPosition());
-	int dx = p1.x - p2.x;
-	int dy = p1.y - p2.y;
-	float sq = k2d::sqrt(dx, dy);
 
-	// Has reached destination?
-	if (sq <= finder->GetAtkRange() + 0.5f) {
-		return true; // while(openList.size() > 0)
-	}
-
-	return false;
-}
 
 int Conquest::SendCommandToServer(uint8_t code, bool& should_do_something)
 {

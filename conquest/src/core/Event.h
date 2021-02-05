@@ -35,6 +35,7 @@ public:
 
 	std::string GetData();
 	EventType GetType();
+	std::vector<int> GetClientIds();
 
 protected:
 	// This is a running id

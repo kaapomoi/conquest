@@ -32,9 +32,10 @@ void BadAI::Update()
 			data.erase(0, pos + delimiter.length());
 		}
 
-		int winner_id = (std::stoi(token));
-		int turns_played = (std::stoi(data));
-		
+		int winner_id = (std::stoi(tokens[0]));
+		int turns_played = (std::stoi(tokens[1]));
+		int match_id = std::stoi(data);
+
 		if (winner_id == client_id)
 		{
 			AddGameWon();
