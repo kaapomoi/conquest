@@ -13,7 +13,6 @@ namespace k2d
 		window(),
 		running(false)
 	{
-
 		//graphics_system = GraphicsSystem();
 		input_manager = InputManager();
 		graphics_system = GraphicsSystem();

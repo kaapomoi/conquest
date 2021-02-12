@@ -51,6 +51,7 @@
     <ClInclude Include="src\util\ImageLoader.h" />
     <ClInclude Include="src\util\InputManager.h" />
     <ClInclude Include="src\util\picoPNG.h" />
+    <ClInclude Include="src\util\random.hpp" />
     <ClInclude Include="src\util\util.h" />
     <ClInclude Include="src\util\vecs.h" />
   </ItemGroup>

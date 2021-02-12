@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\ai\AI.cpp" />
     <ClCompile Include="src\ai\BadAI.cpp" />
+    <ClCompile Include="src\ai\NeuralAI.cpp" />
     <ClCompile Include="src\ai\SimpleAI.cpp" />
     <ClCompile Include="src\core\Conquest.cpp" />
     <ClCompile Include="src\core\ConquestLocal.cpp" />
@@ -30,12 +31,15 @@
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\core\ServerSim.cpp" />
     <ClCompile Include="src\core\UIElement.cpp" />
+    <ClCompile Include="src\neuralnet\NeuralNet.cpp" />
+    <ClCompile Include="src\neuralnet\Neuron.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
     <ClCompile Include="src\util\sqlite3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ai\AI.h" />
     <ClInclude Include="src\ai\BadAI.h" />
+    <ClInclude Include="src\ai\NeuralAI.h" />
     <ClInclude Include="src\ai\SimpleAI.h" />
     <ClInclude Include="src\core\AStarNode.h" />
     <ClInclude Include="src\core\Conquest.h" />
@@ -45,6 +49,8 @@
     <ClInclude Include="src\core\GameObject.h" />
     <ClInclude Include="src\core\ServerSim.h" />
     <ClInclude Include="src\core\UIElement.h" />
+    <ClInclude Include="src\neuralnet\NeuralNet.h" />
+    <ClInclude Include="src\neuralnet\Neuron.h" />
     <ClInclude Include="src\util\DatabaseHandler.h" />
     <ClInclude Include="src\util\sqlite3.h" />
   </ItemGroup>

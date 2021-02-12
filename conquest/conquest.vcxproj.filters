@@ -13,6 +13,9 @@
     <Filter Include="src\util">
       <UniqueIdentifier>{6ffa46d5-5621-4524-81d8-d646a50b36e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\neuralnet">
+      <UniqueIdentifier>{cb929066-5235-46d0-9b83-0a37a02a14fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\Conquest.cpp">
@@ -54,6 +57,15 @@
     <ClCompile Include="src\util\DatabaseHandler.cpp">
       <Filter>src\util</Filter>
     </ClCompile>
+    <ClCompile Include="src\ai\NeuralAI.cpp">
+      <Filter>src\ai</Filter>
+    </ClCompile>
+    <ClCompile Include="src\neuralnet\Neuron.cpp">
+      <Filter>src\neuralnet</Filter>
+    </ClCompile>
+    <ClCompile Include="src\neuralnet\NeuralNet.cpp">
+      <Filter>src\neuralnet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Conquest.h">
@@ -94,6 +106,15 @@
     </ClInclude>
     <ClInclude Include="src\util\DatabaseHandler.h">
       <Filter>src\util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ai\NeuralAI.h">
+      <Filter>src\ai</Filter>
+    </ClInclude>
+    <ClInclude Include="src\neuralnet\Neuron.h">
+      <Filter>src\neuralnet</Filter>
+    </ClInclude>
+    <ClInclude Include="src\neuralnet\NeuralNet.h">
+      <Filter>src\neuralnet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

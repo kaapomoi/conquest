@@ -145,7 +145,7 @@ int ConquestLocal::create_ai()
 	int pop_size = 10;
 
 	ai_agents.push_back(new SimpleAI(1, &server_sim));
-	ai_agents.push_back(new SimpleAI(2, &server_sim));
+	ai_agents.push_back(new NeuralAI(2, &server_sim));
 
 
 	return 0;

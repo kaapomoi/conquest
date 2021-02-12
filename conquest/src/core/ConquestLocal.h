@@ -6,6 +6,7 @@
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
+#include <ai/NeuralAI.h>
 #include <util/DatabaseHandler.h>
 #include <inttypes.h>
 #include <time.h>

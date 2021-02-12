@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <deque>
+#include <util/random.hpp>
 #include <SDL/SDL.h>
 #include <util/vecs.h>
 

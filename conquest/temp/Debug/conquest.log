@@ -1,4 +1,3 @@
-﻿  DatabaseHandler.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\util\DatabaseHandler.cpp(17,11): warning C4150: deletion of pointer to incomplete type 'sqlite3'; no destructor called
-C:\Users\Kaapo\Projects\conquest\conquest\src\util\sqlite3.h(249): message : see declaration of 'sqlite3'
+﻿  Neuron.cpp
+C:\Users\Kaapo\Projects\conquest\conquest\src\neuralnet\Neuron.cpp(35,20): warning C4018: '<': signed/unsigned mismatch
   conquest.vcxproj -> C:\Users\Kaapo\Projects\conquest\conquest\\build\Debug\conquest.exe

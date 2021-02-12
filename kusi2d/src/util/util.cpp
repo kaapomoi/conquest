@@ -64,4 +64,5 @@ namespace k2d
 	{
 		return _deg * 3.14159265359f / 180;
 	}
+
 }
