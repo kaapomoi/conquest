@@ -69,19 +69,12 @@ int DatabaseHandler::InsertData(std::string sql_data)
 }
 
 
-int DatabaseHandler::InsertMatchData(int match_id, int winner_id, int turns_played, std::vector<int> turn_history)
+int DatabaseHandler::InsertMatchData(int match_id, int winner_id, int turns_played, std::string turn_history_string, std::string initial_board_state_str)
 {
 	std::string sql;
-	std::string turns_str;
 
-	for (size_t i = 0; i < turn_history.size(); i++)
-	{
-		turns_str += std::to_string(turn_history.at(i)) + ",";
-	}
-	turns_str += "000";
-
-	sql = "INSERT INTO MATCHES_" + std::to_string(session_id) + "(MATCHID, WINNERID, NUM_TURNS, TURNS) VALUES(" + std::to_string(match_id)
-		+ ", " + std::to_string(winner_id) + ", " + std::to_string(turns_played) + ",'" + turns_str + "'); ";
+	sql = "INSERT INTO MATCHES_" + std::to_string(session_id) + "(MATCHID, WINNERID, NUM_TURNS, TURNS, INITIALBOARD) VALUES(" + std::to_string(match_id)
+		+ ", " + std::to_string(winner_id) + ", " + std::to_string(turns_played) + ",'" + turn_history_string + "'," + "'" + initial_board_state_str + "'); ";
 
 	std::cout << sql << "\n";
 
@@ -92,12 +85,12 @@ int DatabaseHandler::InsertMatchData(int match_id, int winner_id, int turns_play
 
 int DatabaseHandler::CreateMatchesTable()
 {
-
 	std::string sql = "CREATE TABLE IF NOT EXISTS MATCHES_" + std::to_string(session_id) + "("
 		"MATCHID INTEGER PRIMARY KEY, "
 		"WINNERID	INT NOT NULL, "
 		"NUM_TURNS	INT NOT NULL, "
-		"TURNS		CHAR); ";
+		"TURNS		TEXT, "
+		"INITIALBOARD TEXT);";
 
 	CreateTable(sql);
 	return 0;

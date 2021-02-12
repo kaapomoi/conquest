@@ -132,6 +132,14 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 {
                     Event e(EventType::GAME_OVER, event_id_running++, player_ids);
                     
+                    // Create the turn history string
+                    std::string turn_history_str = "";
+                    for (size_t i = 0; i < turn_history.size(); i++)
+                    {
+                        turn_history_str += std::to_string(turn_history.at(i));
+                    }
+
+
                     // Sub the spectator too
                     e.SubscribeAClientId(SPECTATOR_ID);
                     // Format:
@@ -140,6 +148,9 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                     e.SetData(std::to_string(players.at(most_tiles_index).id));
                     e.AppendToData(std::to_string(num_turns));
                     e.AppendToData(std::to_string(match_id_running));
+                    e.AppendToData(turn_history_str);
+                    e.AppendToData(initial_board_state);
+
 
                     // push the end game event to the event queue
                     event_queue.AddItem(e);
@@ -200,6 +211,8 @@ int ServerSim::StartGame()
     create_game(players.size());
 
     init_players_and_taken_colors();
+
+    tilemap_to_string();
 
     return 1;
 }
@@ -470,6 +483,22 @@ int ServerSim::bfs_owner_change(k2d::vi2d map_size, uint8_t x, uint8_t y, uint8_
 
     return num_visited;
  
+}
+
+void ServerSim::tilemap_to_string()
+{
+    initial_board_state = "";
+    std::string res;
+
+    for (size_t y = 0; y < map_size.y; y++)
+    {
+        for (size_t x = 0; x < map_size.x; x++)
+        {
+            res += std::to_string(tilemap[y][x].color);
+        }
+    }
+
+    initial_board_state = res;
 }
 
 void ServerSim::Update()

@@ -32,8 +32,11 @@ void SimpleAI::Update()
 				data.erase(0, pos + delimiter.length());
 			}
 
-			int winner_id = (std::stoi(token));
-			int turns_played = (std::stoi(data));
+			int winner_id = (std::stoi(tokens[0]));
+			int turns_played = (std::stoi(tokens[1]));
+			int match_id = std::stoi(tokens[2]);
+			std::string encoded_turn_history = tokens[3];
+			std::string initial_board_state = data;
 		
 			if (winner_id == client_id)
 			{

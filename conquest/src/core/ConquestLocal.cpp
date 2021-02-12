@@ -842,12 +842,11 @@ void ConquestLocal::HandleEvent(Event& e)
 
 		int winner_id = (std::stoi(tokens[0]));
 		int turns_played = (std::stoi(tokens[1]));
-		int match_id = std::stoi(data);
-		
-		// Get the turns made in the game
-		std::vector<int> turn_history = server_sim.GetTurnHistory();
+		int match_id = std::stoi(tokens[2]);
+		std::string encoded_turn_history = tokens[3];
+		std::string initial_board_state = data;
 
-		db_handler->InsertMatchData(match_id, winner_id, turns_played, turn_history);
+		db_handler->InsertMatchData(match_id, winner_id, turns_played, encoded_turn_history, initial_board_state);
 
 		// Store the Match id
 		// Store the winners id 

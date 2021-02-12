@@ -92,6 +92,7 @@ private:
     // Breadth-first-search algorithm that changes the owner of all floodfillable tiles
 	int bfs_owner_change(k2d::vi2d map_size, uint8_t x, uint8_t y, uint8_t new_owner, uint8_t color);
 
+	void tilemap_to_string();
 
 
 // Private variables
@@ -124,6 +125,9 @@ private:
 	std::vector<player_t> players;
 	// Connected players' ids
 	std::vector<int> player_ids;
+
+	// Store the initially generated board. 
+	std::string initial_board_state;
 
 	// Random engine
 	std::mt19937 rand_engine;

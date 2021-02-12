@@ -8,7 +8,7 @@ public:
 	DatabaseHandler(int session_id, const char* dir);
 	~DatabaseHandler();
 	// static AddToDatabase(data)
-	int InsertMatchData(int match_id, int winner_id, int turns_played, std::vector<int> turn_history);
+	int InsertMatchData(int match_id, int winner_id, int turns_played, std::string turn_history_string, std::string initial_board_state_str);
 	int CreateMatchesTable();
 
 	void SetDirectory(const char* dir);

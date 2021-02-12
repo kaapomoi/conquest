@@ -1,4 +1,4 @@
-﻿  EventQueue.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\EventQueue.cpp(15,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\EventQueue.cpp(83): warning C4715: '<lambda_4866791c676a665df62f56552723412a>::operator()': not all control paths return a value
+﻿  DatabaseHandler.cpp
+C:\Users\Kaapo\Projects\conquest\conquest\src\util\DatabaseHandler.cpp(17,11): warning C4150: deletion of pointer to incomplete type 'sqlite3'; no destructor called
+C:\Users\Kaapo\Projects\conquest\conquest\src\util\sqlite3.h(249): message : see declaration of 'sqlite3'
   conquest.vcxproj -> C:\Users\Kaapo\Projects\conquest\conquest\\build\Debug\conquest.exe
