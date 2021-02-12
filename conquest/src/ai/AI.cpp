@@ -63,3 +63,8 @@ int AI::GetGamesWon()
 {
 	return games_won;
 }
+
+int AI::GetTilesOwned()
+{
+	return tiles_owned;
+}

@@ -35,6 +35,7 @@ public:
 
 	virtual int GetGamesPlayed();
 	virtual int GetGamesWon();
+	virtual int GetTilesOwned();
 
 protected:
 	ServerSim* server;
@@ -46,4 +47,5 @@ protected:
 	int client_id;
 	int current_turn_players_id;
 	int which_player_am_i;
+	int tiles_owned;
 };

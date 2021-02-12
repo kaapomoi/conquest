@@ -17,7 +17,10 @@ public:
 
 	Event GetNextEventFromServer() override;
 
+	NeuralNet* GetNeuralNet();
+
 protected:
+
 	// Random engine
 	std::mt19937 rand_engine;
 

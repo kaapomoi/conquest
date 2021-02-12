@@ -132,21 +132,18 @@ int ConquestLocal::init_game()
 	return 0;
 }
 
-int ConquestLocal::create_objects()
-{
-
-	
-	
-	return 0;
-}
-
 int ConquestLocal::create_ai()
 {
 	int pop_size = 10;
 
-	ai_agents.push_back(new SimpleAI(1, &server_sim));
-	ai_agents.push_back(new NeuralAI(2, &server_sim));
+	default_simple_ai = new SimpleAI(1, &server_sim);
 
+	running_agent_id = 2;
+
+	for (size_t i = 0; i < pop_size; i++)
+	{
+		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim));
+	}
 
 	return 0;
 }
@@ -268,6 +265,7 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	first->SetWhichPlayerAmI(0);
 	second->SetWhichPlayerAmI(1);
 
+
 	server_sim.StartGame();
 
 	return 0;
@@ -281,16 +279,23 @@ int ConquestLocal::main_loop()
 
 		if (!server_sim.GetGameInProgress())
 		{
-			server_sim.DisconnectFromServer(ai_agents.at(0)->GetClientId());
-			server_sim.DisconnectFromServer(ai_agents.at(1)->GetClientId());
-			PlayGame(ai_agents.at(0), ai_agents.at(1));
+			server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
+			server_sim.DisconnectFromServer(default_simple_ai->GetClientId());
+			last_played_index++;
+
+			// One epoch done
+			if (last_played_index >= ai_agents.size())
+			{
+				// 
+				GeneticAlgorithm();
+				last_played_index = 0;
+			}
+
+			// Running agent vs. simpleAI
+			PlayGame(ai_agents.at(last_played_index), default_simple_ai);
 		}
 
-
-
-
 		server_sim.Update();
-
 
 		tilemap = server_sim.GetBoardState();
 		players = server_sim.GetPlayers();
@@ -308,6 +313,8 @@ int ConquestLocal::main_loop()
 			// Remove later TODO
 			ai->Update();
 		}
+
+		default_simple_ai->Update();
 
 		Event e = server_sim.GetNextEventFromQueue(spectator_id);
 
@@ -349,6 +356,84 @@ int ConquestLocal::main_loop()
 	}
 
 	return 0;
+}
+
+void ConquestLocal::GeneticAlgorithm()
+{
+	// fitness
+	//ai_agents.at(0)->GetTilesOwned();
+	float top_percentile = 0.4f;
+
+	int num_agents = ai_agents.size();
+
+	int mutation_rate = 10;
+
+	// Sort best first
+	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool 
+	{
+		return a->GetTilesOwned() > b->GetTilesOwned();
+	});
+
+	int cutoff_index = ceil(top_percentile * ai_agents.size());
+	// Pick top some % for breeding
+	for (size_t i = cutoff_index; i < ai_agents.size(); i++)
+	{
+		delete ai_agents[i];
+	}
+	ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
+
+	// Breed new AIs until we have the original amount of agents
+	while (ai_agents.size() < num_agents)
+	{
+
+		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[0]);
+		NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[1]);
+		ai_agents.push_back(Crossbreed(tmp1, tmp2));
+		ai_agents.back()->SetClientId(running_agent_id++);
+
+
+
+	}
+
+
+
+	// Mutate the agents
+
+
+
+
+	return;
+
+}
+
+NeuralAI* ConquestLocal::Crossbreed(NeuralAI* a, NeuralAI* b)
+{
+	// Init the new ai with a's data
+	NeuralAI* res = new NeuralAI(*a);
+
+	std::vector<std::vector<Neuron>>& a_layers = res->GetNeuralNet()->GetLayers();
+	std::vector<std::vector<Neuron>>& b_layers = b->GetNeuralNet()->GetLayers();
+
+	for (int i = 0; i < a_layers.size(); i++)
+	{
+		int cutoff = Random::get(0, (int)a_layers[i].size() - 1);
+
+		for (int j = cutoff; j < a_layers[i].size(); j++)
+		{
+			int num_weights = (int)a_layers[i][j].output_weights.size();
+			cutoff = Random::get(0, num_weights-1);
+
+			for (size_t k = cutoff; k < num_weights; k++)
+			{
+				a_layers[i][j].output_weights[k] = b_layers[i][j].output_weights[k];
+			}
+		}
+
+	}
+
+
+
+	return res;
 }
 
 void ConquestLocal::update_input()
@@ -511,7 +596,7 @@ void ConquestLocal::UpdateScoreboardColors()
 			std::string scorep1 = std::to_string(players[i].tiles_owned);
 			std::string ui_name = "P" + std::to_string(i + 1) + "Score";
 			get_ui_by_name(ui_name)->GetSprite()->SetColor(skins.at(players[i].num_owned));
-			get_ui_by_name(ui_name)->SetActualText(std::to_string(ai_agents[i]->GetGamesWon()));
+			//get_ui_by_name(ui_name)->SetActualText(std::to_string(ai_agents[i]->GetGamesWon()));
 			get_ui_by_name(ui_name)->SetIsActive(true);
 		}
 	}
@@ -843,10 +928,12 @@ void ConquestLocal::HandleEvent(Event& e)
 		int winner_id = (std::stoi(tokens[0]));
 		int turns_played = (std::stoi(tokens[1]));
 		int match_id = std::stoi(tokens[2]);
-		std::string encoded_turn_history = tokens[3];
+		int p0_id = std::stoi(tokens[3]);
+		int p1_id = std::stoi(tokens[4]);
+		std::string encoded_turn_history = tokens[5];
 		std::string initial_board_state = data;
 
-		db_handler->InsertMatchData(match_id, winner_id, turns_played, encoded_turn_history, initial_board_state);
+		db_handler->InsertMatchData(match_id, winner_id, turns_played, p0_id, p1_id, encoded_turn_history, initial_board_state);
 
 		// Store the Match id
 		// Store the winners id 

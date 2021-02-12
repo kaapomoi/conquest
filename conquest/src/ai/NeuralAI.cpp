@@ -3,13 +3,14 @@
 NeuralAI::NeuralAI(int id, ServerSim* server_sim) :
 	AI(id, server_sim), 
 	// Set the topology of the net
-	neural_net({(server_sim->GetMapSize().x * server_sim->GetMapSize().y) + 2,
+	neural_net({(server_sim->GetMapSize().x * server_sim->GetMapSize().y) + 3,
 		100,
 		100,
 		100,
 	    (int) server_sim->GetTakenColors().size()})
 {
 	rand_engine.seed(time(NULL));
+	tiles_owned = 0;
 }
 
 NeuralAI::~NeuralAI()
@@ -42,7 +43,9 @@ void NeuralAI::Update()
 		int winner_id = (std::stoi(tokens[0]));
 		int turns_played = (std::stoi(tokens[1]));
 		int match_id = std::stoi(tokens[2]);
-		std::string encoded_turn_history = tokens[3];
+		int p0_id = std::stoi(tokens[3]);
+		int p1_id = std::stoi(tokens[4]);
+		std::string encoded_turn_history = tokens[5];
 		std::string initial_board_state = data;
 
 		if (winner_id == client_id)
@@ -57,8 +60,24 @@ void NeuralAI::Update()
 	case EventType::TURN_CHANGE:
 	{
 		std::string data = e.GetData();
-		SetCurrentTurnPlayersId(std::stoi(data));
-		
+
+		std::string delimiter = ":";
+
+		size_t pos = 0;
+		std::string token;
+		std::vector<std::string> tokens;
+		while ((pos = data.find(delimiter)) != std::string::npos) {
+			token = data.substr(0, pos);
+			tokens.push_back(token);
+			data.erase(0, pos + delimiter.length());
+		}
+
+		SetCurrentTurnPlayersId(std::stoi(tokens[0]));
+
+		if (current_turn_players_id == client_id)
+		{
+			tiles_owned = std::stoi(data);
+		}
 
 		break;
 	}
@@ -93,9 +112,12 @@ void NeuralAI::Update()
 		// Players owned colors
 		board_state_single_dimension.push_back(server->GetPlayers()[0].num_owned);
 		board_state_single_dimension.push_back(server->GetPlayers()[1].num_owned);
+		board_state_single_dimension.push_back(which_player_am_i);
 
+		// Input the board state into the net
 		neural_net.FeedForward(board_state_single_dimension);
 
+		// Get the results from the net
 		neural_net.GetResults(result_vec);
 		results_map.clear();
 
@@ -135,4 +157,9 @@ void NeuralAI::GetTakenColorsFromServer()
 Event NeuralAI::GetNextEventFromServer()
 {
 	return server->GetNextEventFromQueue(client_id);
+}
+
+NeuralNet* NeuralAI::GetNeuralNet()
+{
+	return &neural_net;
 }

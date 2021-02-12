@@ -7,8 +7,8 @@ Neuron::Neuron(int num_outputs, int my_index)
 		output_weights.push_back(RandomWeight());
 	}
 	this->my_index = my_index;
-	this->bias_weight = RandomWeight();
-	k2d::KUSI_DEBUG(", %f %i!\n", bias_weight, my_index);
+	this->bias_weight = 1.0;
+	//k2d::KUSI_DEBUG(", %f %i!\n", bias_weight, my_index);
 }
 
 Neuron::~Neuron()

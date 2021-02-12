@@ -151,6 +151,8 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                     e.SetData(std::to_string(players.at(most_tiles_index).id));
                     e.AppendToData(std::to_string(num_turns));
                     e.AppendToData(std::to_string(match_id_running));
+                    e.AppendToData(std::to_string(players[0].id));
+                    e.AppendToData(std::to_string(players[1].id));
                     e.AppendToData(turn_history_str);
                     e.AppendToData(initial_board_state);
 
@@ -165,9 +167,10 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                     // Sub the spectator too
                     e.SubscribeAClientId(SPECTATOR_ID);
                     // Format:
-                    // <whose_turn.id>
+                    // <whose_turn.id>:<whose_turn.tiles_owned>
 
                     e.SetData(std::to_string(players.at(whose_turn).id));
+                    e.AppendToData(std::to_string(players.at(whose_turn).tiles_owned));
 
                     // push the end game event to the event queue
                     event_queue.AddItem(e);

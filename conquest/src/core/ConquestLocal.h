@@ -19,6 +19,7 @@
 class ConquestLocal
 {
 public:
+	using Random = effolkronium::random_static;
 	ConquestLocal();
 	~ConquestLocal();
 
@@ -34,7 +35,6 @@ public:
 
 	int init_game();
 
-	int create_objects();
 	int create_ui();
 	int run();
 
@@ -46,12 +46,17 @@ public:
 	void UpdateScoreboardColors();
 	void UpdateBarColors();
 	void UpdateTurnsPlayedText();
+
+	NeuralAI* Crossbreed(NeuralAI* a, NeuralAI* b);
 	
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
 
 
 	int main_loop();
+
+	void GeneticAlgorithm();
+
 	void update_input();
 
 
@@ -179,4 +184,11 @@ private:
 	// Database
 	DatabaseHandler* db_handler;
 	const char* db_dir;
+
+
+	// Genetic algo
+	int last_played_index;
+	int running_agent_id;
+
+	SimpleAI* default_simple_ai;
 };

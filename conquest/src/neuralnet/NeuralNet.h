@@ -9,6 +9,7 @@ public:
 	void FeedForward(const std::vector<double>& input_values);
 	void GetResults(std::vector<double>& result_values) const;
 
+	std::vector<std::vector<Neuron>>& GetLayers();
 
 private:
 	std::vector<std::vector<Neuron>> layers;

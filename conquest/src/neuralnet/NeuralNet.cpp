@@ -17,7 +17,7 @@ NeuralNet::NeuralNet(const std::vector<int>& topology)
 		for (int neuron_index = 0; neuron_index < topology[layer_num]; neuron_index++)
 		{
 			layers.back().push_back(Neuron(num_outputs, neuron_index));
-			k2d::KUSI_DEBUG("Made a neuron on layer %d!", layer_num);
+			//k2d::KUSI_DEBUG("Made a neuron on layer %d!", layer_num);
 		}
 	}
 }
@@ -52,4 +52,9 @@ void NeuralNet::GetResults(std::vector<double>& result_values) const
 	{
 		result_values.push_back(layers.back()[n].GetOutputValue());
 	}
+}
+
+std::vector<std::vector<Neuron>>& NeuralNet::GetLayers()
+{
+	return layers;
 }

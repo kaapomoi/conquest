@@ -1,17 +1,218 @@
-﻿  ServerSim.cpp
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\ServerSim.cpp(11,26): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\ServerSim.cpp(107,32): warning C4018: '>=': signed/unsigned mismatch
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\ServerSim.cpp(309,36): warning C4267: '=': conversion from 'size_t' to 'uint8_t', possible loss of data
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.27.29110\include\xmemory(2018,1): error C2678: binary '==': no operator found which takes a left-hand operand of type 'player_t' (or there is no acceptable conversion)
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\shared\guiddef.h(192,15): message : could be 'bool operator ==(const GUID &,const GUID &)' [found using argument-dependent lookup]
-C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.27.29110\include\xmemory(2018,1): message : while trying to match the argument list '(player_t, const _Ty)'
+﻿  ConquestLocal.cpp
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(28,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(143,23): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(162,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
           with
           [
-              _Ty=int
+              T=int32_t
           ]
-C:\Users\Kaapo\Projects\conquest\conquest\src\core\ServerSim.cpp(56): message : see reference to function template instantiation '_FwdIt std::remove<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,int>(_FwdIt,const _FwdIt,const int &)' being compiled
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(162,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
           with
           [
-              _FwdIt=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<player_t>>>,
-              _Ty=player_t
+              T=int32_t
           ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(166,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(171,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(171,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(175,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(180,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(180,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(184,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(189,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(189,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(193,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(198,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(198,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(202,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(207,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(207,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(211,30): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(226,26): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(287,26): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(405,64): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+          and
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(406,64): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+          and
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(408,64): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+          and
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(409,64): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+          and
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(427,24): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(433,24): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(505,90): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(505,77): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(514,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(527,34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(527,17): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(560,18): warning C4244: 'initializing': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(562,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(570,14): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(571,18): warning C4244: 'initializing': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(583,17): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(584,61): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(593,17): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(594,61): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(600,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(606,19): warning C4244: 'argument': conversion from 'float' to 'T', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(607,63): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(736,64): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(736,51): warning C4244: 'argument': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=int32_t
+          ]
+C:\Users\Kaapo\Projects\conquest\conquest\src\core\ConquestLocal.cpp(846,24): warning C4838: conversion from 'FT_Pos' to 'GLuint' requires a narrowing conversion
+  Generating code
+  3 of 5194 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    63 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  conquest.vcxproj -> C:\Users\Kaapo\Projects\conquest\conquest\\build\Release\conquest.exe
