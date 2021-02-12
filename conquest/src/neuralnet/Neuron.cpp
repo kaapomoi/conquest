@@ -43,15 +43,18 @@ void Neuron::FeedForward(const std::vector<Neuron>& prev_layer)
 
 double Neuron::TransferFunction(double in)
 {
-	// Rectified linear unit
-	if (in > 0.0)
-	{
-		return in;
-	}
-	else
-	{
-		return 0.0;
-	}
+	//// Rectified linear unit
+	//if (in > 0.0)
+	//{
+	//	return in;
+	//}
+	//else
+	//{
+	//	return 0.0;
+	//}
+
+	// fast sigmoid
+	return in / (1 + abs(in));
 }
 
 double Neuron::RandomWeight()

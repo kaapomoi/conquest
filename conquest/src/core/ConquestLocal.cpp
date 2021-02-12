@@ -105,7 +105,7 @@ int ConquestLocal::init_game()
 	int b;
 	while (myfile >> r >> g >> b)
 	{
-		loaded_skins.push_back(k2d::Color(r,g,b, 255));
+		loaded_skins.push_back(k2d::Color(r,g,b, 60));
 	}
 	myfile.close();
 

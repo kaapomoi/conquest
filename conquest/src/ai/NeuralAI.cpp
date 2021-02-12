@@ -78,15 +78,48 @@ void NeuralAI::Update()
 
 		int res = -1;
 		// Send the input values in to the neural net
-		//neural_net.FeedForward();
+		std::vector<double> board_state_single_dimension;
+		std::vector<std::vector<tile>> board_state = server->GetBoardState();
 
+		// Convert the 2d array into a single dimension array of doubles
+		for (size_t i = 0; i < board_state.size(); i++)
+		{
+			for (size_t j = 0; j < board_state[i].size(); j++)
+			{
+				board_state_single_dimension.push_back((double)board_state[i][j].color);
+			}
+		}
 
+		// Players owned colors
+		board_state_single_dimension.push_back(server->GetPlayers()[0].num_owned);
+		board_state_single_dimension.push_back(server->GetPlayers()[1].num_owned);
+
+		neural_net.FeedForward(board_state_single_dimension);
+
+		neural_net.GetResults(result_vec);
+		results_map.clear();
+
+		for (size_t i = 0; i < result_vec.size(); i++)
+		{
+			if (taken_colors.at(i) == false)
+			{
+				results_map.push_back(std::make_pair(i, result_vec[i]));
+			}
+		}
+
+		// highest first
+		std::sort(results_map.begin(), results_map.end(),
+			[](const std::pair<double, int>& a, const std::pair<double, int>& b) -> bool
+			{
+				return a.first > b.first;
+			}
+		);
+
+		res = results_map[0].first;
 
 		// Send the number to the server
 		SendInputToServer(res);
 	}
-
-
 }
 
 void NeuralAI::SendInputToServer(int input_num)

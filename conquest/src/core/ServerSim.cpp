@@ -10,6 +10,9 @@ ServerSim::ServerSim(k2d::vi2d map_size, int num_colors) :
     game_in_progress(false)
 {
     rand_engine.seed(time(NULL));
+    taken_colors.resize(num_colors);
+
+    max_turns = 100;
 
     // Initialize the starting positions based on the map size
     s_pos.resize(MAX_PLAYERS);
@@ -128,7 +131,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
                 }
 
                 // check if all the tiles are owned 
-                if (num_tiles_owned >= (map_size.x * map_size.y))
+                if (num_tiles_owned >= (map_size.x * map_size.y) || num_turns >= max_turns)
                 {
                     Event e(EventType::GAME_OVER, event_id_running++, player_ids);
                     

@@ -21,5 +21,8 @@ protected:
 	// Random engine
 	std::mt19937 rand_engine;
 
+	std::vector<double> result_vec;
+	std::vector<std::pair<double, int>> results_map;
+
 	NeuralNet neural_net;
 };

@@ -107,6 +107,8 @@ private:
 	int event_id_running;
 	// Match id, running
 	int match_id_running;
+	// Max turns, after this the game is over
+	int max_turns;
 
 	bool game_in_progress;
 
