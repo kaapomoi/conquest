@@ -1,9 +1,9 @@
 #include <ai/AI.h>
 
 AI::AI(int id, ServerSim* server_sim)
-	:client_id(id), which_player_am_i(0), current_turn_players_id(0), taken_colors(0), ingame(false), server(server_sim)
+	:client_id(id), which_player_am_i(0), current_turn_players_id(0), taken_colors(0), ingame(false), server(server_sim), games_played(0), games_won(0), tiles_owned(0)
 {
-		
+	
 }
 
 AI::~AI()

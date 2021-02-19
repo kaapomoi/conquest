@@ -46,8 +46,6 @@ public:
 	void UpdateScoreboardColors();
 	void UpdateBarColors();
 	void UpdateTurnsPlayedText();
-
-	NeuralAI* Crossbreed(NeuralAI* a, NeuralAI* b);
 	
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
@@ -190,5 +188,7 @@ private:
 	int last_played_index;
 	int running_agent_id;
 
-	SimpleAI* default_simple_ai;
+	int epoch;
+
+	BadAI* default_simple_ai;
 };

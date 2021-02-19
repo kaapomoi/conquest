@@ -38,7 +38,7 @@ public:
 	void DisconnectFromServer(int player_id);
 
 	// Receive input from the "clients", simulates receiving packets
-	void ReceiveInput(int player_id, int input_number);
+	bool ReceiveInput(int player_id, int input_number);
 
 	// Start a game with the players connected to the "server"
 	int StartGame();
@@ -111,6 +111,7 @@ private:
 	int max_turns;
 	
 	bool game_in_progress;
+	bool game_not_over;
 
 	std::vector<int> turn_history;
 

@@ -1,4 +1,5 @@
 #include <core/EventQueue.h>
+#include "EventQueue.h"
 
 EventQueue::EventQueue()
 {
@@ -86,4 +87,9 @@ void EventQueue::Update()
 			events.erase(it);
 		}
 	}
+}
+
+bool EventQueue::IsEmpty()
+{
+	return events.empty();
 }

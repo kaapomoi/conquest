@@ -1,10 +1,10 @@
 #pragma once
 #include <core/Engine.h>
+using Random = effolkronium::random_static;
 
 class Neuron
 {
 public:
-	using Random = effolkronium::random_static;
 	Neuron(int num_outputs, int my_index);
 	~Neuron();
 

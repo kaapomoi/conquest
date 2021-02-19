@@ -61,7 +61,7 @@ void ServerSim::DisconnectFromServer(int player_id)
     players.erase(std::remove_if(players.begin(), players.end(), [player_id](player_t p) {return p.id == player_id; }), players.end());
 }
 
-void ServerSim::ReceiveInput(int player_id, int recv_num)
+bool ServerSim::ReceiveInput(int player_id, int recv_num)
 {
     int id = player_id;
     // Get id and find players from players vec first
@@ -80,7 +80,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
     if (!found)
     {
         k2d::KUSI_DEBUG("Player with id %i not found...returning\n", player_id);
-        return;
+        return false;
     }
 
     // If we find a player with the sender id, continue handling the turn
@@ -158,12 +158,13 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
 
                     // push the end game event to the event queue
+                    game_not_over = false;
                     event_queue.AddItem(e);
-                    game_in_progress = false;
+                    return true;
                 }
                 else
                 {
-                    Event e(EventType::TURN_CHANGE, event_id_running++, player_ids);
+                    Event e(EventType::TURN_CHANGE, event_id_running++, { players.at(whose_turn).id });
                     // Sub the spectator too
                     e.SubscribeAClientId(SPECTATOR_ID);
                     // Format:
@@ -174,6 +175,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
                     // push the end game event to the event queue
                     event_queue.AddItem(e);
+                    return true;
                 }
 
 
@@ -182,7 +184,7 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
             {
                 int offset = 0;
 
-                printf("Not a valid color to change to\n");
+                //printf("Not a valid color to change to\n");
 
                 // Only subscribe the sender of the invalid color to the event
                 Event e(EventType::INVALID_COLOR, event_id_running++, std::vector<int> {players[found_index].id});
@@ -194,22 +196,24 @@ void ServerSim::ReceiveInput(int player_id, int recv_num)
 
            
                 // Send the invalid color packet to the player who sent it
-                printf("Invalid packet sent to player %d, id: %d, num: %d\n", found_index, players[found_index].id, recv_num);
+                //printf("Invalid packet sent to player %d, id: %d, num: %d\n", found_index, players[found_index].id, recv_num);
                 event_queue.AddItem(e);
+                return false;
             }
         }
         else
         {
-            printf("Not correct players turn client_id: %d\n", id);
+            //printf("Not correct players turn client_id: %d\n", id);
         }
     }
 
-
+    return true;
 }
 
 int ServerSim::StartGame()
 {
     game_in_progress = true;
+    game_not_over = true;
     match_id_running++;
 
     turn_history.clear();
@@ -288,6 +292,8 @@ void ServerSim::create_game(int num_players)
     s_pos[6] = { map_size.x / 2 - 1, 0 };
     s_pos[7] = { map_size.x / 2 - 1, map_size.y - 1 };*/
     
+    std::string tiless = "004521002135215312213402201035425031055402510245134124510142300222230243255443214145514535122341525105550312431145121055044002503425324033405132013305542524315511253143311123433123250111254110140452531441304332003535333351504353451232420414202232141414104342101320545342320054130221411314341223155051142211403431405035545540232225010411454355054455455015532131115232232545411244130244333405144024501535555031234240425525053111422022134244514434351355044545111415233452320214034524415055231053132553321244212534000212025521411233545241033205125112431454024132325411222500150224301043200545322551055430023555232054251325343011424134350544250351554142551340525150244534205113314534211135412534021012235512422020431523155412142441131120145131125314152145125333424352324105521105213251002110524552332520142130540024341420131234522305225202515533042232311432015153545253432004143113240335121522013051400320522004320502245054143515542325351053015015155350512413320230251114540244104440024054431550124525400314053401305123530041414110400415412335335403523531335514542521042003422402303413550432352053053422210443135243125405533433311314010415224211522335211131124532011352520252525102552114013142050001333511";
+
     // Populate the tilemap
     tilemap.resize(map_size.y);
     for (uint8_t y = 0; y < map_size.y; y++)
@@ -297,7 +303,8 @@ void ServerSim::create_game(int num_players)
         {
             // Create a tile, give it 9 owner value = no owner
             // Cast to unsigned char to avoid confusion
-            tilemap[y][x] = { (uint8_t)num_gen(rand_engine), 9 };
+            //tilemap[y][x] = { (uint8_t)num_gen(rand_engine), 9 };
+            tilemap[y][x] = { (uint8_t) (tiless[y * map_size.x + x] - '0'), 9 };
         }
     }
 
@@ -511,6 +518,10 @@ void ServerSim::Update()
 {
     // Update the queue
     event_queue.Update();
+    if (event_queue.IsEmpty() && game_not_over == false)
+    {
+        game_in_progress = false;
+    }
 }
 
 k2d::vi2d ServerSim::GetMapSize()

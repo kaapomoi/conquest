@@ -22,13 +22,22 @@ NeuralNet::NeuralNet(const std::vector<int>& topology)
 	}
 }
 
-void NeuralNet::FeedForward(const std::vector<double>& input_values)
+NeuralNet::NeuralNet(const NeuralNet& other)
+{
+	this->layers = other.layers;
+}
+
+void NeuralNet::FeedForward(const std::vector<double>& input_values, std::vector<bool> taken_colors)
 {
 	assert(input_values.size() == layers[0].size());
 
 	// Assign the input values into the input neurons
 	for (int i = 0; i < input_values.size(); i++)
 	{
+		if (true)
+		{
+
+		}
 		layers[0][i].SetOutputValue(input_values[i]);
 	}
 
@@ -57,4 +66,9 @@ void NeuralNet::GetResults(std::vector<double>& result_values) const
 std::vector<std::vector<Neuron>>& NeuralNet::GetLayers()
 {
 	return layers;
+}
+
+void NeuralNet::SetNet(std::vector<std::vector<Neuron>> net)
+{
+	layers = net;
 }

@@ -22,6 +22,8 @@ public:
 
 	void Update();
 
+	bool IsEmpty();
+
 private:
 	Event PopFirst();
 	

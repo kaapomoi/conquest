@@ -34,12 +34,17 @@ void BadAI::Update()
 
 		int winner_id = (std::stoi(tokens[0]));
 		int turns_played = (std::stoi(tokens[1]));
-		int match_id = std::stoi(data);
+		int match_id = std::stoi(tokens[2]);
+		int p0_id = std::stoi(tokens[3]);
+		int p1_id = std::stoi(tokens[4]);
+		std::string encoded_turn_history = tokens[5];
+		std::string initial_board_state = data;
 
 		if (winner_id == client_id)
 		{
 			AddGameWon();
 		}
+
 		AddGamePlayed();
 
 		break;
@@ -47,8 +52,19 @@ void BadAI::Update()
 	case EventType::TURN_CHANGE:
 	{
 		std::string data = e.GetData();
-		SetCurrentTurnPlayersId(std::stoi(data));
-		
+
+		std::string delimiter = ":";
+
+		size_t pos = 0;
+		std::string token;
+		std::vector<std::string> tokens;
+		while ((pos = data.find(delimiter)) != std::string::npos) {
+			token = data.substr(0, pos);
+			tokens.push_back(token);
+			data.erase(0, pos + delimiter.length());
+		}
+
+		SetCurrentTurnPlayersId(std::stoi(tokens[0]));
 
 		break;
 	}
@@ -82,9 +98,9 @@ void BadAI::Update()
 
 }
 
-void BadAI::SendInputToServer(int input_num)
+bool BadAI::SendInputToServer(int input_num)
 {
-	server->ReceiveInput(client_id, input_num);
+	return server->ReceiveInput(client_id, input_num);
 }
 
 void BadAI::GetTakenColorsFromServer()

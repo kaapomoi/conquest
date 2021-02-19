@@ -105,7 +105,7 @@ int ConquestLocal::init_game()
 	int b;
 	while (myfile >> r >> g >> b)
 	{
-		loaded_skins.push_back(k2d::Color(r,g,b, 60));
+		loaded_skins.push_back(k2d::Color(r,g,b, 200));
 	}
 	myfile.close();
 
@@ -134,15 +134,16 @@ int ConquestLocal::init_game()
 
 int ConquestLocal::create_ai()
 {
-	int pop_size = 10;
+	int pop_size = 100;
 
-	default_simple_ai = new SimpleAI(1, &server_sim);
+	default_simple_ai = new BadAI(1, &server_sim);
 
 	running_agent_id = 2;
+	last_played_index = -1;
 
 	for (size_t i = 0; i < pop_size; i++)
 	{
-		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim));
+		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim, 20));
 	}
 
 	return 0;
@@ -279,8 +280,12 @@ int ConquestLocal::main_loop()
 
 		if (!server_sim.GetGameInProgress())
 		{
-			server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
-			server_sim.DisconnectFromServer(default_simple_ai->GetClientId());
+			if (last_played_index >= 0)
+			{
+				server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
+				server_sim.DisconnectFromServer(default_simple_ai->GetClientId());
+			}
+
 			last_played_index++;
 
 			// One epoch done
@@ -361,12 +366,14 @@ int ConquestLocal::main_loop()
 void ConquestLocal::GeneticAlgorithm()
 {
 	// fitness
-	//ai_agents.at(0)->GetTilesOwned();
-	float top_percentile = 0.4f;
+	//ai_agents.at(0)->GetTilesOwned()
+	//100% = 1.0f
+	float top_percentile = 0.1f;
 
 	int num_agents = ai_agents.size();
 
-	int mutation_rate = 10;
+	// 1.0f = 100% for each neurons weight
+	float mutation_rate = 0.01f;
 
 	// Sort best first
 	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool 
@@ -382,58 +389,27 @@ void ConquestLocal::GeneticAlgorithm()
 	}
 	ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 
+	int max_index = (int)ai_agents.size() - 1;
+
 	// Breed new AIs until we have the original amount of agents
 	while (ai_agents.size() < num_agents)
 	{
+		int index1 = Random::get(0, max_index);
+		//int index2 = Random::get(0, max_index);
+		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[index1]);
+		//NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[index2]);
+		//NeuralAI* child = new NeuralAI(tmp1, tmp2, running_agent_id++, &server_sim);
+		//NeuralAI* child = tmp1->CreateNewMutatedChild(mutation_rate, running_agent_id++);
+		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, &server_sim);
 
-		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[0]);
-		NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[1]);
-		ai_agents.push_back(Crossbreed(tmp1, tmp2));
-		ai_agents.back()->SetClientId(running_agent_id++);
-
-
-
+		// Mutate the agent
+		child->Mutate(mutation_rate);
+		ai_agents.push_back(child);
 	}
 
-
-
-	// Mutate the agents
-
-
-
+	k2d::KUSI_DEBUG("\n\n\n\n\n EPOCH %i DONE \n\n\n\n\n", epoch++);
 
 	return;
-
-}
-
-NeuralAI* ConquestLocal::Crossbreed(NeuralAI* a, NeuralAI* b)
-{
-	// Init the new ai with a's data
-	NeuralAI* res = new NeuralAI(*a);
-
-	std::vector<std::vector<Neuron>>& a_layers = res->GetNeuralNet()->GetLayers();
-	std::vector<std::vector<Neuron>>& b_layers = b->GetNeuralNet()->GetLayers();
-
-	for (int i = 0; i < a_layers.size(); i++)
-	{
-		int cutoff = Random::get(0, (int)a_layers[i].size() - 1);
-
-		for (int j = cutoff; j < a_layers[i].size(); j++)
-		{
-			int num_weights = (int)a_layers[i][j].output_weights.size();
-			cutoff = Random::get(0, num_weights-1);
-
-			for (size_t k = cutoff; k < num_weights; k++)
-			{
-				a_layers[i][j].output_weights[k] = b_layers[i][j].output_weights[k];
-			}
-		}
-
-	}
-
-
-
-	return res;
 }
 
 void ConquestLocal::update_input()
@@ -596,6 +572,11 @@ void ConquestLocal::UpdateScoreboardColors()
 			std::string scorep1 = std::to_string(players[i].tiles_owned);
 			std::string ui_name = "P" + std::to_string(i + 1) + "Score";
 			get_ui_by_name(ui_name)->GetSprite()->SetColor(skins.at(players[i].num_owned));
+			//TODO: clean up this v
+			if (i == 0)
+			{
+				get_ui_by_name(ui_name)->SetActualText(std::to_string(players[i].id));
+			}
 			//get_ui_by_name(ui_name)->SetActualText(std::to_string(ai_agents[i]->GetGamesWon()));
 			get_ui_by_name(ui_name)->SetIsActive(true);
 		}

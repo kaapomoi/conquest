@@ -96,9 +96,9 @@ void SimpleAI::Update()
 	}
 }
 
-void SimpleAI::SendInputToServer(int input_num)
+bool SimpleAI::SendInputToServer(int input_num)
 {
-	server->ReceiveInput(client_id, input_num);
+	return server->ReceiveInput(client_id, input_num);
 }
 
 void SimpleAI::GetTakenColorsFromServer()
@@ -216,7 +216,7 @@ int SimpleAI::HandleTurn()
 	std::sort(bfs_amount_of_each_color.begin(), bfs_amount_of_each_color.end(),
 		[](const std::pair<int, int>& a, const std::pair<int, int>& b) -> bool
 		{
-			return a.first > b.first;
+			return a.first < b.first;
 		}
 	);
 

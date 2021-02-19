@@ -6,10 +6,13 @@ class NeuralNet
 {
 public:
 	NeuralNet(const std::vector<int>& topology);
-	void FeedForward(const std::vector<double>& input_values);
+	NeuralNet(const NeuralNet& other);
+	void FeedForward(const std::vector<double>& input_values, std::vector<bool> taken_colors);
 	void GetResults(std::vector<double>& result_values) const;
 
 	std::vector<std::vector<Neuron>>& GetLayers();
+
+	void SetNet(std::vector<std::vector<Neuron>> net);
 
 private:
 	std::vector<std::vector<Neuron>> layers;

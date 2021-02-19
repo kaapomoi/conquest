@@ -10,7 +10,7 @@ public:
 
 	void Update() override;
 
-	void SendInputToServer(int input_num) override;
+	bool SendInputToServer(int input_num) override;
 
 	void GetTakenColorsFromServer() override;
 

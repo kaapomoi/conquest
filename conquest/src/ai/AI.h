@@ -11,7 +11,7 @@ public:
 
 	virtual void Update() = 0;
 
-	virtual void SendInputToServer(int input_num) = 0;
+	virtual bool SendInputToServer(int input_num) = 0;
 
 	virtual void GetTakenColorsFromServer() = 0;
 
