@@ -2,9 +2,10 @@
 
 #include <core/Engine.h>
 #include <core/GameObject.h>
-#include <core/UIElement.h>
-#include <core/UIGraph.h>
-#include <core/UIClickableLabel.h>
+#include <ui/UIElement.h>
+#include <ui/UIGraph.h>
+#include <ui/UIFunctionGraph.h>
+#include <ui/UIClickableLabel.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -24,6 +25,13 @@ namespace {
 		float value = (int)(in * 10000 + .5);
 		return (float)value / 100;
 	}
+
+	float pick_chance_function(float in)
+	{
+		return 200.0f / (in + 10.0f);
+	}
+
+	
 }
 
 
@@ -60,6 +68,8 @@ public:
 	void UpdateBarColors();
 	void UpdateTurnsPlayedText();
 	void UpdateGenerationsText();
+
+	void UpdateSelectionWeights();
 
 	void ClampGeneticAlgorithmVariables();
 
@@ -221,6 +231,8 @@ private:
 	float mutation_type_chance;
 
 	int		variable_change_multiplier;
+
+	std::vector<double> selection_weights;
 	// Is the simulation paused
 	bool ui_enabled;
 
@@ -242,4 +254,5 @@ private:
 
 	UIGraph* generation_history;
 	UIGraph* current_gen_tiles_owned_histogram;
+	UIFunctionGraph* pick_chance_graph;
 };

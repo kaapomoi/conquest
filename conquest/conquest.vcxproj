@@ -30,11 +30,12 @@
     <ClCompile Include="src\core\GameObject.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\core\ServerSim.cpp" />
-    <ClCompile Include="src\core\UIClickableLabel.cpp" />
-    <ClCompile Include="src\core\UIElement.cpp" />
-    <ClCompile Include="src\core\UIGraph.cpp" />
     <ClCompile Include="src\neuralnet\NeuralNet.cpp" />
     <ClCompile Include="src\neuralnet\Neuron.cpp" />
+    <ClCompile Include="src\ui\UIClickableLabel.cpp" />
+    <ClCompile Include="src\ui\UIElement.cpp" />
+    <ClCompile Include="src\ui\UIFunctionGraph.cpp" />
+    <ClCompile Include="src\ui\UIGraph.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
     <ClCompile Include="src\util\sqlite3.c" />
   </ItemGroup>
@@ -50,11 +51,12 @@
     <ClInclude Include="src\core\EventQueue.h" />
     <ClInclude Include="src\core\GameObject.h" />
     <ClInclude Include="src\core\ServerSim.h" />
-    <ClInclude Include="src\core\UIClickableLabel.h" />
-    <ClInclude Include="src\core\UIElement.h" />
-    <ClInclude Include="src\core\UIGraph.h" />
     <ClInclude Include="src\neuralnet\NeuralNet.h" />
     <ClInclude Include="src\neuralnet\Neuron.h" />
+    <ClInclude Include="src\ui\UIClickableLabel.h" />
+    <ClInclude Include="src\ui\UIElement.h" />
+    <ClInclude Include="src\ui\UIFunctionGraph.h" />
+    <ClInclude Include="src\ui\UIGraph.h" />
     <ClInclude Include="src\util\DatabaseHandler.h" />
     <ClInclude Include="src\util\sqlite3.h" />
   </ItemGroup>

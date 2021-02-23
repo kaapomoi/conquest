@@ -42,6 +42,8 @@ ConquestLocal::ConquestLocal() :
 		//
 		create_ui();
 		//create_ui_unit_card();
+
+		UpdateSelectionWeights();
 		
 
 		// run game
@@ -216,10 +218,10 @@ int ConquestLocal::create_ui()
 
 
 	// multiplier label
-	UIClickableLabel* multiplier = new UIClickableLabel("VariableChangeMultiplier", "",
-		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 4, +scaled_ui.y * 0.5f - tile_size.y * 0.5f),
-		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.75f),
-		k2d::vi2d(scaled_ui.x + tile_size.x, scaled_ui.y * 0.5f),
+	UIClickableLabel* multiplier = new UIClickableLabel("VariableChangeMultiplier", "Mult.: ",
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2, +scaled_ui.y * 0.5f - tile_size.y * 0.5f +1),
+		k2d::vi2d(-scaled_ui.x * 0.80f, tile_size.y * 0.75f-2),
+		k2d::vi2d(scaled_ui.x * 2, scaled_ui.y * 0.5f -2),
 		load_texture_from_cache("full"),
 		sprite_batch, font1,
 		0.15f, 26.0f, k2d::Color(255));
@@ -229,10 +231,24 @@ int ConquestLocal::create_ui()
 	ui_clickable_labels.push_back(multiplier);
 
 
+	// population size label
+	UIClickableLabel* pop_size_label = new UIClickableLabel("PopulationSizeClickable", "Pop.: ",
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2, - tile_size.y * 0.5f +1),
+		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.75f-2),
+		k2d::vi2d(scaled_ui.x * 2, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.15f, 26.0f, k2d::Color(255));
+	pop_size_label->SetBackground(k2d::Color(129, 255));
+	pop_size_label->SetVariable(&population_size);
+	pop_size_label->SetModifiable(true);
+
+	ui_clickable_labels.push_back(pop_size_label);
+
 
 	// top percentile label
 	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 2+1),
 		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -249,7 +265,7 @@ int ConquestLocal::create_ui()
 
 	// Mutation rate label
 	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 2+1),
 		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -266,7 +282,7 @@ int ConquestLocal::create_ui()
 
 	// Close Mutation rate label
 	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 2+1),
 		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -283,7 +299,7 @@ int ConquestLocal::create_ui()
 	
 	// Mutation Type Chance rate label
 	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. Type C: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 2+1),
 		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -382,6 +398,15 @@ int ConquestLocal::create_ui()
 		load_texture_from_cache("full"), sprite_batch);
 	current_gen_tiles_owned_histogram->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
 	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
+
+	// Current gen tiles owned histogram
+	pick_chance_graph = new UIFunctionGraph("PickChanceGraph",
+		k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y * 0.5f - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
+		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2), population_size,
+		load_texture_from_cache("full"), sprite_batch,
+		pick_chance_function);
+	pick_chance_graph->SetBackground(k2d::Color(20, 255));
+	//pick_chance_graph->UpdateGraphValues();
 
 	return 0;
 }
@@ -533,6 +558,7 @@ int ConquestLocal::main_loop()
 		{
 			generation_history->Update(dt);
 			current_gen_tiles_owned_histogram->Update(dt);
+			pick_chance_graph->Update(dt);
 
 			for (GameObject* tile : tiles)
 			{
@@ -574,28 +600,13 @@ int ConquestLocal::main_loop()
 
 void ConquestLocal::GeneticAlgorithm()
 {
-
-	// fitness
-	//ai_agents.at(0)->GetTilesOwned()
-	//100% = 1.0f
-	
-	
-	 // Saved "good" values
-	/*float mutation_rate = 0.001f;
-	float close_mutation_rate = 0.05f;
-	double close_mutation_epsilon = 0.25;
-
-	float mutation_type_chance = 0.95f;*/
-
-	// Average was here
-
 	// Sort best first
 	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool
 	{
 		return a->GetTilesOwned() > b->GetTilesOwned();
 	});
 
-	int cutoff_index = ceil(top_percentile * ai_agents.size());
+	int cutoff_index = ceil(top_percentile * population_size);
 	// Pick top some % for breeding
 	for (size_t i = cutoff_index; i < ai_agents.size(); i++)
 	{
@@ -604,18 +615,11 @@ void ConquestLocal::GeneticAlgorithm()
 	ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 
 
-	// Initialize the weights used for the selection of agents
-	std::vector<double> selection_weights;
-	for (size_t i = 0; i < ai_agents.size(); i++)
-	{
-		// Good looking function
-		selection_weights.push_back(200.0 / (i + 10.0));
-		//std::cout << "w = " << 400.0 / (i + 20.0) << " \n";
-	}
+	UpdateSelectionWeights();
 
-	std::discrete_distribution<int> distribution(selection_weights.begin(), selection_weights.end());
 	
 	int max_index = ai_agents.size() - 1;
+	std::discrete_distribution<int> distribution(selection_weights.begin(), selection_weights.begin()+ max_index);
 
 	// Breed new AIs until we have the original amount of agents
 	while (ai_agents.size() < population_size)
@@ -1085,6 +1089,17 @@ void ConquestLocal::UpdateGenerationsText()
 
 	std::string prev_text = "Previous ID: " + std::to_string(previous_id) + ", F: " + std::to_string(previous_tiles_owned);
 	get_ui_by_name("PreviousText")->SetActualText(prev_text);
+}
+
+void ConquestLocal::UpdateSelectionWeights()
+{
+	// Initialize the weights used for the selection of agents
+	selection_weights.clear();
+	for (size_t i = 0; i < ceil(population_size * top_percentile) + 1; i++)
+	{
+		// Good looking function
+		selection_weights.push_back(pick_chance_function(i));
+	}
 }
 
 
