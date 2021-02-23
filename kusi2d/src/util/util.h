@@ -9,6 +9,8 @@
 #include <util/random.hpp>
 #include <SDL/SDL.h>
 #include <util/vecs.h>
+#include <sstream>
+
 
 namespace k2d
 {
@@ -45,11 +47,26 @@ namespace k2d
 
 	extern float DegToRad(float _deg);
 
+    extern double clamp(double in, double min, double max);
+
+    extern float clamp(float in, float min, float max);
+
+    extern int clamp(int in, int min, int max);
+
     template <typename Type>
     void CallDestructor(void* ptr)
     {
         Type* p = (Type*)ptr;
         p->~Type();
+    }
+
+    template <typename T>
+    std::string to_string_p(const T a_value, const int n = 6)
+    {
+        std::ostringstream out;
+        out.precision(n);
+        out << std::fixed << a_value;
+        return out.str();
     }
 
 }

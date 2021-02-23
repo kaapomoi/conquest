@@ -11,7 +11,7 @@ const int DEFAULT_WHOSE_TURN = 0;
 const int DEFAULT_NUM_TURNS = 0;
 const int MAX_PLAYERS = 4;
 
-const int SPECTATOR_ID = 0;
+const int SPECTATOR_ID = -9999;
 
 typedef struct {
 	int id;
@@ -63,6 +63,7 @@ public:
 
 	k2d::vi2d GetMapSize();
 
+	void CreateNewMap();
 
 // Private functions
 private:
@@ -104,9 +105,9 @@ private:
 	// The number of colors in the game
 	int NR_OF_COLORS;
 	// Running id for events
-	int event_id_running;
+	int64_t event_id_running;
 	// Match id, running
-	int match_id_running;
+	int64_t match_id_running;
 	// Max turns, after this the game is over
 	int max_turns;
 	
@@ -137,4 +138,7 @@ private:
 
 	// Event queue for "server - client" messaging
 	EventQueue event_queue;
+
+	// Initial map tiles
+	std::string tiless;
 };

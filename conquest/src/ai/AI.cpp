@@ -33,6 +33,11 @@ void AI::SetWhichPlayerAmI(int who)
 	which_player_am_i = who;
 }
 
+void AI::SetTilesOwned(int tiles)
+{
+	tiles_owned = tiles;
+}
+
 void AI::AddGamePlayed()
 {
 	games_played++;

@@ -3,6 +3,8 @@
 #include <core/Engine.h>
 #include <core/GameObject.h>
 #include <core/UIElement.h>
+#include <core/UIGraph.h>
+#include <core/UIClickableLabel.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -15,6 +17,15 @@
 #include <tuple>
 
 #define MAKEADDRESS(a, b, c, d) ((a << 24) | (b << 16) | (c << 8) | d)
+namespace {
+
+	float pretty_print_function_for_percents(float in)
+	{
+		float value = (int)(in * 10000 + .5);
+		return (float)value / 100;
+	}
+}
+
 
 class ConquestLocal
 {
@@ -34,6 +45,7 @@ public:
 	UIElement* get_ui_by_name(std::string name);
 
 	int init_game();
+	void InitGeneticAlgorithmValues();
 
 	int create_ui();
 	int run();
@@ -43,13 +55,20 @@ public:
 
 	void UpdateTileColors();
 	void UpdateButtonColors();
+	void UpdateUIButtons();
 	void UpdateScoreboardColors();
 	void UpdateBarColors();
 	void UpdateTurnsPlayedText();
-	
+	void UpdateGenerationsText();
+
+	void ClampGeneticAlgorithmVariables();
+
+	void CalculateGenerationAverage();
+	void CheckIfBestOfGeneration();
+	void SetPreviousIdAndTileCount();
+
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
-
 
 	int main_loop();
 
@@ -137,11 +156,9 @@ private:
 	FT_Library		ft;
 	FT_Face			face;
 
-	std::vector<UIElement*> ui_elements;
-	std::vector<UIElement*> buttons;
-	std::vector<UIElement*> bar;
-	UIElement*				turns_text;
-
+	std::vector<UIElement*>			ui_elements;
+	std::vector<UIElement*>			bar;
+	std::vector<UIClickableLabel*>	 ui_clickable_labels;
 
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;
@@ -149,9 +166,6 @@ private:
 
 	bool scoreboard_init;
 
-	/// <summary>
-	/// The client sends this value to the server
-	/// </summary>
 	std::vector<player_t> players;
 
 	double timer_counter;
@@ -190,5 +204,42 @@ private:
 
 	int epoch;
 
-	BadAI* default_simple_ai;
+	int population_size;
+
+	BadAI* bad_ai;
+	SimpleAI* simple_ai;
+
+	AI* opponent;
+
+	// Genetic algo variables!!!!
+	float top_percentile;
+
+	float mutation_rate;
+	float close_mutation_rate;
+	double close_mutation_epsilon;
+
+	float mutation_type_chance;
+
+	int		variable_change_multiplier;
+	// Is the simulation paused
+	bool ui_enabled;
+
+	bool paused;
+
+	bool bad_ai_enabled;
+
+	bool should_create_new_map;
+
+	double average_score_this_generation;
+
+	int current_best_of_gen_id;
+	int current_best_of_gen_tiles_owned;
+
+	int previous_id;
+	int previous_tiles_owned;
+
+	k2d::vi2d scaled_ui;
+
+	UIGraph* generation_history;
+	UIGraph* current_gen_tiles_owned_histogram;
 };

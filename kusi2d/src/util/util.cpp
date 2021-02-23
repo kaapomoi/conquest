@@ -65,4 +65,42 @@ namespace k2d
 		return _deg * 3.14159265359f / 180;
 	}
 
+	double clamp(double in, double min, double max)
+	{
+		if (in <= min)
+		{
+			return min;
+		}
+		if (in >= max)
+		{
+			return max;
+		}
+		return in;
+	}
+
+	float clamp(float in, float min, float max)
+	{
+		if (in <= min)
+		{
+			return min;
+		}
+		if (in >= max)
+		{
+			return max;
+		}
+		return in;
+	}
+
+	int clamp(int in, int min, int max)
+	{
+		if (in <= min)
+		{
+			return min;
+		}
+		if (in >= max)
+		{
+			return max;
+		}
+		return in;
+	}
 }

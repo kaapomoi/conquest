@@ -8,17 +8,18 @@ UIElement::UIElement(std::string name, k2d::vi2d position, k2d::Sprite* sprite, 
 	this->child = nullptr;
 	this->position = position;
 	this->active = true;
-	glm::vec2 p;
+	this->is_button = false;
+	this->is_hit = false;
+
 	if (sprite!= nullptr)
 	{
 		sprite->SetPosition(glm::vec3(position.x, position.y, 0.0f));
-		p = sprite->GetPosition();
 	}
 
 	text_pos_offset = 0;
 	if (text != nullptr)
 	{
-		text->SetPosition(k2d::vf2d(p.x, p.y) + text_pos_offset);
+		text->SetPosition(position + text_pos_offset);
 	}
 }
 
@@ -76,6 +77,7 @@ void UIElement::Update(double dt)
 
 void UIElement::SetPosition(k2d::vf2d new_pos)
 {
+	position = new_pos;
 	if (sprite != nullptr)
 	{
 		sprite->SetPosition(glm::vec3(new_pos.x, new_pos.y, 0.0f));
@@ -90,11 +92,20 @@ void UIElement::SetPosition(k2d::vf2d new_pos)
 void UIElement::SetTextOffset(k2d::vf2d offset)
 {
 	text_pos_offset = offset;
-	glm::vec2 p = sprite->GetPosition();
 	if (text != nullptr)
 	{
-		text->SetPosition(k2d::vf2d(p.x, p.y) + text_pos_offset);
+		text->SetPosition(position + text_pos_offset);
 	}
+}
+
+void UIElement::SetIsButton(bool is_but)
+{
+	is_button = is_but;
+}
+
+void UIElement::SetIsHit(bool is_hit)
+{
+	this->is_hit = is_hit;
 }
 
 void UIElement::SetSprite(k2d::Sprite* sprite)

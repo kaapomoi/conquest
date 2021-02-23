@@ -6,7 +6,7 @@
 #include <core/Window.h>
 
 // Quick test
-#include <graphics/Text.h>
+#include <graphics/Label.h>
 #include <graphics/Sprite.h>
 #include <graphics/Camera2D.h>
 #include <vector>

@@ -1,11 +1,11 @@
 #include <ai/NeuralAI.h>
 
-NeuralAI::NeuralAI(int id, ServerSim* server_sim, int sight_dimensions) :
+NeuralAI::NeuralAI(int id, ServerSim* server_sim) :
 	AI(id, server_sim), 
 	// Set the topology of the net
-	neural_net({(server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int) server_sim->GetTakenColors().size() + 1,
-		400,
-		300,
+	neural_net({ (server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size() + 1,
+		90,
+		90,
 		(int) server_sim->GetTakenColors().size()})
 {
 	rand_engine.seed(time(NULL));
@@ -13,19 +13,17 @@ NeuralAI::NeuralAI(int id, ServerSim* server_sim, int sight_dimensions) :
 	parent_a_id = -1;
 	parent_b_id = -1;
 	try_best = 0;
-	sight_size = sight_dimensions;
 }
-
+//((server_sim->GetMapSize().x * server_sim->GetMapSize().y) * (int)server_sim->GetTakenColors().size()) + (int)server_sim->GetTakenColors().size() + 1,
 NeuralAI::NeuralAI(NeuralAI* parent_a, NeuralAI* parent_b, int id, ServerSim* server_sim):
 	AI(id, server_sim),
 	neural_net({ (server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size() + 1,
-		400,
-		300,
+		90,
+		90,
 		(int)server_sim->GetTakenColors().size() }),
 	parent_a_id(parent_a->GetClientId()),
 	parent_b_id(parent_b->GetClientId())
 {
-	sight_size = parent_a->GetSightSize();
 	int yep = Random::get(0, 1);
 
 	std::vector<std::vector<Neuron>>& a_layers = parent_a->GetNeuralNet()->GetLayers();
@@ -82,7 +80,6 @@ NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
 	this->parent_a_id = parent.client_id;
 	this->parent_b_id = -1;
 	this->current_turn_players_id = -1;
-	this->sight_size = parent.sight_size;
 }
 
 NeuralAI::~NeuralAI()
@@ -177,12 +174,24 @@ void NeuralAI::Update()
 		{
 			for (size_t j = 0; j < board_state[i].size(); j++)
 			{
-				double value = board_state[i][j].color;
-				double x = (value - 0.0) / (0.1 * taken_colors.size() - 0.0);
-				double result = 0.0 + (1.0 - 0.0) * x;
+				double in_value = board_state[i][j].color;
+				double min_in_range = 0.0;
+				double max_in_range = 1.0 * (taken_colors.size() - 1);
+				double min_out_range = -1.0;
+				double max_out_range = 1.0;
+				double x = (in_value - min_in_range) / (max_in_range - min_in_range);
+				double result = min_out_range + (max_out_range - min_out_range) * x;
 
 				//board_state_single_dimension.push_back((double)board_state[i][j].color * 0.1);
 				board_state_single_dimension.push_back(result);
+
+
+				// Different approach, one bit per color, 0.0 or 1.0 
+				/*for (size_t i = 0; i < taken_colors.size(); i++)
+				{
+					board_state_single_dimension.push_back(0.0);
+				}*/
+				//board_state_single_dimension.at(i * board_state.size() + j + board_state[i][j].color) = 1.0;
 			}
 		}
 
@@ -196,8 +205,8 @@ void NeuralAI::Update()
 		board_state_single_dimension.push_back(which_player_am_i);
 
 		// Input the board state into the net
-		neural_net.FeedForward(board_state_single_dimension, taken_colors);
-
+		//neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
+		neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
 		
 
 		// Get the results from the net
@@ -270,10 +279,6 @@ void NeuralAI::Mutate(float mutation_chance)
 
 			for (size_t k = 0; k < num_weights; k++)
 			{
-				//res_net[i][j].output_weights[k] = b_layers[i][j].output_weights[k];
-
-				// weighted avg 
-				//res_net[i][j].output_weights[k] = ((a_layers[i][j].output_weights[k] * a_dominance) + ((1.0f - a_dominance) * b_layers[i][j].output_weights[k])) * 0.5f;
 				mutate = Random::get(0.0f, 1.0f);
 
 				if (mutate <= mutation_chance)
@@ -285,16 +290,34 @@ void NeuralAI::Mutate(float mutation_chance)
 	}
 }
 
-int NeuralAI::GetSightSize()
+void NeuralAI::CloseMutate(float mutation_chance, float epsilon)
 {
-	return sight_size;
-}
+	std::vector<std::vector<Neuron>>& net = GetNeuralNet()->GetLayers();
 
-NeuralAI* NeuralAI::CreateNewMutatedChild(float mutation_chance, int id)
-{
-	NeuralAI* child = new NeuralAI(*this, id, this->server);
+	for (int i = 0; i < net.size(); i++)
+	{
+		for (int j = 0; j < net[i].size(); j++)
+		{
+			int num_weights = (int)net[i][j].output_weights.size();
 
-	child->Mutate(mutation_chance);
+			float mutate = Random::get(0.0f, 1.0f);
 
-	return nullptr;
+			if (mutate <= mutation_chance)
+			{
+				net[i][j].bias_weight = net[i][j].bias_weight + Random::get(-epsilon, epsilon);
+				net[i][j].bias_weight = k2d::clamp(net[i][j].bias_weight, -1.0, 1.0);
+			}
+
+			for (size_t k = 0; k < num_weights; k++)
+			{
+				mutate = Random::get(0.0f, 1.0f);
+
+				if (mutate <= mutation_chance)
+				{
+					net[i][j].output_weights[k] = net[i][j].output_weights[k] + Random::get(-epsilon, epsilon);
+					net[i][j].output_weights[k] = k2d::clamp(net[i][j].output_weights[k], -1.0, 1.0);
+				}
+			}
+		}
+	}
 }

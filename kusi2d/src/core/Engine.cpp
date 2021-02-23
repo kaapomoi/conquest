@@ -102,6 +102,9 @@ namespace k2d
 		
 
 
+		input_manager.Update();
+
+		//CalculateFPS();
 		// Swap buffers
 		window.SwapBuffers();
 
@@ -190,6 +193,10 @@ namespace k2d
 				input_manager.SetMouseCoords((float)evnt.motion.x, (float)evnt.motion.y);
 				break;
 			case SDL_KEYDOWN:
+				if (evnt.key.repeat)
+				{
+					break;
+				}
 				input_manager.PressKey(evnt.key.keysym.sym);
 				break;
 			case SDL_KEYUP:

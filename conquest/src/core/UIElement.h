@@ -15,6 +15,8 @@ public:
 
 	virtual void SetPosition(k2d::vf2d new_pos);
 	virtual void SetTextOffset(k2d::vf2d offset);
+	virtual void SetIsButton(bool is_but);
+	virtual void SetIsHit(bool is_hit);
 
 	virtual void SetSprite(k2d::Sprite* sprite);
 	virtual void SetText(k2d::Text* text);
@@ -30,8 +32,11 @@ public:
 	k2d::Sprite* GetSprite() { return sprite; }
 	k2d::Text* GetText() { return text; }
 	bool IsActive() { return active; }
+	bool IsButton() { return is_button; }
+	bool IsHit() { return is_hit; }
 
 	std::string GetActualText() { return text->GetText(); }
+
 
 protected:
 	std::string		name;
@@ -42,4 +47,6 @@ protected:
 	k2d::vf2d		position;
 	k2d::vf2d		text_pos_offset;
 	bool			active;
+	bool			is_button;
+	bool			is_hit;
 };

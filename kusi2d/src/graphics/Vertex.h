@@ -41,6 +41,13 @@ namespace k2d
 			b = v;
 			a = 255;
 		}
+		Color(GLubyte v, GLubyte a)
+		{
+			r = v; 
+			g = v;
+			b = v;
+			this->a = a;
+		}
 	};
 
 	struct UV

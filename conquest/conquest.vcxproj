@@ -30,7 +30,9 @@
     <ClCompile Include="src\core\GameObject.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\core\ServerSim.cpp" />
+    <ClCompile Include="src\core\UIClickableLabel.cpp" />
     <ClCompile Include="src\core\UIElement.cpp" />
+    <ClCompile Include="src\core\UIGraph.cpp" />
     <ClCompile Include="src\neuralnet\NeuralNet.cpp" />
     <ClCompile Include="src\neuralnet\Neuron.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
@@ -48,7 +50,9 @@
     <ClInclude Include="src\core\EventQueue.h" />
     <ClInclude Include="src\core\GameObject.h" />
     <ClInclude Include="src\core\ServerSim.h" />
+    <ClInclude Include="src\core\UIClickableLabel.h" />
     <ClInclude Include="src\core\UIElement.h" />
+    <ClInclude Include="src\core\UIGraph.h" />
     <ClInclude Include="src\neuralnet\NeuralNet.h" />
     <ClInclude Include="src\neuralnet\Neuron.h" />
     <ClInclude Include="src\util\DatabaseHandler.h" />
@@ -128,6 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +160,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_ALLOW_MSC_VER_MISMATCH;_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH;_ALLOW_RUNTIME_LIBRARY_MISMATCH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

@@ -1,6 +1,6 @@
 #include <core/Event.h>
 
-Event::Event(EventType et, int id, std::vector<int> init_client_ids)
+Event::Event(EventType et, int64_t id, std::vector<int> init_client_ids)
 	: event_type(et), id(id)
 {
 	for (size_t i = 0; i < init_client_ids.size(); i++)
@@ -35,7 +35,7 @@ void Event::SetData(std::string data)
 	this->data = data;
 }
 
-int Event::GetId()
+int64_t Event::GetId()
 {
 	return id;
 }

@@ -25,6 +25,7 @@ public:
 	virtual void SetCurrentTurnPlayersId(int t_id);
 
 	virtual void SetWhichPlayerAmI(int who);
+	virtual void SetTilesOwned(int tiles);
 
 	virtual void AddGamePlayed();
 	virtual void AddGameWon();

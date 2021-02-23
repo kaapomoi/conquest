@@ -66,6 +66,12 @@
     <ClCompile Include="src\neuralnet\NeuralNet.cpp">
       <Filter>src\neuralnet</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\UIGraph.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\UIClickableLabel.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Conquest.h">
@@ -115,6 +121,12 @@
     </ClInclude>
     <ClInclude Include="src\neuralnet\NeuralNet.h">
       <Filter>src\neuralnet</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\UIGraph.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\UIClickableLabel.h">
+      <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

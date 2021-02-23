@@ -43,10 +43,12 @@ namespace k2d
 
 		std::string GetText() { return text; }
 
+		float GetDepth() { return depth; }
+
 		vf2d GetPosition() { return vf2d(x, y); }
 		vf2d GetDimensions() { return vf2d(text.length() * 50.0f, 90.0f); }
 
-	private:
+	protected:
 		std::map<GLchar, Character>& characters;
 
 		std::string		text;

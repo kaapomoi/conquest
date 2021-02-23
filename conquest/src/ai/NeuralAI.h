@@ -7,7 +7,7 @@ using Random = effolkronium::random_static;
 class NeuralAI : public AI
 {
 public:
-	NeuralAI(int id, ServerSim* server_sim, int sight_dimensions);
+	NeuralAI(int id, ServerSim* server_sim);
 	NeuralAI(NeuralAI* parent_a, NeuralAI* parent_b, int id, ServerSim* server_sim);
 	NeuralAI(const NeuralAI& parent, int id, ServerSim* ss);
 	virtual ~NeuralAI();
@@ -23,16 +23,12 @@ public:
 	NeuralNet* GetNeuralNet();
 
 	void Mutate(float mutation_chance);
-
-	int GetSightSize();
-
-	NeuralAI* CreateNewMutatedChild(float mutation_chance, int id);
+	void CloseMutate(float mutation_chance, float epsilon);
 
 private:
 	int try_best;
 	int parent_a_id;
 	int parent_b_id;
-	int sight_size;
 
 	// Random engine
 	std::mt19937 rand_engine;

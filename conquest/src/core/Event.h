@@ -12,7 +12,7 @@ enum class EventType
 class Event
 {
 public:
-	Event(EventType et, int id, std::vector<int> init_client_ids);
+	Event(EventType et, int64_t id, std::vector<int> init_client_ids);
 	~Event();
 
 	// Subscribe a client to this event
@@ -28,7 +28,7 @@ public:
 	void SetData(std::string data);
 
 	// Gets the id
-	int GetId();
+	int64_t GetId();
 
 	// Is ready to remove when all clients have been unsubscribed from the event
 	bool ReadyToRemove();
@@ -39,7 +39,7 @@ public:
 
 protected:
 	// This is a running id
-	int id;
+	int64_t id;
 	// Data string, eg. "<player_id>:<num_turns>", "12784,52" 
 	std::string data;
 

@@ -27,18 +27,31 @@ NeuralNet::NeuralNet(const NeuralNet& other)
 	this->layers = other.layers;
 }
 
-void NeuralNet::FeedForward(const std::vector<double>& input_values, std::vector<bool> taken_colors)
+void NeuralNet::FeedForward(const std::vector<double>& input_values, std::vector<bool> taken_colors, bool smart)
 {
 	assert(input_values.size() == layers[0].size());
 
 	// Assign the input values into the input neurons
 	for (int i = 0; i < input_values.size(); i++)
 	{
-		if (true)
+		if (!smart)
 		{
-
+			layers[0][i].SetOutputValue(input_values[i]);
 		}
-		layers[0][i].SetOutputValue(input_values[i]);
+		else
+		{
+			int index = input_values[i] + 0.5;
+			if (taken_colors[index] == false)
+			{
+				layers[0][i].SetOutputValue(input_values[i]);
+			}
+			else
+			{
+				// "Ignore" taken colors
+				layers[0][i].SetOutputValue(-1.0);
+			}
+		}
+		
 	}
 
 	// Forward propagation
@@ -51,6 +64,37 @@ void NeuralNet::FeedForward(const std::vector<double>& input_values, std::vector
 		}
 	}
 
+}
+
+void NeuralNet::FeedForwardIgnoreOpponent(const std::vector<double>& input_values, int opponent_color)
+{
+	assert(input_values.size() == layers[0].size());
+
+	// Assign the input values into the input neurons
+	for (int i = 0; i < input_values.size(); i++)
+	{
+		// Opponent color not the input color
+		if (opponent_color != input_values[i])
+		{
+			layers[0][i].SetOutputValue(input_values[i]);
+		}
+		else
+		{
+			// Opponent color == input color..."ignore it"
+			layers[0][i].SetOutputValue(-1.0);
+		}
+
+	}
+
+	// Forward propagation
+	for (int layer_num = 1; layer_num < layers.size(); layer_num++)
+	{
+		std::vector<Neuron>& prev_layer = layers[layer_num - 1];
+		for (int n = 0; n < layers[layer_num].size(); n++)
+		{
+			layers[layer_num][n].FeedForward(prev_layer);
+		}
+	}
 }
 
 void NeuralNet::GetResults(std::vector<double>& result_values) const

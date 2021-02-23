@@ -17,7 +17,7 @@ ConquestLocal::ConquestLocal() :
 
 	camera_mvmt_speed = 200.f;
 
-	spectator_id = 0;
+	spectator_id = -9999;
 
 	// Session id from time from 1-1-2000
 	time_t t;
@@ -36,6 +36,7 @@ ConquestLocal::ConquestLocal() :
 	if (init_engine() == 0)
 	{
 		// Init game
+		InitGeneticAlgorithmValues();
 		init_game();
 		create_ai();
 		//
@@ -69,6 +70,7 @@ int ConquestLocal::init_game()
 	load_texture_into_cache("ss", "Textures/tiles/ss100x100.png");
 	load_texture_into_cache("dot", "Textures/tiles/dot100x100.png");
 	load_texture_into_cache("full", "Textures/tiles/full100x100.png");
+	load_texture_into_cache("half", "Textures/tiles/halfalpha100x100.png");
 
 
 	load_texture_into_cache("ui", "Textures/ui/ui.png");
@@ -125,6 +127,7 @@ int ConquestLocal::init_game()
 	timer_counter = 0.0f;
 	// TODO set this somehow
 	map_size = server_sim.GetMapSize();
+	num_colors = server_sim.GetTakenColors().size();
 
 	// Net code
 	random_engine.seed((unsigned int) time(NULL));
@@ -132,18 +135,35 @@ int ConquestLocal::init_game()
 	return 0;
 }
 
+void ConquestLocal::InitGeneticAlgorithmValues()
+{
+	// 0.1f = 10%;
+	top_percentile = 0.2f;
+
+	mutation_rate = 0.01f;
+	close_mutation_rate = 0.05f;
+	close_mutation_epsilon = 0.50;
+
+	mutation_type_chance = 0.95f;
+	variable_change_multiplier = 1;
+}
+
 int ConquestLocal::create_ai()
 {
-	int pop_size = 100;
+	population_size = 100;
 
-	default_simple_ai = new BadAI(1, &server_sim);
+	bad_ai = new BadAI(0, &server_sim);
+	simple_ai = new SimpleAI(1, &server_sim);
+
+	opponent = bad_ai;
+	bad_ai_enabled = true;
 
 	running_agent_id = 2;
 	last_played_index = -1;
 
-	for (size_t i = 0; i < pop_size; i++)
+	for (size_t i = 0; i < population_size; i++)
 	{
-		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim, 20));
+		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim));
 	}
 
 	return 0;
@@ -151,14 +171,168 @@ int ConquestLocal::create_ai()
 
 int ConquestLocal::create_ui()
 {
-	// origin top left of text
-	/*UIElement* ui = new UIElement(k2d::vi2d(0,0), new k2d::Sprite(glm::vec2(0.0f, 0.0f), 200, 100, 20.0f,
-		glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255, 255, 255, 255), load_texture_from_cache("ui"), sprite_batch),
-		create_text("Mousecoords", 0.15f, 25.0f));
-	
-	ui->SetTextOffset(k2d::vf2d(-75, 0));*/
-	k2d::vi2d scaled_ui = tile_size * 4;
+	scaled_ui = tile_size * 4;
 
+	// Generation texts
+	UIElement* gen = new UIElement("Generation", k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 3, 20.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
+		create_text("Gen: 0", 0.15f, 25.0f));
+	gen->SetIsActive(true);
+	gen->SetTextOffset(k2d::vf2d(-scaled_ui.x * 1.5f - tile_size.x * 0.5f, scaled_ui.y * 1.5f - tile_size.y));
+
+	gen->AddChild(new UIElement("BestOfThisGen", k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y - scaled_ui.y * 0.5f - tile_size.y * 0.5f), 
+		0,
+		create_text("Best of gen: ", 0.15f, 25.0f)));
+	gen->GetChild()->SetIsActive(true);
+	gen->GetChild()->SetTextOffset(k2d::vf2d(-scaled_ui.x * 1.5f - tile_size.x * 0.5f, scaled_ui.y * 1.5f - tile_size.y * 2));
+	ui_elements.push_back(gen);
+	
+	// Previous players id, tiles owned
+	UIElement* previous_text = new UIElement("PreviousText", k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
+		0,
+		create_text("Previous: ", 0.15f, 25.0f));
+	previous_text->SetIsActive(true);
+	previous_text->SetTextOffset(k2d::vf2d(-scaled_ui.x * 1.5f - tile_size.x * 0.5f, scaled_ui.y - tile_size.y));
+	ui_elements.push_back(previous_text);
+
+	// Opponent toggle button
+	UIElement* opponent_choice = new UIElement("OpponentChoice", k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y / 2, 20.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
+		create_text(" Bad    Simple", 0.10f, 25.0f));
+	opponent_choice->SetIsButton(true);
+	opponent_choice->SetIsActive(true);
+	opponent_choice->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
+
+	opponent_choice->AddChild(new UIElement("OpponentChoiceDarkout", k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - tile_size.x / 2, tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x / 2, scaled_ui.y / 2, 21.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0,0,0, 128), load_texture_from_cache("full"), sprite_batch),
+		0));
+
+	ui_elements.push_back(opponent_choice);
+
+
+	// multiplier label
+	UIClickableLabel* multiplier = new UIClickableLabel("VariableChangeMultiplier", "",
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 4, +scaled_ui.y * 0.5f - tile_size.y * 0.5f),
+		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.75f),
+		k2d::vi2d(scaled_ui.x + tile_size.x, scaled_ui.y * 0.5f),
+		load_texture_from_cache("full"),
+		sprite_batch, font1,
+		0.15f, 26.0f, k2d::Color(255));
+	multiplier->SetBackground(k2d::Color(129, 255));
+	multiplier->SetVariable(&variable_change_multiplier);
+
+	ui_clickable_labels.push_back(multiplier);
+
+
+
+	// top percentile label
+	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 2),
+		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	top_percentile_label->SetBackground(k2d::Color(129, 255));
+	top_percentile_label->SetVariable(&top_percentile);
+	top_percentile_label->SetModifiable(true);
+	top_percentile_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
+
+	ui_clickable_labels.push_back(top_percentile_label);
+
+
+	// Mutation rate label
+	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R Mutation Rate: ",
+		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 2),
+		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1, 
+		0.12f, 26.0f, k2d::Color(255));
+	mutation_label->SetBackground(k2d::Color(129, 255));
+	mutation_label->SetVariable(&mutation_rate);
+	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
+	mutation_label->SetPrintPrecision(7);
+	mutation_label->SetBaseMultiplier(0.000001f);
+	mutation_label->SetModifiable(true);
+
+	ui_clickable_labels.push_back(mutation_label);
+
+	// Close Mutation rate label
+	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C Mutation Rate: ",
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 2),
+		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	close_mutation_rate_label->SetBackground(k2d::Color(129, 255));
+	close_mutation_rate_label->SetVariable(&close_mutation_rate);
+	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
+	close_mutation_rate_label->SetPrintPrecision(7);
+	close_mutation_rate_label->SetBaseMultiplier(0.000001f);
+	close_mutation_rate_label->SetModifiable(true);
+
+	ui_clickable_labels.push_back(close_mutation_rate_label);
+	
+	// Mutation Type Chance rate label
+	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "Mutation Type C: ",
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 2),
+		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	mutation_type_chance_label->SetBackground(k2d::Color(129, 255));
+	mutation_type_chance_label->SetVariable(&mutation_type_chance);
+	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
+	mutation_type_chance_label->SetPrintPrecision(4);
+	mutation_type_chance_label->SetBaseMultiplier(0.001f);
+	mutation_type_chance_label->SetModifiable(true);
+
+	ui_clickable_labels.push_back(mutation_type_chance_label);
+
+	// Create new map button
+	UIElement* new_map_button = new UIElement("CreateNewMapButton", k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
+		create_text("New Map", 0.13f, 25.0f));
+	new_map_button->SetIsButton(true);
+	new_map_button->SetIsActive(true);
+	new_map_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
+
+	new_map_button->AddChild(new UIElement("CreateNewMapButtonDarkout", k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 21.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 128), load_texture_from_cache("full"), sprite_batch),
+		create_text("Queued", 0.13f, 25.0f)));
+	new_map_button->GetChild()->SetIsActive(false);
+	new_map_button->GetChild()->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.4f, -tile_size.y));
+
+	ui_elements.push_back(new_map_button);
+
+
+	// Pause button
+	UIElement* pause_button = new UIElement("PauseButton", k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
+		create_text("Pause", 0.15f, 25.0f));
+	pause_button->SetIsActive(true);
+	pause_button->SetIsButton(true);
+	pause_button->SetTextOffset(k2d::vf2d(-tile_size.x * 1.3f, -tile_size.y * 0.2f));
+
+	pause_button->AddChild(new UIElement("PauseButtonDarkout", k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 21.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 128), load_texture_from_cache("full"), sprite_batch),
+		0));
+
+
+	ui_elements.push_back(pause_button);
+
+
+	// Player scoreboards
 	UIElement* p1 = new UIElement("P1Score", k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 - tile_size.y / 2),
 		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
 		glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(0), load_texture_from_cache("full"), sprite_batch),
@@ -176,48 +350,33 @@ int ConquestLocal::create_ui()
 	p2->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
 	ui_elements.push_back(p2);
 
-	UIElement* p3 = new UIElement("P3Score",
-		k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, tile_size.y * map_size.y - scaled_ui.y / 2 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(3), load_texture_from_cache("full"), sprite_batch),
-		create_text("P4", 0.15f, 25.0f));
-	p3->SetIsActive(false);
-	p3->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
-	ui_elements.push_back(p3);
-	
-	UIElement* p4 = new UIElement("P4Score",
-		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), scaled_ui.y / 2 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(2), load_texture_from_cache("full"), sprite_batch),
-		create_text("P4", 0.15f, 25.0f));
-	p4->SetIsActive(false);
-	p4->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
-	ui_elements.push_back(p4);
-	
-	UIElement* p5 = new UIElement("P5Score",
-		k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, tile_size.y * (map_size.y / 2) - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(4), load_texture_from_cache("full"), sprite_batch),
-		create_text("P5", 0.15f, 25.0f));
-	p5->SetIsActive(false);
-	p5->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
-	ui_elements.push_back(p5);
 
-	UIElement* p6 = new UIElement("P6Score",
-		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * (map_size.y / 2) - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(5), load_texture_from_cache("full"), sprite_batch),
-		create_text("P6", 0.15f, 25.0f));
-	p6->SetIsActive(false);
-	p6->SetTextOffset(k2d::vf2d(-tile_size.x, 0));
-	ui_elements.push_back(p6);
-
-
-	turns_text = new UIElement("NRTurns",
-		k2d::vi2d((tile_size.x * map_size.x) / 2, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
+	// Turns played text
+	UIElement* turns_text = new UIElement("NRTurns",
+		k2d::vi2d(0, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
 		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 0.0f, 0.0f, 20.0f,
 			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 0), load_texture_from_cache("empty"), sprite_batch),
 		create_text("NRTurns: ", 0.15f, 50.0f));
+	turns_text->SetTextOffset(k2d::vf2d(0, -tile_size.y * 0.2f));
+	turns_text->SetIsActive(true);
+
+	ui_elements.push_back(turns_text);
+
+
+
+	// Generation history graph
+	generation_history = new UIGraph("GenHistory",
+		k2d::vi2d(0 -tile_size.x * 0.5f + scaled_ui.x * 2 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
+		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2), 100, 1200,
+		load_texture_from_cache("full"), sprite_batch);
+	generation_history->SetBackground(k2d::Color(40, 255));
+
+	// Current gen tiles owned histogram
+	current_gen_tiles_owned_histogram = new UIGraph("CurrentGenTilesOwned",
+		k2d::vi2d(0 - tile_size.x * 0.5f + scaled_ui.x * 3 + scaled_ui.x * 4 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
+		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2), 200, 1200,
+		load_texture_from_cache("full"), sprite_batch);
+	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
 
 	return 0;
 }
@@ -283,7 +442,13 @@ int ConquestLocal::main_loop()
 			if (last_played_index >= 0)
 			{
 				server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
-				server_sim.DisconnectFromServer(default_simple_ai->GetClientId());
+				server_sim.DisconnectFromServer(opponent->GetClientId());
+				CheckIfBestOfGeneration();
+				CalculateGenerationAverage();
+				SetPreviousIdAndTileCount();
+
+
+				current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 			}
 
 			last_played_index++;
@@ -294,32 +459,63 @@ int ConquestLocal::main_loop()
 				// 
 				GeneticAlgorithm();
 				last_played_index = 0;
+
+				current_best_of_gen_id = 0;
+				current_best_of_gen_tiles_owned = 0;
+
+				generation_history->AddDataPoint(average_score_this_generation);
+				average_score_this_generation = 0.0;
+				// Create a new map after the generation has played their games
+				if (should_create_new_map)
+				{
+					should_create_new_map = false;
+					server_sim.CreateNewMap();
+				}
+			}
+
+			// g for bad, h for simple ai
+			if (bad_ai_enabled == true)
+			{
+				opponent = bad_ai;
+			}
+			else
+			{
+				opponent = simple_ai;
 			}
 
 			// Running agent vs. simpleAI
-			PlayGame(ai_agents.at(last_played_index), default_simple_ai);
+			PlayGame(ai_agents.at(last_played_index), opponent);
 		}
 
-		server_sim.Update();
+		if (!paused)
+		{
+			server_sim.Update();
 
+			for (AI* ai : ai_agents)
+			{
+				// Remove later TODO
+				ai->Update();
+			}
+
+			opponent->Update();
+		}
+		
 		tilemap = server_sim.GetBoardState();
 		players = server_sim.GetPlayers();
 
-		UpdateTileColors();
-		UpdateButtonColors();
-		UpdateScoreboardColors();
-		UpdateBarColors();
-		UpdateTurnsPlayedText();
-
-
-
-		for (AI* ai : ai_agents)
+		// TODO: remoev if
+		if (ui_enabled)
 		{
-			// Remove later TODO
-			ai->Update();
+			UpdateTileColors();
+			UpdateButtonColors();
+			UpdateScoreboardColors();
+			UpdateUIButtons();
+			UpdateBarColors();
+			UpdateTurnsPlayedText();
+			UpdateGenerationsText();
 		}
 
-		default_simple_ai->Update();
+		ClampGeneticAlgorithmVariables();
 
 		Event e = server_sim.GetNextEventFromQueue(spectator_id);
 
@@ -327,36 +523,44 @@ int ConquestLocal::main_loop()
 
 		timer_counter += dt;
 
-		for (GameObject* tile : tiles)
+		// TODO: remoev if
+		if (ui_enabled)
 		{
-			// Draw tile
-			tile->Update(dt);
+			generation_history->Update(dt);
+			current_gen_tiles_owned_histogram->Update(dt);
+
+			for (GameObject* tile : tiles)
+			{
+				// Draw tile
+				tile->Update(dt);
+			}
+
+			// Update gameobjects
+			for (UIElement* ui : ui_elements)
+			{
+				ui->Update(dt);
+			}
+
+			for (UIElement* ui : bar)
+			{
+				ui->Update(dt);
+			}
+
+			for (UIClickableLabel* l : ui_clickable_labels)
+			{
+				l->Update(dt);
+			}
 		}
 
-		// Update gameobjects
-		for (UIElement* ui : ui_elements)
-		{
-			ui->Update(dt);
-		}
-
-		for (UIElement* ui : bar)
-		{
-			ui->Update(dt);
-		}
-
-		if (turns_text != nullptr)
-		{
-			turns_text->Update(dt);
-		}
-
-		for (UIElement* b : buttons)
+		/*for (UIElement* b : buttons)
 		{
 			b->DestroyChildren();
 
 			b->Update(dt);
-		}
+		}*/
 
 		update_input();
+		//engine->SetWindowTitle("Conquest AI Training. fps: " + std::to_string(engine->GetCurrentFPS()));
 		dt = engine->Update();
 	}
 
@@ -365,18 +569,23 @@ int ConquestLocal::main_loop()
 
 void ConquestLocal::GeneticAlgorithm()
 {
+
 	// fitness
 	//ai_agents.at(0)->GetTilesOwned()
 	//100% = 1.0f
-	float top_percentile = 0.1f;
+	
+	
+	 // Saved "good" values
+	/*float mutation_rate = 0.001f;
+	float close_mutation_rate = 0.05f;
+	double close_mutation_epsilon = 0.25;
 
-	int num_agents = ai_agents.size();
+	float mutation_type_chance = 0.95f;*/
 
-	// 1.0f = 100% for each neurons weight
-	float mutation_rate = 0.01f;
+	// Average was here
 
 	// Sort best first
-	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool 
+	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool
 	{
 		return a->GetTilesOwned() > b->GetTilesOwned();
 	});
@@ -389,22 +598,57 @@ void ConquestLocal::GeneticAlgorithm()
 	}
 	ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 
-	int max_index = (int)ai_agents.size() - 1;
+
+	// Initialize the weights used for the selection of agents
+	std::vector<double> selection_weights;
+	for (size_t i = 0; i < ai_agents.size(); i++)
+	{
+		// Good looking function
+		selection_weights.push_back(200.0 / (i + 10.0));
+		//std::cout << "w = " << 400.0 / (i + 20.0) << " \n";
+	}
+
+	std::discrete_distribution<int> distribution(selection_weights.begin(), selection_weights.end());
+	
+	int max_index = ai_agents.size() - 1;
 
 	// Breed new AIs until we have the original amount of agents
-	while (ai_agents.size() < num_agents)
+	while (ai_agents.size() < population_size)
 	{
-		int index1 = Random::get(0, max_index);
+		int index1 = distribution(random_engine);
+		//int index2 = distribution(random_engine);
+
+		std::cout << "index = " << index1 << "\n";
+		//int index1 = Random::get(0, max_index);
 		//int index2 = Random::get(0, max_index);
 		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[index1]);
 		//NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[index2]);
 		//NeuralAI* child = new NeuralAI(tmp1, tmp2, running_agent_id++, &server_sim);
-		//NeuralAI* child = tmp1->CreateNewMutatedChild(mutation_rate, running_agent_id++);
+
 		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, &server_sim);
 
-		// Mutate the agent
-		child->Mutate(mutation_rate);
+		// Randomize the mutation type
+		//if (index1 == index2)
+		
+		float close_mutation = Random::get(0.0f, 1.0f);
+		if (close_mutation < mutation_type_chance)
+		{
+			// Mutates the child close to the parent
+			child->CloseMutate(close_mutation_rate, close_mutation_epsilon);
+		}
+		else
+		{
+			// Mutate the agent randomly
+			child->Mutate(mutation_rate);
+		}
+
+		// Push the child into the pool
 		ai_agents.push_back(child);
+	}
+
+	for (AI* agent : ai_agents)
+	{
+		agent->SetTilesOwned(0);
 	}
 
 	k2d::KUSI_DEBUG("\n\n\n\n\n EPOCH %i DONE \n\n\n\n\n", epoch++);
@@ -415,32 +659,149 @@ void ConquestLocal::GeneticAlgorithm()
 void ConquestLocal::update_input()
 {
 
-	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_LEFT))
+	if (engine->GetInputManager().IsButtonPressedThisFrame(SDL_BUTTON_LEFT))
 	{
 		// Check which button is pressed.
 		k2d::vi2d click_pos = engine->ScreenToWorld(engine->GetMouseCoords());
-		//std::cout << "click: " << click_pos << "\n";
-		for (size_t i = 0; i < num_colors; i++)
+		std::cout << "click: " << click_pos << "\n";
+
+		for (UIElement* button : ui_elements)
 		{
-			if (buttons.at(i)->IsActive())
+			if (button->IsActive() && button->IsButton())
 			{
 				// BOt left position
 				k2d::vi2d button_pos;
-				button_pos.x = buttons.at(i)->GetSprite()->GetPosition().x - buttons.at(i)->GetSprite()->GetDimensions().x / 2;
-				button_pos.y = buttons.at(i)->GetSprite()->GetPosition().y - buttons.at(i)->GetSprite()->GetDimensions().y / 2;
+				button_pos.x = button->GetSprite()->GetPosition().x - button->GetSprite()->GetDimensions().x / 2;
+				button_pos.y = button->GetSprite()->GetPosition().y - button->GetSprite()->GetDimensions().y / 2;
 				k2d::vi2d button_dims;
-				button_dims.x = buttons.at(i)->GetSprite()->GetDimensions().x;
-				button_dims.y = buttons.at(i)->GetSprite()->GetDimensions().y;
+				button_dims.x = button->GetSprite()->GetDimensions().x;
+				button_dims.y = button->GetSprite()->GetDimensions().y;
 				// Check if its a hit
 				if (click_pos.x > button_pos.x && click_pos.x < (button_pos.x + button_dims.x)
 					&& click_pos.y > button_pos.y && click_pos.y < (button_pos.y + button_dims.y))
 				{
-					//std::cout << "hit: " << i << "\n";
-					// If hit, break from loop
-					break;
+					std::cout << "HIT BUTTON " << button->GetName() << "!!\n";
+					button->SetIsHit(true);
 				}
 			}
 		}
+
+		for (UIClickableLabel* l : ui_clickable_labels)
+		{
+			if (l->IsActive())
+			{
+				// BOt left position
+				k2d::vi2d button_pos;
+				button_pos.x = l->GetSprite()->GetPosition().x - l->GetSprite()->GetDimensions().x / 2;
+				button_pos.y = l->GetSprite()->GetPosition().y - l->GetSprite()->GetDimensions().y / 2;
+				k2d::vi2d button_dims;
+				button_dims.x = l->GetSprite()->GetDimensions().x;
+				button_dims.y = l->GetSprite()->GetDimensions().y;
+
+				int dx = click_pos.x - button_pos.x;
+				int dy = click_pos.y - button_pos.y;
+
+				// Check if its a hit
+				if (dx > 0 && dx < button_dims.x
+					&& dy > 0  && dy < button_dims.y)
+				{
+					std::cout << "HIT LABEL " << l->GetName() << "!!\n";
+					l->Hit(k2d::vi2d(dx, dy));
+				}
+			}
+		}
+
+		//for (size_t i = 0; i < num_colors; i++)
+		//{
+		//	if (buttons.at(i)->IsActive())
+		//	{
+		//		// BOt left position
+		//		k2d::vi2d button_pos;
+		//		button_pos.x = buttons.at(i)->GetSprite()->GetPosition().x - buttons.at(i)->GetSprite()->GetDimensions().x / 2;
+		//		button_pos.y = buttons.at(i)->GetSprite()->GetPosition().y - buttons.at(i)->GetSprite()->GetDimensions().y / 2;
+		//		k2d::vi2d button_dims;
+		//		button_dims.x = buttons.at(i)->GetSprite()->GetDimensions().x;
+		//		button_dims.y = buttons.at(i)->GetSprite()->GetDimensions().y;
+		//		// Check if its a hit
+		//		if (click_pos.x > button_pos.x && click_pos.x < (button_pos.x + button_dims.x)
+		//			&& click_pos.y > button_pos.y && click_pos.y < (button_pos.y + button_dims.y))
+		//		{
+		//			//std::cout << "hit: " << i << "\n";
+		//			// If hit, break from loop
+		//			break;
+		//		}
+		//	}
+		//}
+	}
+
+	if (get_ui_by_name("OpponentChoice")->IsHit())
+	{
+		bad_ai_enabled = !bad_ai_enabled;
+
+		get_ui_by_name("OpponentChoice")->SetIsHit(false);
+	}
+
+	if (get_ui_by_name("PauseButton")->IsHit())
+	{
+		paused = !paused;
+		get_ui_by_name("PauseButton")->SetIsHit(false);
+	}
+
+	if (get_ui_by_name("CreateNewMapButton")->IsHit())
+	{
+		should_create_new_map = true;
+		get_ui_by_name("CreateNewMapButton")->SetIsHit(false);
+	}
+
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_n))
+	{
+		variable_change_multiplier /= 10;
+		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
+		for (UIClickableLabel* l : ui_clickable_labels)
+		{
+			l->SetVariableMultiplier(variable_change_multiplier);
+		}
+	}
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_m))
+	{
+		variable_change_multiplier *= 10;
+		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
+		for (UIClickableLabel* l : ui_clickable_labels)
+		{
+			l->SetVariableMultiplier(variable_change_multiplier);
+		}
+	}
+
+
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_g))
+	{
+		bad_ai_enabled = true;
+	}
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_h))
+	{
+		bad_ai_enabled = false;
+	}
+
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_j))
+	{
+		should_create_new_map = true;
+	}
+
+
+
+	// Disable label rendering/updating
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_v))
+	{
+		for (UIClickableLabel* l : ui_clickable_labels)
+		{
+			l->SetIsActive(!l->IsActive());
+		}
+	}
+
+	// Disable all rendering /updating
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_c))
+	{
+		ui_enabled = !ui_enabled;
 	}
 
 
@@ -457,48 +818,48 @@ void ConquestLocal::update_input()
 		engine->SetTargetFps(fps_target);
 	}
 
-	if (engine->GetInputManager().IsKeyPressed(SDLK_1))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_1))
 	{
 		GetRandomColorFromLoadedSkins(0);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_2))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_2))
 	{
 		GetRandomColorFromLoadedSkins(1);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_3))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_3))
 	{
 		GetRandomColorFromLoadedSkins(2);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_4))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_4))
 	{
 		GetRandomColorFromLoadedSkins(3);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_5))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_5))
 	{
 		GetRandomColorFromLoadedSkins(4);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_6))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_6))
 	{
 		GetRandomColorFromLoadedSkins(5);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_7))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_7))
 	{
 		GetRandomColorFromLoadedSkins(6);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_8))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_8))
 	{
 		GetRandomColorFromLoadedSkins(7);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_9))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_9))
 	{
 		GetRandomColorFromLoadedSkins(8);
 	}
-	if (engine->GetInputManager().IsKeyPressed(SDLK_0))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_0))
 	{
 		GetRandomColorFromLoadedSkins(9);
 	}
 	// Random ALL skins
-	if (engine->GetInputManager().IsKeyPressed(SDLK_k))
+	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_k))
 	{
 		
 		std::uniform_int_distribution<int> rand_col(0, loaded_skins.size() - 1);
@@ -534,31 +895,65 @@ void ConquestLocal::UpdateTileColors()
 
 void ConquestLocal::UpdateButtonColors()
 {
-	//Clear UI elements, except mousecoords
-	for (int i = 0; i < buttons.size(); i++)
-	{
-		delete buttons.at(i);
-	}
-	buttons.resize(0);
+	////Clear UI elements, except mousecoords
+	//for (int i = 0; i < buttons.size(); i++)
+	//{
+	//	delete buttons.at(i);
+	//}
+	//buttons.resize(0);
 
 
-	// Create UI Color Buttons for input
-	for (size_t i = 0; i < num_colors; i++)
+	//// Create UI Color Buttons for input
+	//for (size_t i = 0; i < num_colors; i++)
+	//{
+	//	UIElement* button = new UIElement("Button",
+	//		k2d::vi2d(-tile_size.x / 2 + tile_size.x * 2 + tile_size.x * 4 * i, -tile_size.y * 4 + tile_size.y / 2),
+	//		new k2d::Sprite(glm::vec2(0.0f, 0.0f),
+	//			tile_size.x * 4, tile_size.y * 4, 30.0f,
+	//			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(i),
+	//			load_texture_from_cache("full"), sprite_batch),
+	//		0);
+	//	// If the color is taken, hide the button
+	//	/*if (taken_colors.at(i) == true)
+	//	{
+	//		button->SetIsActive(false);
+	//	}*/
+	//	
+	//	
+	//	buttons.push_back(button);
+	//}
+}
+
+void ConquestLocal::UpdateUIButtons()
+{
+
+	if (bad_ai_enabled)
 	{
-		UIElement* button = new UIElement("Button",
-			k2d::vi2d(-tile_size.x / 2 + tile_size.x * 2 + tile_size.x * 4 * i, -tile_size.y * 4 + tile_size.y / 2),
-			new k2d::Sprite(glm::vec2(0.0f, 0.0f),
-				tile_size.x * 4, tile_size.y * 4, 30.0f,
-				glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(i),
-				load_texture_from_cache("full"), sprite_batch),
-			0);
-		// If the color is taken, hide the button
-		if (taken_colors.at(i) == true)
-		{
-			button->SetIsActive(false);
-		}
-		buttons.push_back(button);
+		get_ui_by_name("OpponentChoice")->GetChild()->GetSprite()->SetPosition(glm::vec2(tile_size.x * map_size.x + scaled_ui.x - tile_size.x / 2, tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2));
 	}
+	else
+	{
+		get_ui_by_name("OpponentChoice")->GetChild()->GetSprite()->SetPosition(glm::vec2(tile_size.x * map_size.x + scaled_ui.x - (tile_size.x * 2.5f), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2));
+	}
+
+	if (paused)
+	{
+		get_ui_by_name("PauseButton")->GetChild()->SetIsActive(true);
+	}
+	else
+	{
+		get_ui_by_name("PauseButton")->GetChild()->SetIsActive(false);
+	}
+
+	if (should_create_new_map)
+	{
+		get_ui_by_name("CreateNewMapButton")->GetChild()->SetIsActive(true);
+	}
+	else
+	{
+		get_ui_by_name("CreateNewMapButton")->GetChild()->SetIsActive(false);
+	}
+
 }
 
 void ConquestLocal::UpdateScoreboardColors()
@@ -567,16 +962,13 @@ void ConquestLocal::UpdateScoreboardColors()
 	// 8 = max players
 	for (size_t i = 0; i < players.size(); i++)
 	{
-		if (players[i].id > 0)
+		if (players[i].id >= 0)
 		{
 			std::string scorep1 = std::to_string(players[i].tiles_owned);
 			std::string ui_name = "P" + std::to_string(i + 1) + "Score";
 			get_ui_by_name(ui_name)->GetSprite()->SetColor(skins.at(players[i].num_owned));
 			//TODO: clean up this v
-			if (i == 0)
-			{
-				get_ui_by_name(ui_name)->SetActualText(std::to_string(players[i].id));
-			}
+			get_ui_by_name(ui_name)->SetActualText(std::to_string(players[i].id));
 			//get_ui_by_name(ui_name)->SetActualText(std::to_string(ai_agents[i]->GetGamesWon()));
 			get_ui_by_name(ui_name)->SetIsActive(true);
 		}
@@ -590,7 +982,7 @@ void ConquestLocal::UpdateBarColors()
 	float num_remaining_tiles = num_tiles;
 	for (int i = 0; i < players.size(); i++)
 	{
-		if (players[i].id != 0 && players[i].id != players[0].id)
+		if (players[i].id >= 0 && players[i].id != players[0].id)
 		{
 			num_remaining_tiles -= players[i].tiles_owned;
 		}
@@ -628,7 +1020,7 @@ void ConquestLocal::UpdateBarColors()
 
 	for (int i = 0; i < players.size(); i++)
 	{
-		if (players[i].id != players[0].id && players[i].id != 0)
+		if (players[i].id != players[0].id && players[i].id >= 0)
 		{
 			width = ceil((players[i].tiles_owned * map_width) / num_tiles);
 			UIElement* bar_ui0 = new UIElement("Bar",
@@ -642,14 +1034,90 @@ void ConquestLocal::UpdateBarColors()
 		}
 	}
 
+	float offset = ceil(current_best_of_gen_tiles_owned * map_width / num_tiles);
+	UIElement* current_best = new UIElement("CurrentBestBar",
+		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y* 2, 31.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
+		0);
+	current_best->SetIsActive(true);
+	bar.push_back(current_best);
+
+	offset = ceil(map_width / 2);
+	UIElement* halfway = new UIElement("HalfwayBar",
+		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y * 2, 31.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255,255,255, 50), load_texture_from_cache("full"), sprite_batch),
+		0);
+	halfway->SetIsActive(true);
+	bar.push_back(halfway);
+
+	offset = ceil(average_score_this_generation * map_width / num_tiles);
+	UIElement* average = new UIElement("AverageBar",
+		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y * 2, 31.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255, 255, 255, 150), load_texture_from_cache("full"), sprite_batch),
+		0);
+	average->SetIsActive(true);
+	bar.push_back(average);
 }
 
 void ConquestLocal::UpdateTurnsPlayedText()
 {
 	std::string turn_end_text = "Turns played: " + std::to_string(server_sim.GetTurnsPlayed());
-	turns_text->SetActualText(turn_end_text);
-	turns_text->SetTextOffset(k2d::vf2d(((float)turn_end_text.length() / 2.0f) * -20.f / 2, -2));
-	turns_text->SetIsActive(true);
+	get_ui_by_name("NRTurns")->SetActualText(turn_end_text);
+	//turns_text->SetTextOffset(k2d::vf2d(((float)turn_end_text.length() / 2.0f) * -20.f / 2, -2));
+}
+
+void ConquestLocal::UpdateGenerationsText()
+{
+	std::string genetext = "Generation: " + std::to_string(epoch)+ ", avg F: " + std::to_string((int) average_score_this_generation);
+	std::string ui_name = "Generation";
+	get_ui_by_name(ui_name)->SetActualText(genetext);
+
+	std::string best_text = "Gen Best ID: " + std::to_string(current_best_of_gen_id) + ", F: " + std::to_string(current_best_of_gen_tiles_owned);
+	get_ui_by_name(ui_name)->GetChild()->SetActualText(best_text);
+
+	std::string prev_text = "Previous ID: " + std::to_string(previous_id) + ", F: " + std::to_string(previous_tiles_owned);
+	get_ui_by_name("PreviousText")->SetActualText(prev_text);
+}
+
+
+void ConquestLocal::ClampGeneticAlgorithmVariables()
+{
+	top_percentile = k2d::clamp(top_percentile, 0.01f, 1.0f);
+
+	mutation_rate = k2d::clamp(mutation_rate, 0.000001f, 1.0f);
+	close_mutation_rate = k2d::clamp(close_mutation_rate, 0.000001f, 1.0f);
+	close_mutation_epsilon = k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
+
+	mutation_type_chance = k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
+}
+
+void ConquestLocal::CalculateGenerationAverage()
+{
+	double sum = 0.0;
+	for (size_t i = 0; i < ai_agents.size(); i++)
+	{
+		sum += ai_agents[i]->GetTilesOwned();
+	}
+
+	average_score_this_generation = sum / ((double) last_played_index + 1.0);
+}
+
+void ConquestLocal::CheckIfBestOfGeneration()
+{
+	if (ai_agents.at(last_played_index)->GetTilesOwned() > current_best_of_gen_tiles_owned)
+	{
+		current_best_of_gen_id = ai_agents.at(last_played_index)->GetClientId();
+		current_best_of_gen_tiles_owned = ai_agents.at(last_played_index)->GetTilesOwned();
+	}
+}
+
+void ConquestLocal::SetPreviousIdAndTileCount()
+{
+	previous_id = ai_agents[last_played_index]->GetClientId();
+	previous_tiles_owned = ai_agents[last_played_index]->GetTilesOwned();
 }
 
 void ConquestLocal::GetRandomColorFromLoadedSkins(int index)
@@ -914,7 +1382,7 @@ void ConquestLocal::HandleEvent(Event& e)
 		std::string encoded_turn_history = tokens[5];
 		std::string initial_board_state = data;
 
-		db_handler->InsertMatchData(match_id, winner_id, turns_played, p0_id, p1_id, encoded_turn_history, initial_board_state);
+		//db_handler->InsertMatchData(match_id, winner_id, turns_played, p0_id, p1_id, encoded_turn_history, initial_board_state);
 
 		// Store the Match id
 		// Store the winners id 
