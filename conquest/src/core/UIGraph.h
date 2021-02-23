@@ -18,6 +18,8 @@ public:
 
 	virtual void AddDataPoint(float data);
 
+	virtual void AddHorizontalLine(float percent_of_max_value, k2d::Color color);
+
 	virtual void AddSprite(k2d::Sprite* sprite);
 	virtual void AddText(k2d::Text* text);
 
@@ -29,7 +31,7 @@ public:
 
 	k2d::vf2d GetPosition() { return position; }
 	std::string GetName() { return name; }
-	std::vector<k2d::Sprite*> GetSprites() { return sprites; }
+	std::vector<k2d::Sprite*> GetSprites() { return bar_sprites; }
 	std::vector<k2d::Text*> GetTexts() { return texts; }
 	bool IsActive() { return active; }
 	bool IsButton() { return is_button; }
@@ -40,7 +42,8 @@ protected:
 	k2d::GLTexture				bar_texture;
 	std::string					name;
 	k2d::Sprite*				background;
-	std::vector<k2d::Sprite*>	sprites;
+	std::vector<k2d::Sprite*>	horizontal_line_sprites;
+	std::vector<k2d::Sprite*>	bar_sprites;
 	std::vector<k2d::Text*>		texts;
 	std::vector<float>			data_points;
 

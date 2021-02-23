@@ -17,7 +17,7 @@ UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_d
 
 UIGraph::~UIGraph()
 {
-	for (k2d::Sprite* s : sprites)
+	for (k2d::Sprite* s : bar_sprites)
 	{
 		delete s;
 	}
@@ -35,9 +35,13 @@ void UIGraph::Update(double dt)
 {
 	if (active)
 	{
-		for (k2d::Sprite* s : sprites)
+		for (k2d::Sprite* s : bar_sprites)
 		{
 			s->Tick();
+		}
+		for (k2d::Sprite* line : horizontal_line_sprites)
+		{
+			line->Tick();
 		}
 		for (k2d::Text* t : texts)
 		{
@@ -60,30 +64,30 @@ void UIGraph::UpdateBarPositions()
 	for (size_t i = 0; i < data_points.size(); i++)
 	{
 		float height = data_points.at(i) / max_data_value * size.y;
-		sprites.at(i)->SetWidth(width);
-		sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y + height * 0.5f));
-		sprites.at(i)->SetHeight(height);
+		bar_sprites.at(i)->SetWidth(width);
+		bar_sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y + height * 0.5f));
+		bar_sprites.at(i)->SetHeight(height);
 		offset += width;
 		if (should_be_gray && data_points.size() >= max_data_points)
 		{
 			if (i % 2 == 0)
 			{
-				sprites.at(i)->SetColor(k2d::Color(200, 255));
+				bar_sprites.at(i)->SetColor(k2d::Color(200, 255));
 			}
 			else
 			{
-				sprites.at(i)->SetColor(k2d::Color(255, 255));
+				bar_sprites.at(i)->SetColor(k2d::Color(255, 255));
 			}
 		}
 		else
 		{
 			if (i % 2 == 0)
 			{
-				sprites.at(i)->SetColor(k2d::Color(255, 255));
+				bar_sprites.at(i)->SetColor(k2d::Color(255, 255));
 			}
 			else
 			{
-				sprites.at(i)->SetColor(k2d::Color(200, 255));
+				bar_sprites.at(i)->SetColor(k2d::Color(200, 255));
 			}
 		}
 	}
@@ -113,8 +117,8 @@ void UIGraph::AddDataPoint(float data)
 		data_points.erase(data_points.begin());
 
 		// Delete the sprite for the first element
-		delete sprites.front();
-		sprites.erase(sprites.begin());
+		delete bar_sprites.front();
+		bar_sprites.erase(bar_sprites.begin());
 	}
 
 	if (data >= max_data_value)
@@ -124,14 +128,27 @@ void UIGraph::AddDataPoint(float data)
 	data_points.push_back(data);
 
 	k2d::Sprite* new_bar = new k2d::Sprite(glm::vec2(position.x, position.y), size.x / data_points.size(), size.y, 25.0f, glm::vec4(0,0,1,1), k2d::Color(255, 255), bar_texture, sb);
-	sprites.push_back(new_bar);
+	bar_sprites.push_back(new_bar);
 	should_be_gray = !should_be_gray;
 	UpdateBarPositions();
 }
 
+void UIGraph::AddHorizontalLine(float percent_of_max_value, k2d::Color color)
+{
+	float bot_level = position.y;
+	float width = size.x;
+	float height = 1.0f;
+
+	float level = bot_level + (size.y * percent_of_max_value);
+
+	k2d::Sprite* line = new k2d::Sprite(glm::vec2(position.x, level), width, height, 26.0f, glm::vec4(0,0,1,1), color, bar_texture, sb);
+
+	horizontal_line_sprites.push_back(line);
+}
+
 void UIGraph::AddSprite(k2d::Sprite* sprite)
 {
-	sprites.push_back(sprite);
+	bar_sprites.push_back(sprite);
 }
 
 void UIGraph::AddText(k2d::Text* text)

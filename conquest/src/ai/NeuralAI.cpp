@@ -89,153 +89,169 @@ NeuralAI::~NeuralAI()
 
 void NeuralAI::Update()
 {
-	// Check the server event queue for updates
-	Event e = GetNextEventFromServer();
-
-	switch (e.GetType())
+	if (ingame)
 	{
-	case EventType::GAME_OVER:
-	{
-		std::string data = e.GetData();
+		// Check the server event queue for updates
+		Event e = GetNextEventFromServer();
 
-		std::string delimiter = ":";
-
-		size_t pos = 0;
-		std::string token;
-		std::vector<std::string> tokens;
-		while ((pos = data.find(delimiter)) != std::string::npos) {
-			token = data.substr(0, pos);
-			tokens.push_back(token);
-			data.erase(0, pos + delimiter.length());
-		}
-
-		int winner_id = (std::stoi(tokens[0]));
-		int turns_played = (std::stoi(tokens[1]));
-		int match_id = std::stoi(tokens[2]);
-		int p0_id = std::stoi(tokens[3]);
-		int p1_id = std::stoi(tokens[4]);
-		std::string encoded_turn_history = tokens[5];
-		std::string initial_board_state = data;
-
-		if (winner_id == client_id)
+		switch (e.GetType())
 		{
-			AddGameWon();
+		case EventType::GAME_OVER:
+		{
+			std::string data = e.GetData();
+
+			std::string delimiter = ":";
+
+			size_t pos = 0;
+			std::string token;
+			std::vector<std::string> tokens;
+			while ((pos = data.find(delimiter)) != std::string::npos) {
+				token = data.substr(0, pos);
+				tokens.push_back(token);
+				data.erase(0, pos + delimiter.length());
+			}
+
+			int winner_id = (std::stoi(tokens[0]));
+			int turns_played = (std::stoi(tokens[1]));
+			int match_id = std::stoi(tokens[2]);
+			int p0_id = std::stoi(tokens[3]);
+			int p1_id = std::stoi(tokens[4]);
+			int p0_tiles = std::stoi(tokens[5]);
+			int p1_tiles = std::stoi(tokens[6]);
+			std::string encoded_turn_history = tokens[7];
+			std::string initial_board_state = data;
+
+			if (which_player_am_i == 0 && p0_id == client_id)
+			{
+				tiles_owned = p0_tiles;
+			}
+			else if (which_player_am_i == 1 && p1_id == client_id)
+			{
+				tiles_owned = p1_tiles;
+			}
+
+			if (winner_id == client_id)
+			{
+				AddGameWon();
+			}
+
+			AddGamePlayed();
+			ingame = false;
+			//return;
+
+			break;
+		}
+		case EventType::TURN_CHANGE:
+		{
+			std::string data = e.GetData();
+
+			std::string delimiter = ":";
+
+			size_t pos = 0;
+			std::string token;
+			std::vector<std::string> tokens;
+			while ((pos = data.find(delimiter)) != std::string::npos) {
+				token = data.substr(0, pos);
+				tokens.push_back(token);
+				data.erase(0, pos + delimiter.length());
+			}
+
+			SetCurrentTurnPlayersId(std::stoi(tokens[0]));
+
+			if (current_turn_players_id == client_id)
+			{
+				tiles_owned = std::stoi(data);
+			}
+			try_best = 0;
+			break;
+		}
+		case EventType::INVALID_COLOR:
+		{
+			try_best++;
+			break;
+		}
+		default:
+			break;
 		}
 
-		AddGamePlayed();
-
-		break;
-	}
-	case EventType::TURN_CHANGE:
-	{
-		std::string data = e.GetData();
-
-		std::string delimiter = ":";
-
-		size_t pos = 0;
-		std::string token;
-		std::vector<std::string> tokens;
-		while ((pos = data.find(delimiter)) != std::string::npos) {
-			token = data.substr(0, pos);
-			tokens.push_back(token);
-			data.erase(0, pos + delimiter.length());
-		}
-
-		SetCurrentTurnPlayersId(std::stoi(tokens[0]));
-
+		// If its our turn
 		if (current_turn_players_id == client_id)
 		{
-			tiles_owned = std::stoi(data);
-		}
-		try_best = 0;
-		break;
-	}
-	case EventType::INVALID_COLOR:
-	{
-		try_best++;
-		break;
-	}
-	default:
-		break;
-	}
+			GetTakenColorsFromServer();
 
-	// If its our turn
-	if (current_turn_players_id == client_id)
-	{
-		GetTakenColorsFromServer();
+			int res = -1;
+			// Send the input values in to the neural net
+			std::vector<double> board_state_single_dimension;
+			std::vector<std::vector<tile>> board_state = server->GetBoardState();
 
-		int res = -1;
-		// Send the input values in to the neural net
-		std::vector<double> board_state_single_dimension;
-		std::vector<std::vector<tile>> board_state = server->GetBoardState();
-
-		// Convert the 2d array into a single dimension array of doubles
-		for (size_t i = 0; i < board_state.size(); i++)
-		{
-			for (size_t j = 0; j < board_state[i].size(); j++)
+			// Convert the 2d array into a single dimension array of doubles
+			for (size_t i = 0; i < board_state.size(); i++)
 			{
-				double in_value = board_state[i][j].color;
-				double min_in_range = 0.0;
-				double max_in_range = 1.0 * (taken_colors.size() - 1);
-				double min_out_range = -1.0;
-				double max_out_range = 1.0;
-				double x = (in_value - min_in_range) / (max_in_range - min_in_range);
-				double result = min_out_range + (max_out_range - min_out_range) * x;
-
-				//board_state_single_dimension.push_back((double)board_state[i][j].color * 0.1);
-				board_state_single_dimension.push_back(result);
-
-
-				// Different approach, one bit per color, 0.0 or 1.0 
-				/*for (size_t i = 0; i < taken_colors.size(); i++)
+				for (size_t j = 0; j < board_state[i].size(); j++)
 				{
-					board_state_single_dimension.push_back(0.0);
-				}*/
-				//board_state_single_dimension.at(i * board_state.size() + j + board_state[i][j].color) = 1.0;
+					double in_value = board_state[i][j].color;
+					double min_in_range = 0.0;
+					double max_in_range = 1.0 * (taken_colors.size() - 1);
+					double min_out_range = -1.0;
+					double max_out_range = 1.0;
+					double x = (in_value - min_in_range) / (max_in_range - min_in_range);
+					double result = min_out_range + (max_out_range - min_out_range) * x;
+
+					//board_state_single_dimension.push_back((double)board_state[i][j].color * 0.1);
+					board_state_single_dimension.push_back(result);
+
+
+					// Different approach, one bit per color, 0.0 or 1.0 
+					/*for (size_t i = 0; i < taken_colors.size(); i++)
+					{
+						board_state_single_dimension.push_back(0.0);
+					}*/
+					//board_state_single_dimension.at(i * board_state.size() + j + board_state[i][j].color) = 1.0;
+				}
 			}
-		}
 
-		// Players owned colors
-		for (size_t i = 0; i < taken_colors.size(); i++)
-		{
-			// 1 if free, 0.0 if taken
-			board_state_single_dimension.push_back(taken_colors.at(i) ? 0.0 : 1.0);
-		}
-		
-		board_state_single_dimension.push_back(which_player_am_i);
-
-		// Input the board state into the net
-		//neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
-		neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
-		
-
-		// Get the results from the net
-		neural_net.GetResults(result_vec);
-		results_map.clear();
-
-		for (size_t i = 0; i < result_vec.size(); i++)
-		{
-			//std::cout << "res " << i << ": " << result_vec[i] << "\n";
-			if (taken_colors.at(i) == false)
+			// Players owned colors
+			for (size_t i = 0; i < taken_colors.size(); i++)
 			{
-				results_map.push_back(std::make_pair(i, result_vec[i]));
+				// 1 if free, 0.0 if taken
+				board_state_single_dimension.push_back(taken_colors.at(i) ? 0.0 : 1.0);
 			}
-		}
 
-		// highest first
-		std::sort(results_map.begin(), results_map.end(),
-			[](const std::pair<int, double>& a, const std::pair<int, double>& b) -> bool
+			board_state_single_dimension.push_back(which_player_am_i);
+
+			// Input the board state into the net
+			//neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
+			neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
+
+
+			// Get the results from the net
+			neural_net.GetResults(result_vec);
+			results_map.clear();
+
+			for (size_t i = 0; i < result_vec.size(); i++)
 			{
-				return a.second > b.second;
+				//std::cout << "res " << i << ": " << result_vec[i] << "\n";
+				if (taken_colors.at(i) == false)
+				{
+					results_map.push_back(std::make_pair(i, result_vec[i]));
+				}
 			}
-		);
+
+			// highest first
+			std::sort(results_map.begin(), results_map.end(),
+				[](const std::pair<int, double>& a, const std::pair<int, double>& b) -> bool
+				{
+					return a.second > b.second;
+				}
+			);
 
 
 
-		res = results_map[try_best].first;
+			res = results_map[try_best].first;
 
-		// Send the number to the server
-		SendInputToServer(res);
+			// Send the number to the server
+			SendInputToServer(res);
+		}
 	}
 }
 

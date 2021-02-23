@@ -173,6 +173,8 @@ int ConquestLocal::create_ui()
 {
 	scaled_ui = tile_size * 4;
 
+	ui_enabled = true;
+
 	// Generation texts
 	UIElement* gen = new UIElement("Generation", k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
 		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 3, 20.0f,
@@ -231,7 +233,7 @@ int ConquestLocal::create_ui()
 	// top percentile label
 	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
 		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 2),
-		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -240,14 +242,15 @@ int ConquestLocal::create_ui()
 	top_percentile_label->SetVariable(&top_percentile);
 	top_percentile_label->SetModifiable(true);
 	top_percentile_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
+	top_percentile_label->SetPrintPrecision(0);
 
 	ui_clickable_labels.push_back(top_percentile_label);
 
 
 	// Mutation rate label
-	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R Mutation Rate: ",
+	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
 		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 2),
-		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1, 
@@ -255,16 +258,16 @@ int ConquestLocal::create_ui()
 	mutation_label->SetBackground(k2d::Color(129, 255));
 	mutation_label->SetVariable(&mutation_rate);
 	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
-	mutation_label->SetPrintPrecision(7);
+	mutation_label->SetPrintPrecision(6);
 	mutation_label->SetBaseMultiplier(0.000001f);
 	mutation_label->SetModifiable(true);
 
 	ui_clickable_labels.push_back(mutation_label);
 
 	// Close Mutation rate label
-	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C Mutation Rate: ",
+	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M. Rate: ",
 		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 2),
-		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -272,16 +275,16 @@ int ConquestLocal::create_ui()
 	close_mutation_rate_label->SetBackground(k2d::Color(129, 255));
 	close_mutation_rate_label->SetVariable(&close_mutation_rate);
 	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
-	close_mutation_rate_label->SetPrintPrecision(7);
+	close_mutation_rate_label->SetPrintPrecision(6);
 	close_mutation_rate_label->SetBaseMultiplier(0.000001f);
 	close_mutation_rate_label->SetModifiable(true);
 
 	ui_clickable_labels.push_back(close_mutation_rate_label);
 	
 	// Mutation Type Chance rate label
-	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "Mutation Type C: ",
+	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. Type C: ",
 		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 2),
-		k2d::vi2d(-scaled_ui.x * 1.5f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -369,6 +372,7 @@ int ConquestLocal::create_ui()
 		k2d::vi2d(0 -tile_size.x * 0.5f + scaled_ui.x * 2 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
 		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2), 100, 1200,
 		load_texture_from_cache("full"), sprite_batch);
+	generation_history->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
 	generation_history->SetBackground(k2d::Color(40, 255));
 
 	// Current gen tiles owned histogram
@@ -376,6 +380,7 @@ int ConquestLocal::create_ui()
 		k2d::vi2d(0 - tile_size.x * 0.5f + scaled_ui.x * 3 + scaled_ui.x * 4 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
 		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2), 200, 1200,
 		load_texture_from_cache("full"), sprite_batch);
+	current_gen_tiles_owned_histogram->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
 	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
 
 	return 0;
@@ -753,7 +758,7 @@ void ConquestLocal::update_input()
 		get_ui_by_name("CreateNewMapButton")->SetIsHit(false);
 	}
 
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_n))
+	if (engine->GetInputManager().IsMouseWheelScrolledThisFrame(k2d::WheelDirection::UP))
 	{
 		variable_change_multiplier /= 10;
 		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
@@ -762,7 +767,7 @@ void ConquestLocal::update_input()
 			l->SetVariableMultiplier(variable_change_multiplier);
 		}
 	}
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_m))
+	if (engine->GetInputManager().IsMouseWheelScrolledThisFrame(k2d::WheelDirection::DOWN))
 	{
 		variable_change_multiplier *= 10;
 		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
@@ -1379,7 +1384,9 @@ void ConquestLocal::HandleEvent(Event& e)
 		int match_id = std::stoi(tokens[2]);
 		int p0_id = std::stoi(tokens[3]);
 		int p1_id = std::stoi(tokens[4]);
-		std::string encoded_turn_history = tokens[5];
+		int p0_tiles_owned = std::stoi(tokens[5]);
+		int p1_tiles_owned = std::stoi(tokens[6]);
+		std::string encoded_turn_history = tokens[7];
 		std::string initial_board_state = data;
 
 		//db_handler->InsertMatchData(match_id, winner_id, turns_played, p0_id, p1_id, encoded_turn_history, initial_board_state);

@@ -154,6 +154,8 @@ bool ServerSim::ReceiveInput(int player_id, int recv_num)
                     e.AppendToData(std::to_string(match_id_running));
                     e.AppendToData(std::to_string(players[0].id));
                     e.AppendToData(std::to_string(players[1].id));
+                    e.AppendToData(std::to_string(players[0].tiles_owned));
+                    e.AppendToData(std::to_string(players[1].tiles_owned));
                     e.AppendToData(turn_history_str);
                     e.AppendToData(initial_board_state);
 

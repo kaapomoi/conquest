@@ -6,7 +6,7 @@ namespace k2d
 	Label::Label(std::string _text, std::map<GLchar, Character>& _characters, float _x, float _y,
 		float _scale, float _depth, Color _color, SpriteBatch* _sprite_batch) :
 		Text(_text, _characters, _x, _y, _scale, _depth, _color, _sprite_batch), label_text(_text), variable_multiplier(1),
-		int_to_watch(nullptr), float_to_watch(nullptr), double_to_watch(nullptr), print_func(nullptr)
+		int_to_watch(nullptr), float_to_watch(nullptr), double_to_watch(nullptr), print_func(nullptr), print_precision(6)
 	{
 		base_mul_int = 1;
 		base_mul_float = 0.01f;
@@ -40,15 +40,15 @@ namespace k2d
 		{
 			if (int_to_watch)
 			{
-				value = std::to_string(*int_to_watch);
+				value = k2d::to_string_p(*int_to_watch, print_precision);
 			}
 			else if (float_to_watch)
 			{
-				value = std::to_string(*float_to_watch);
+				value = k2d::to_string_p(*float_to_watch, print_precision);
 			}
 			else if (double_to_watch)
 			{
-				value = std::to_string(*double_to_watch);
+				value = k2d::to_string_p(*double_to_watch, print_precision);
 			}
 		}
 		

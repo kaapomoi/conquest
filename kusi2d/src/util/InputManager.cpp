@@ -17,6 +17,9 @@ namespace k2d
 	{
 		key_map_this_frame.clear();
 		button_map_this_frame.clear();
+
+		mouse_scroll_up_down_this_frame.first = false;
+		mouse_scroll_up_down_this_frame.second = false;
 	}
 
 	void InputManager::PressKey(int _key_id)
@@ -46,6 +49,18 @@ namespace k2d
 	{
 		mouse_coords.x = _x;
 		mouse_coords.y = _y;
+	}
+
+	void InputManager::ScrollWheel(WheelDirection d)
+	{
+		if (d == WheelDirection::UP)
+		{
+			mouse_scroll_up_down_this_frame.first = true;
+		}
+		else if (d == WheelDirection::DOWN)
+		{
+			mouse_scroll_up_down_this_frame.second = true;
+		}
 	}
 
 	bool InputManager::IsKeyPressed(int _key_id)
@@ -101,6 +116,18 @@ namespace k2d
 		else
 		{
 			return false;
+		}
+	}
+
+	bool InputManager::IsMouseWheelScrolledThisFrame(WheelDirection d)
+	{
+		if (d == WheelDirection::UP)
+		{
+			return mouse_scroll_up_down_this_frame.first;
+		}
+		else if (d == WheelDirection::DOWN)
+		{
+			return mouse_scroll_up_down_this_frame.second;
 		}
 	}
 

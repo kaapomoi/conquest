@@ -136,7 +136,7 @@ namespace k2d
 	/// Calculates average FPS over a specified time period 
 	void Engine::CalculateFPS()
 	{
-		static const int NUM_SAMPLES = 60;
+		static const int NUM_SAMPLES = 10;
 		static double frame_times[NUM_SAMPLES];
 		static int current_frame = 0;
 
@@ -207,6 +207,16 @@ namespace k2d
 				break;
 			case SDL_MOUSEBUTTONUP:
 				input_manager.ReleaseButton(evnt.button.button);
+				break;
+			case SDL_MOUSEWHEEL:
+				if (evnt.wheel.y > 0)
+				{
+					input_manager.ScrollWheel(WheelDirection::UP);
+				}
+				else if (evnt.wheel.y < 0)
+				{
+					input_manager.ScrollWheel(WheelDirection::DOWN);
+				}
 				break;
 			}
 		}

@@ -1,17 +1,25 @@
 ﻿  Engine.cpp
+  Win32_System.cpp
   Window.cpp
+  Camera2D.cpp
   GLSLProgram.cpp
   GraphicsSystem.cpp
 C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
 C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  Label.cpp
+C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\Label.cpp(28,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\Label.cpp(36,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
   Sprite.cpp
   SpriteBatch.cpp
   Text.cpp
   ImageLoader.cpp
+  InputManager.cpp
+  picoPNG.cpp
   util.cpp
 C:\Users\Kaapo\Projects\conquest\kusi2d\src\util\util.cpp(38,16): warning C4244: 'initializing': conversion from 'std::streamoff' to 'int', possible loss of data
 C:\Users\Kaapo\Projects\conquest\kusi2d\src\util\util.cpp(40,27): warning C4244: '-=': conversion from 'std::streamoff' to 'int', possible loss of data
   Generating Code...
+C:\Users\Kaapo\Projects\conquest\kusi2d\src\util\InputManager.cpp(132): warning C4715: 'k2d::InputManager::IsMouseWheelScrolledThisFrame': not all control paths return a value
 opengl32.lib(OPENGL32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 glew32.lib(glew32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 freetype.lib(freetype.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored

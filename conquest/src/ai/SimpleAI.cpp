@@ -37,7 +37,9 @@ void SimpleAI::Update()
 			int match_id = std::stoi(tokens[2]);
 			int p0_id = std::stoi(tokens[3]);
 			int p1_id = std::stoi(tokens[4]);
-			std::string encoded_turn_history = tokens[5];
+			int p0_tiles = std::stoi(tokens[5]);
+			int p1_tiles = std::stoi(tokens[6]);
+			std::string encoded_turn_history = tokens[7];
 			std::string initial_board_state = data;
 		
 			if (winner_id == client_id)
