@@ -242,6 +242,7 @@ int ConquestLocal::create_ui()
 	pop_size_label->SetBackground(k2d::Color(129, 255));
 	pop_size_label->SetVariable(&population_size);
 	pop_size_label->SetModifiable(true);
+	pop_size_label->AddCallbackFunction(this, &ConquestLocal::UpdateSelectionWeights);
 
 	ui_clickable_labels.push_back(pop_size_label);
 
@@ -259,6 +260,7 @@ int ConquestLocal::create_ui()
 	top_percentile_label->SetModifiable(true);
 	top_percentile_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
 	top_percentile_label->SetPrintPrecision(0);
+	top_percentile_label->AddCallbackFunction(this, &ConquestLocal::UpdateSelectionWeights);
 
 	ui_clickable_labels.push_back(top_percentile_label);
 
@@ -717,7 +719,7 @@ void ConquestLocal::update_input()
 				if (dx > 0 && dx < button_dims.x
 					&& dy > 0  && dy < button_dims.y)
 				{
-					l->Hit(k2d::vi2d(dx, dy));
+					l->OnHit(k2d::vi2d(dx, dy));
 				}
 			}
 		}

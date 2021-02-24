@@ -120,11 +120,11 @@ void UIClickableLabel::SetIsActive(bool a)
 	this->active = a;
 }
 
-void UIClickableLabel::Hit(k2d::vi2d relative_hit_pos)
+void UIClickableLabel::OnHit(k2d::vi2d relative_hit_pos)
 {
 	if (modifiable)
 	{
-		if (relative_hit_pos.x >= (size.x *0.5f))
+		if (relative_hit_pos.x >= (size.x * 0.5f))
 		{
 			// We hit the right side 
 			label->RaiseVariableValue();
@@ -135,4 +135,5 @@ void UIClickableLabel::Hit(k2d::vi2d relative_hit_pos)
 			label->LowerVariableValue();
 		}
 	}
+	UIClickable::OnClick();
 }

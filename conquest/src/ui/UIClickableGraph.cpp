@@ -40,4 +40,7 @@ void UIClickableGraph::OnHit(k2d::vf2d relative_position)
 	*f = click_height;*/
 	data_points->at(index) = click_height * max_data_value;
 	UpdateBarPositions();
+
+	// Call callbacks
+	UIClickable::OnClick();
 }

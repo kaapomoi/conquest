@@ -1,8 +1,9 @@
 #pragma once
 
 #include <core/Engine.h>
+#include <ui/UIClickable.h>
 
-class UIClickableLabel
+class UIClickableLabel : public UIClickable
 {
 public:
 	UIClickableLabel(std::string name, std::string label_text, k2d::vi2d position, k2d::vi2d text_offset, k2d::vi2d size, k2d::GLTexture tex, k2d::SpriteBatch* sb,
@@ -37,7 +38,7 @@ public:
 	void SetName(std::string name);
 	void SetIsActive(bool a);
 
-	void Hit(k2d::vi2d relative_hit_pos);
+	void OnHit(k2d::vi2d relative_hit_pos);
 
 	k2d::vf2d GetPosition() { return position; }
 	std::string GetName() { return name; }
