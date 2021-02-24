@@ -13,6 +13,7 @@ UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_d
 	this->active = true;
 	this->is_button = false;
 	this->is_hit = false;
+	this->data_points = new std::vector<float>();
 }
 
 UIGraph::~UIGraph()
@@ -28,6 +29,7 @@ UIGraph::~UIGraph()
 	}
 
 	delete background;
+	delete data_points;
 }
 
 // Recursively updates this and children
@@ -61,14 +63,14 @@ void UIGraph::UpdateBarPositions()
 
 	// start position = left
 	float start_x = position.x - size.x * 0.5f + width / 2;
-	for (size_t i = 0; i < data_points.size(); i++)
+	for (size_t i = 0; i < bar_sprites.size(); i++)
 	{
-		float height = data_points.at(i) / max_data_value * size.y;
+		float height = (data_points->at(i) / max_data_value) * size.y;
 		bar_sprites.at(i)->SetWidth(width);
 		bar_sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y + height * 0.5f));
 		bar_sprites.at(i)->SetHeight(height);
 		offset += width;
-		if (should_be_gray && data_points.size() >= max_data_points)
+		if (should_be_gray && data_points->size() >= max_data_points)
 		{
 			if (i % 2 == 0)
 			{
@@ -111,10 +113,10 @@ void UIGraph::SetIsHit(bool is_hit)
 
 void UIGraph::AddDataPoint(float data)
 {
-	if (data_points.size() >= max_data_points)
+	if (data_points->size() >= max_data_points)
 	{
 		// Remove the first element
-		data_points.erase(data_points.begin());
+		data_points->erase(data_points->begin());
 
 		// Delete the sprite for the first element
 		delete bar_sprites.front();
@@ -125,12 +127,35 @@ void UIGraph::AddDataPoint(float data)
 	{
 		max_data_value = data;
 	}
-	data_points.push_back(data);
+	data_points->push_back(data);
 
-	k2d::Sprite* new_bar = new k2d::Sprite(glm::vec2(position.x, position.y), size.x / data_points.size(), size.y, 25.0f, glm::vec4(0,0,1,1), k2d::Color(255, 255), bar_texture, sb);
+	k2d::Sprite* new_bar = new k2d::Sprite(glm::vec2(position.x, position.y), size.x / data_points->size(), size.y, 25.0f, glm::vec4(0,0,1,1), k2d::Color(255, 255), bar_texture, sb);
 	bar_sprites.push_back(new_bar);
 	should_be_gray = !should_be_gray;
 	UpdateBarPositions();
+}
+
+void UIGraph::SetDataToFollow(std::vector<float>* data)
+{
+	for (k2d::Sprite* s : bar_sprites)
+	{
+		delete s;
+	}
+	bar_sprites.clear();
+
+	this->data_points = data;
+	this->max_data_points = data->size();
+	for (size_t i = 0; i < max_data_points; i++)
+	{
+		k2d::Sprite* new_bar = new k2d::Sprite(glm::vec2(position.x, position.y), 0.0f, 0.0f, 25.0f, glm::vec4(0, 0, 1, 1), k2d::Color(255, 255), bar_texture, sb);
+		bar_sprites.push_back(new_bar);
+	}
+	UpdateBarPositions();
+}
+
+void UIGraph::SetMaxDataValue(int max_data_value)
+{
+	this->max_data_value = max_data_value;
 }
 
 void UIGraph::AddHorizontalLine(float percent_of_max_value, k2d::Color color)
@@ -176,4 +201,9 @@ void UIGraph::SetName(std::string name)
 void UIGraph::SetIsActive(bool a)
 {
 	this->active = a;
+}
+
+void UIGraph::OnHit(k2d::vf2d rel_pos)
+{
+	// lol
 }

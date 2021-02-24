@@ -6,6 +6,7 @@
 #include <ui/UIGraph.h>
 #include <ui/UIFunctionGraph.h>
 #include <ui/UIClickableLabel.h>
+#include <ui/UIClickableGraph.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -232,7 +233,7 @@ private:
 
 	int		variable_change_multiplier;
 
-	std::vector<double> selection_weights;
+	std::vector<float> selection_weights;
 	// Is the simulation paused
 	bool ui_enabled;
 
@@ -254,5 +255,5 @@ private:
 
 	UIGraph* generation_history;
 	UIGraph* current_gen_tiles_owned_histogram;
-	UIFunctionGraph* pick_chance_graph;
+	UIClickableGraph* pick_chance_graph;
 };

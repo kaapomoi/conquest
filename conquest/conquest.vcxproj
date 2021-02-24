@@ -32,6 +32,7 @@
     <ClCompile Include="src\core\ServerSim.cpp" />
     <ClCompile Include="src\neuralnet\NeuralNet.cpp" />
     <ClCompile Include="src\neuralnet\Neuron.cpp" />
+    <ClCompile Include="src\ui\UIClickableGraph.cpp" />
     <ClCompile Include="src\ui\UIClickableLabel.cpp" />
     <ClCompile Include="src\ui\UIElement.cpp" />
     <ClCompile Include="src\ui\UIFunctionGraph.cpp" />
@@ -53,6 +54,7 @@
     <ClInclude Include="src\core\ServerSim.h" />
     <ClInclude Include="src\neuralnet\NeuralNet.h" />
     <ClInclude Include="src\neuralnet\Neuron.h" />
+    <ClInclude Include="src\ui\UIClickableGraph.h" />
     <ClInclude Include="src\ui\UIClickableLabel.h" />
     <ClInclude Include="src\ui\UIElement.h" />
     <ClInclude Include="src\ui\UIFunctionGraph.h" />

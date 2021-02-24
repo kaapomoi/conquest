@@ -42,17 +42,17 @@ void UIFunctionGraph::UpdateGraphValues()
 
 		// start position = left
 		float start_x = position.x - size.x * 0.5f + width / 2;
-		for (size_t i = 0; i < data_points.size(); i++)
+		for (size_t i = 0; i < data_points->size(); i++)
 		{
 			// calculate the value for the position i ( x )
-			data_points.at(i) = func_pointer(i);
-			float height = data_points.at(i) / max_data_value * size.y;
+			data_points->at(i) = func_pointer(i);
+			float height = data_points->at(i) / max_data_value * size.y;
 			
 			bar_sprites.at(i)->SetWidth(width);
 			bar_sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y + height * 0.5f));
 			bar_sprites.at(i)->SetHeight(height);
 			offset += width;
-			if (should_be_gray && data_points.size() >= max_data_points)
+			if (should_be_gray && data_points->size() >= max_data_points)
 			{
 				if (i % 2 == 0)
 				{

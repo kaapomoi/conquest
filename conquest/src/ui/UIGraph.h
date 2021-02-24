@@ -18,6 +18,9 @@ public:
 
 	virtual void AddDataPoint(float data);
 
+	virtual void SetDataToFollow(std::vector<float>* data);
+	virtual void SetMaxDataValue(int max_data_value);
+
 	virtual void AddHorizontalLine(float percent_of_max_value, k2d::Color color);
 
 	virtual void AddSprite(k2d::Sprite* sprite);
@@ -28,8 +31,11 @@ public:
 	virtual void SetName(std::string name);
 	virtual void SetIsActive(bool a);
 
+	virtual void OnHit(k2d::vf2d rel_pos);
+
 
 	k2d::vf2d GetPosition() { return position; }
+	k2d::vi2d GetSize() { return size; }
 	std::string GetName() { return name; }
 	std::vector<k2d::Sprite*> GetSprites() { return bar_sprites; }
 	std::vector<k2d::Text*> GetTexts() { return texts; }
@@ -45,7 +51,7 @@ protected:
 	std::vector<k2d::Sprite*>	horizontal_line_sprites;
 	std::vector<k2d::Sprite*>	bar_sprites;
 	std::vector<k2d::Text*>		texts;
-	std::vector<float>			data_points;
+	std::vector<float>*			data_points;
 
 	int max_data_points;
 	int max_data_value;

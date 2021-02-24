@@ -400,11 +400,11 @@ int ConquestLocal::create_ui()
 	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
 
 	// Current gen tiles owned histogram
-	pick_chance_graph = new UIFunctionGraph("PickChanceGraph",
+	pick_chance_graph = new UIClickableGraph("PickChanceGraph",
 		k2d::vi2d(0 - scaled_ui.x * 2, tile_size.y * map_size.y * 0.5f - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
-		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2), population_size,
-		load_texture_from_cache("full"), sprite_batch,
-		pick_chance_function);
+		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2), ceil(population_size * top_percentile),
+		find_max(0, ceil(population_size * top_percentile), pick_chance_function), // max_data_value
+		load_texture_from_cache("full"), sprite_batch);
 	pick_chance_graph->SetBackground(k2d::Color(20, 255));
 	//pick_chance_graph->UpdateGraphValues();
 
@@ -607,12 +607,15 @@ void ConquestLocal::GeneticAlgorithm()
 	});
 
 	int cutoff_index = ceil(top_percentile * population_size);
-	// Pick top some % for breeding
-	for (size_t i = cutoff_index; i < ai_agents.size(); i++)
+	if (cutoff_index < ai_agents.size() )
 	{
-		delete ai_agents[i];
+		// Pick top some % for breeding
+		for (size_t i = cutoff_index; i < ai_agents.size(); i++)
+		{
+			delete ai_agents[i];
+		}
+		ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 	}
-	ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 
 
 	UpdateSelectionWeights();
@@ -620,7 +623,7 @@ void ConquestLocal::GeneticAlgorithm()
 	
 	int max_index = ai_agents.size() - 1;
 	std::discrete_distribution<int> distribution(selection_weights.begin(), selection_weights.begin()+ max_index);
-
+	ai_agents.reserve(population_size);
 	// Breed new AIs until we have the original amount of agents
 	while (ai_agents.size() < population_size)
 	{
@@ -714,9 +717,30 @@ void ConquestLocal::update_input()
 				if (dx > 0 && dx < button_dims.x
 					&& dy > 0  && dy < button_dims.y)
 				{
-					std::cout << "HIT LABEL " << l->GetName() << "!!\n";
 					l->Hit(k2d::vi2d(dx, dy));
 				}
+			}
+		}
+
+		UIClickableGraph* l = pick_chance_graph;
+		if (l->IsActive())
+		{
+			// BOt left position
+			k2d::vi2d button_pos;
+			button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
+			button_pos.y = l->GetPosition().y;
+			k2d::vi2d button_dims;
+			button_dims.x = l->GetSize().x;
+			button_dims.y = l->GetSize().y;
+
+			int dx = click_pos.x - button_pos.x;
+			int dy = click_pos.y - button_pos.y;
+
+			// Check if its a hit
+			if (dx > 0 && dx < button_dims.x
+				&& dy > 0 && dy < button_dims.y)
+			{
+				l->OnHit(k2d::vi2d(dx, dy));
 			}
 		}
 
@@ -741,6 +765,34 @@ void ConquestLocal::update_input()
 		//		}
 		//	}
 		//}
+	}
+
+	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_RIGHT))
+	{
+		k2d::vf2d click_pos = engine->ScreenToWorld(engine->GetMouseCoords());
+
+		UIClickableGraph* l = pick_chance_graph;
+		if (l->IsActive())
+		{
+			// BOt left position
+			k2d::vi2d button_pos;
+			button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
+			button_pos.y = l->GetPosition().y;
+			k2d::vi2d button_dims;
+			button_dims.x = l->GetSize().x;
+			button_dims.y = l->GetSize().y;
+
+			int dx = click_pos.x - button_pos.x;
+			int dy = click_pos.y - button_pos.y;
+
+			// Check if its a hit
+			if (dx > 0 && dx < button_dims.x
+				&& dy > 0 && dy < button_dims.y)
+			{
+
+				l->OnHit(k2d::vi2d(dx, dy));
+			}
+		}
 	}
 
 	if (get_ui_by_name("OpponentChoice")->IsHit())
@@ -1094,12 +1146,16 @@ void ConquestLocal::UpdateGenerationsText()
 void ConquestLocal::UpdateSelectionWeights()
 {
 	// Initialize the weights used for the selection of agents
-	selection_weights.clear();
-	for (size_t i = 0; i < ceil(population_size * top_percentile) + 1; i++)
-	{
-		// Good looking function
-		selection_weights.push_back(pick_chance_function(i));
-	}
+	//selection_weights.clear();
+	selection_weights.resize(ceil(population_size * top_percentile));
+	//for (size_t i = 0; i < population_size; i++)
+	//{
+	//	// Good looking function
+	//	//selection_weights.push_back(pick_chance_function(i));
+
+	//}
+	pick_chance_graph->SetMaxDataValue(find_max(0, ceil(population_size * top_percentile), pick_chance_function));
+	pick_chance_graph->SetDataToFollow(&selection_weights);
 }
 
 
