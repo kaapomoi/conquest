@@ -102,7 +102,7 @@ void UIClickableLabel::SetBackground(k2d::Color bg_color)
 {
 	if (!background)
 	{
-		background = new k2d::Sprite(glm::vec2(position.x, position.y + size.y * 0.5f), size.x, size.y, label->GetDepth() - 0.1f, glm::vec4(0, 0, 1, 1), bg_color, bar_texture, sb);
+		background = new k2d::Sprite(glm::vec2(position.x, position.y), size.x, size.y, label->GetDepth() - 0.1f, glm::vec4(0, 0, 1, 1), bg_color, bar_texture, sb);
 	}
 	else
 	{

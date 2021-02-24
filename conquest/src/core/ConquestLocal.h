@@ -67,8 +67,9 @@ public:
 	void UpdateUIButtons();
 	void UpdateScoreboardColors();
 	void UpdateBarColors();
-	void UpdateTurnsPlayedText();
 	void UpdateGenerationsText();
+
+	void CalculateNewSelectionWeights();
 
 	void UpdateSelectionWeights();
 
@@ -198,6 +199,8 @@ private:
 	std::vector<k2d::vi2d> sc;
 
 	ServerSim server_sim;
+
+	int turns_played;
 
 	// Vector of AI agents
 	std::vector<AI*> ai_agents;

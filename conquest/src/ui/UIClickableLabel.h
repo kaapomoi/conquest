@@ -43,6 +43,7 @@ public:
 	k2d::vf2d GetPosition() { return position; }
 	std::string GetName() { return name; }
 	k2d::Sprite* GetSprite() { return background; }
+	k2d::vi2d GetSize() { return size; }
 	bool IsActive() { return active; }
 	bool IsHit() { return is_hit; }
 

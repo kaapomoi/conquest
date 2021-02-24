@@ -43,6 +43,8 @@ ConquestLocal::ConquestLocal() :
 		create_ui();
 		//create_ui_unit_card();
 
+		CalculateNewSelectionWeights();
+
 		UpdateSelectionWeights();
 		
 
@@ -219,8 +221,8 @@ int ConquestLocal::create_ui()
 
 	// multiplier label
 	UIClickableLabel* multiplier = new UIClickableLabel("VariableChangeMultiplier", "Mult.: ",
-		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2, +scaled_ui.y * 0.5f - tile_size.y * 0.5f +1),
-		k2d::vi2d(-scaled_ui.x * 0.80f, tile_size.y * 0.75f-2),
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2, tile_size.y * 0.5f +scaled_ui.y * 0.5f + 1),
+		k2d::vi2d(-scaled_ui.x * 0.80f, tile_size.y * 0.f-5),
 		k2d::vi2d(scaled_ui.x * 2, scaled_ui.y * 0.5f -2),
 		load_texture_from_cache("full"),
 		sprite_batch, font1,
@@ -233,8 +235,8 @@ int ConquestLocal::create_ui()
 
 	// population size label
 	UIClickableLabel* pop_size_label = new UIClickableLabel("PopulationSizeClickable", "Pop.: ",
-		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2, - tile_size.y * 0.5f +1),
-		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.75f-2),
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2,  tile_size.y * 0.5f + 1),
+		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.f-5),
 		k2d::vi2d(scaled_ui.x * 2, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -249,8 +251,8 @@ int ConquestLocal::create_ui()
 
 	// top percentile label
 	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 2+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0  - 5),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -267,8 +269,8 @@ int ConquestLocal::create_ui()
 
 	// Mutation rate label
 	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 2+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.f - 5),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1, 
@@ -284,8 +286,8 @@ int ConquestLocal::create_ui()
 
 	// Close Mutation rate label
 	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 2+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.9f, - 5),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -301,8 +303,8 @@ int ConquestLocal::create_ui()
 	
 	// Mutation Type Chance rate label
 	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. Type C: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 2+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.75f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.9f, - 5),
 		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
@@ -373,15 +375,17 @@ int ConquestLocal::create_ui()
 
 
 	// Turns played text
-	UIElement* turns_text = new UIElement("NRTurns",
+	UIClickableLabel* turns_text = new UIClickableLabel("NRTurnsLabel", "Turns played: ",
 		k2d::vi2d(0, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 0.0f, 0.0f, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 0), load_texture_from_cache("empty"), sprite_batch),
-		create_text("NRTurns: ", 0.15f, 50.0f));
-	turns_text->SetTextOffset(k2d::vf2d(0, -tile_size.y * 0.2f));
+		k2d::vf2d(0, -tile_size.y * 0.2f),
+		k2d::vi2d(0, 0),
+		load_texture_from_cache("empty"), sprite_batch, font1,
+		0.15f, 35.0f, k2d::Color(255));
 	turns_text->SetIsActive(true);
+	turns_text->SetModifiable(false);
+	turns_text->SetVariable(&turns_played);
 
-	ui_elements.push_back(turns_text);
+	ui_clickable_labels.push_back(turns_text);
 
 
 
@@ -543,7 +547,6 @@ int ConquestLocal::main_loop()
 			UpdateScoreboardColors();
 			UpdateUIButtons();
 			UpdateBarColors();
-			UpdateTurnsPlayedText();
 			UpdateGenerationsText();
 		}
 
@@ -706,11 +709,11 @@ void ConquestLocal::update_input()
 			{
 				// BOt left position
 				k2d::vi2d button_pos;
-				button_pos.x = l->GetSprite()->GetPosition().x - l->GetSprite()->GetDimensions().x / 2;
-				button_pos.y = l->GetSprite()->GetPosition().y - l->GetSprite()->GetDimensions().y / 2;
+				button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
+				button_pos.y = l->GetPosition().y - l->GetSize().y / 2;
 				k2d::vi2d button_dims;
-				button_dims.x = l->GetSprite()->GetDimensions().x;
-				button_dims.y = l->GetSprite()->GetDimensions().y;
+				button_dims.x = l->GetSize().x;
+				button_dims.y = l->GetSize().y;
 
 				int dx = click_pos.x - button_pos.x;
 				int dy = click_pos.y - button_pos.y;
@@ -1125,13 +1128,6 @@ void ConquestLocal::UpdateBarColors()
 	bar.push_back(average);
 }
 
-void ConquestLocal::UpdateTurnsPlayedText()
-{
-	std::string turn_end_text = "Turns played: " + std::to_string(server_sim.GetTurnsPlayed());
-	get_ui_by_name("NRTurns")->SetActualText(turn_end_text);
-	//turns_text->SetTextOffset(k2d::vf2d(((float)turn_end_text.length() / 2.0f) * -20.f / 2, -2));
-}
-
 void ConquestLocal::UpdateGenerationsText()
 {
 	std::string genetext = "Generation: " + std::to_string(epoch)+ ", avg F: " + std::to_string((int) average_score_this_generation);
@@ -1144,6 +1140,17 @@ void ConquestLocal::UpdateGenerationsText()
 	std::string prev_text = "Previous ID: " + std::to_string(previous_id) + ", F: " + std::to_string(previous_tiles_owned);
 	get_ui_by_name("PreviousText")->SetActualText(prev_text);
 }
+
+void ConquestLocal::CalculateNewSelectionWeights()
+{
+	selection_weights.resize(ceil(population_size * top_percentile));
+	for (size_t i = 0; i < selection_weights.size(); i++)
+	{
+		// Good looking function
+		selection_weights.at(i) = pick_chance_function(i);
+	}
+}
+
 
 void ConquestLocal::UpdateSelectionWeights()
 {
@@ -1170,6 +1177,8 @@ void ConquestLocal::ClampGeneticAlgorithmVariables()
 	close_mutation_epsilon = k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
 
 	mutation_type_chance = k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
+
+	population_size = k2d::clamp(population_size, 1, 100000);
 }
 
 void ConquestLocal::CalculateGenerationAverage()
@@ -1476,7 +1485,7 @@ void ConquestLocal::HandleEvent(Event& e)
 		// turn agents id = std::stoi(data));
 
 		taken_colors = server_sim.GetTakenColors();
-
+		turns_played = server_sim.GetTurnsPlayed();
 
 		break;
 	}
