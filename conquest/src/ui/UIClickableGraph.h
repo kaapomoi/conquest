@@ -11,7 +11,7 @@ public:
 
 	void Update(double dt);
 
-	void OnHit(k2d::vf2d relative_position) override;
+	void OnClick(k2d::vf2d relative_position) override;
 
 private:
 

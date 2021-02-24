@@ -321,7 +321,7 @@ void NeuralAI::CloseMutate(float mutation_chance, float epsilon)
 			if (mutate <= mutation_chance)
 			{
 				net[i][j].bias_weight = net[i][j].bias_weight + Random::get(-epsilon, epsilon);
-				net[i][j].bias_weight = k2d::clamp(net[i][j].bias_weight, -1.0, 1.0);
+				k2d::clamp(net[i][j].bias_weight, -1.0, 1.0);
 			}
 
 			for (size_t k = 0; k < num_weights; k++)
@@ -331,7 +331,7 @@ void NeuralAI::CloseMutate(float mutation_chance, float epsilon)
 				if (mutate <= mutation_chance)
 				{
 					net[i][j].output_weights[k] = net[i][j].output_weights[k] + Random::get(-epsilon, epsilon);
-					net[i][j].output_weights[k] = k2d::clamp(net[i][j].output_weights[k], -1.0, 1.0);
+					k2d::clamp(net[i][j].output_weights[k], -1.0, 1.0);
 				}
 			}
 		}

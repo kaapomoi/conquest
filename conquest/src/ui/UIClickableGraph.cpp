@@ -20,7 +20,7 @@ void UIClickableGraph::Update(double dt)
 	UIGraph::Update(dt);
 }
 
-void UIClickableGraph::OnHit(k2d::vf2d relative_position)
+void UIClickableGraph::OnClick(k2d::vf2d relative_position)
 {
 	float bar_width = (float) size.x / (float) max_data_points;
 	float percentage_of_x_size = (float) relative_position.x / (float) size.x;
@@ -42,5 +42,5 @@ void UIClickableGraph::OnHit(k2d::vf2d relative_position)
 	UpdateBarPositions();
 
 	// Call callbacks
-	UIClickable::OnClick();
+	UIClickable::OnClick(relative_position);
 }

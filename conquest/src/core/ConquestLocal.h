@@ -7,6 +7,7 @@
 #include <ui/UIFunctionGraph.h>
 #include <ui/UIClickableLabel.h>
 #include <ui/UIClickableGraph.h>
+#include <ui/UIToggleButton.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -47,8 +48,9 @@ public:
 
 	int load_texture_into_cache(const char* friendly_name, std::string filename);
 	k2d::GLTexture load_texture_from_cache(const char* friendly_name);
-	k2d::Sprite* create_tile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 5.0f);
-	k2d::Sprite* create_projectile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 5.0f);
+	k2d::Sprite* create_tile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
+	k2d::Sprite* CreateDefaultSprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
+	k2d::Sprite* create_projectile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
 	k2d::Text* create_text(std::string text, float scale, float depth = 10.f);
 
 	UIElement* get_ui_by_name(std::string name);
@@ -72,6 +74,8 @@ public:
 	void CalculateNewSelectionWeights();
 
 	void UpdateSelectionWeights();
+
+	void PauseGame();
 
 	void ClampGeneticAlgorithmVariables();
 
@@ -168,9 +172,19 @@ private:
 	FT_Library		ft;
 	FT_Face			face;
 
+
+
+	// UI
+
+	std::vector<UIButton*>			ui_buttons;
 	std::vector<UIElement*>			ui_elements;
 	std::vector<UIElement*>			bar;
 	std::vector<UIClickableLabel*>	 ui_clickable_labels;
+
+	UIGraph* generation_history;
+	UIGraph* current_gen_tiles_owned_histogram;
+	UIClickableGraph* pick_chance_graph;
+
 
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;
@@ -180,7 +194,6 @@ private:
 
 	std::vector<player_t> players;
 
-	double timer_counter;
 	k2d::vi2d map_size;
 
 	int spectator_id;
@@ -256,7 +269,5 @@ private:
 
 	k2d::vi2d scaled_ui;
 
-	UIGraph* generation_history;
-	UIGraph* current_gen_tiles_owned_histogram;
-	UIClickableGraph* pick_chance_graph;
+
 };

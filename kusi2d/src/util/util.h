@@ -47,11 +47,23 @@ namespace k2d
 
 	extern float DegToRad(float _deg);
 
-    extern double clamp(double in, double min, double max);
+    template<typename T>
+    void clamp(T& in, T min, T max) {
+        if(in <= min)
+        {
+            in = min;
+        }
+        if (in >= max)
+        {
+            in = max;
+        }
+    }
 
-    extern float clamp(float in, float min, float max);
+   /* extern void clamp(double& in, double min, double max);
 
-    extern int clamp(int in, int min, int max);
+    extern void clamp(float& in, float min, float max);
+
+    extern void clamp(int& in, int min, int max);*/
 
     template <typename Type>
     void CallDestructor(void* ptr)

@@ -24,3 +24,10 @@ void UIClickable::OnClick()
 		f->call();
 	}
 }
+
+void UIClickable::OnClick(k2d::vf2d relative_click_pos)
+{
+	// Just a thing for stuff
+
+	OnClick();
+}

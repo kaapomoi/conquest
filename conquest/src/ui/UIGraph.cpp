@@ -202,8 +202,3 @@ void UIGraph::SetIsActive(bool a)
 {
 	this->active = a;
 }
-
-void UIGraph::OnHit(k2d::vf2d rel_pos)
-{
-	// lol
-}

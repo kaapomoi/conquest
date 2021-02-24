@@ -14,6 +14,7 @@ public:
 	virtual void ClearCallbackFunctions();
 
 	virtual void OnClick();
+	virtual void OnClick(k2d::vf2d relative_click_pos);
 
 
 	template<class T>

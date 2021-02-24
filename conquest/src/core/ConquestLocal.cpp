@@ -126,9 +126,8 @@ int ConquestLocal::init_game()
 	// blue
 	// yellow
 	// magenta
+	// cyan
 
-	// Send packets every 33ms = 30hz
-	timer_counter = 0.0f;
 	// TODO set this somehow
 	map_size = server_sim.GetMapSize();
 	num_colors = server_sim.GetTakenColors().size();
@@ -338,21 +337,17 @@ int ConquestLocal::create_ui()
 
 
 	// Pause button
-	UIElement* pause_button = new UIElement("PauseButton", k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 20.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
-		create_text("Pause", 0.15f, 25.0f));
+	UIToggleButton* pause_button = new UIToggleButton("PauseButton",
+		k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y),
+		k2d::vi2d(scaled_ui.x, scaled_ui.y),
+		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
+		create_text("Pause", 0.15f, 25.0f),
+		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
 	pause_button->SetIsActive(true);
-	pause_button->SetIsButton(true);
 	pause_button->SetTextOffset(k2d::vf2d(-tile_size.x * 1.3f, -tile_size.y * 0.2f));
+	pause_button->AddCallbackFunction(this, &ConquestLocal::PauseGame);
 
-	pause_button->AddChild(new UIElement("PauseButtonDarkout", k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), scaled_ui.x, scaled_ui.y, 21.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 0, 0, 128), load_texture_from_cache("full"), sprite_batch),
-		0));
-
-
-	ui_elements.push_back(pause_button);
+	ui_buttons.push_back(pause_button);
 
 
 	// Player scoreboards
@@ -483,7 +478,6 @@ int ConquestLocal::main_loop()
 				CalculateGenerationAverage();
 				SetPreviousIdAndTileCount();
 
-
 				current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 			}
 
@@ -552,11 +546,10 @@ int ConquestLocal::main_loop()
 
 		ClampGeneticAlgorithmVariables();
 
+		// Handle events
 		Event e = server_sim.GetNextEventFromQueue(spectator_id);
-
 		HandleEvent(e);
 
-		timer_counter += dt;
 
 		// TODO: remoev if
 		if (ui_enabled)
@@ -586,14 +579,13 @@ int ConquestLocal::main_loop()
 			{
 				l->Update(dt);
 			}
+
+			for (UIButton* b : ui_buttons)
+			{
+				b->Update(dt);
+			}
+
 		}
-
-		/*for (UIElement* b : buttons)
-		{
-			b->DestroyChildren();
-
-			b->Update(dt);
-		}*/
 
 		update_input();
 		//engine->SetWindowTitle("Conquest AI Training. fps: " + std::to_string(engine->GetCurrentFPS()));
@@ -722,7 +714,31 @@ void ConquestLocal::update_input()
 				if (dx > 0 && dx < button_dims.x
 					&& dy > 0  && dy < button_dims.y)
 				{
-					l->OnHit(k2d::vi2d(dx, dy));
+					l->OnClick(k2d::vi2d(dx, dy));
+				}
+			}
+		}
+
+		for (UIButton* b : ui_buttons)
+		{
+			if (b->IsActive())
+			{
+				// BOt left position
+				k2d::vi2d button_pos;
+				button_pos.x = b->GetPosition().x - b->GetSize().x / 2;
+				button_pos.y = b->GetPosition().y - b->GetSize().y / 2;
+				k2d::vi2d button_dims;
+				button_dims.x = b->GetSize().x;
+				button_dims.y = b->GetSize().y;
+
+				int dx = click_pos.x - button_pos.x;
+				int dy = click_pos.y - button_pos.y;
+
+				// Check if its a hit
+				if (dx > 0 && dx < button_dims.x
+					&& dy > 0 && dy < button_dims.y)
+				{
+					b->OnClick(k2d::vi2d(dx, dy));
 				}
 			}
 		}
@@ -745,7 +761,7 @@ void ConquestLocal::update_input()
 			if (dx > 0 && dx < button_dims.x
 				&& dy > 0 && dy < button_dims.y)
 			{
-				l->OnHit(k2d::vi2d(dx, dy));
+				l->OnClick(k2d::vi2d(dx, dy));
 			}
 		}
 
@@ -795,7 +811,7 @@ void ConquestLocal::update_input()
 				&& dy > 0 && dy < button_dims.y)
 			{
 
-				l->OnHit(k2d::vi2d(dx, dy));
+				l->OnClick(k2d::vi2d(dx, dy));
 			}
 		}
 	}
@@ -807,12 +823,6 @@ void ConquestLocal::update_input()
 		get_ui_by_name("OpponentChoice")->SetIsHit(false);
 	}
 
-	if (get_ui_by_name("PauseButton")->IsHit())
-	{
-		paused = !paused;
-		get_ui_by_name("PauseButton")->SetIsHit(false);
-	}
-
 	if (get_ui_by_name("CreateNewMapButton")->IsHit())
 	{
 		should_create_new_map = true;
@@ -822,7 +832,7 @@ void ConquestLocal::update_input()
 	if (engine->GetInputManager().IsMouseWheelScrolledThisFrame(k2d::WheelDirection::UP))
 	{
 		variable_change_multiplier /= 10;
-		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
+		k2d::clamp(variable_change_multiplier, 1, 1000000);
 		for (UIClickableLabel* l : ui_clickable_labels)
 		{
 			l->SetVariableMultiplier(variable_change_multiplier);
@@ -831,7 +841,7 @@ void ConquestLocal::update_input()
 	if (engine->GetInputManager().IsMouseWheelScrolledThisFrame(k2d::WheelDirection::DOWN))
 	{
 		variable_change_multiplier *= 10;
-		variable_change_multiplier = k2d::clamp(variable_change_multiplier, 1, 1000000);
+		k2d::clamp(variable_change_multiplier, 1, 1000000);
 		for (UIClickableLabel* l : ui_clickable_labels)
 		{
 			l->SetVariableMultiplier(variable_change_multiplier);
@@ -990,6 +1000,7 @@ void ConquestLocal::UpdateButtonColors()
 	//}
 }
 
+// TODO remove this
 void ConquestLocal::UpdateUIButtons()
 {
 
@@ -1000,15 +1011,6 @@ void ConquestLocal::UpdateUIButtons()
 	else
 	{
 		get_ui_by_name("OpponentChoice")->GetChild()->GetSprite()->SetPosition(glm::vec2(tile_size.x * map_size.x + scaled_ui.x - (tile_size.x * 2.5f), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2));
-	}
-
-	if (paused)
-	{
-		get_ui_by_name("PauseButton")->GetChild()->SetIsActive(true);
-	}
-	else
-	{
-		get_ui_by_name("PauseButton")->GetChild()->SetIsActive(false);
 	}
 
 	if (should_create_new_map)
@@ -1167,18 +1169,23 @@ void ConquestLocal::UpdateSelectionWeights()
 	pick_chance_graph->SetDataToFollow(&selection_weights);
 }
 
+void ConquestLocal::PauseGame()
+{
+	paused = !paused;
+}
+
 
 void ConquestLocal::ClampGeneticAlgorithmVariables()
 {
-	top_percentile = k2d::clamp(top_percentile, 0.01f, 1.0f);
+	k2d::clamp(top_percentile, 0.01f, 1.0f);
 
-	mutation_rate = k2d::clamp(mutation_rate, 0.000001f, 1.0f);
-	close_mutation_rate = k2d::clamp(close_mutation_rate, 0.000001f, 1.0f);
-	close_mutation_epsilon = k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
+	k2d::clamp(mutation_rate, 0.000001f, 1.0f);
+	k2d::clamp(close_mutation_rate, 0.000001f, 1.0f);
+	k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
 
-	mutation_type_chance = k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
+	k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
 
-	population_size = k2d::clamp(population_size, 1, 100000);
+	k2d::clamp(population_size, 1, 100000);
 }
 
 void ConquestLocal::CalculateGenerationAverage()
@@ -1316,6 +1323,12 @@ k2d::GLTexture ConquestLocal::load_texture_from_cache(const char* friendly_name)
 }
 
 k2d::Sprite* ConquestLocal::create_tile_sprite(const char* texture_name, k2d::Color color, float depth)
+{
+	return new k2d::Sprite(glm::vec2(0.0f), tile_size.x, tile_size.y, depth,
+		glm::vec4(0.f, 0.f, 1.f, 1.f), color, load_texture_from_cache(texture_name), sprite_batch);
+}
+
+k2d::Sprite* ConquestLocal::CreateDefaultSprite(const char* texture_name, k2d::Color color, float depth)
 {
 	return new k2d::Sprite(glm::vec2(0.0f), tile_size.x, tile_size.y, depth,
 		glm::vec4(0.f, 0.f, 1.f, 1.f), color, load_texture_from_cache(texture_name), sprite_batch);

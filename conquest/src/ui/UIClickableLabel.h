@@ -38,7 +38,7 @@ public:
 	void SetName(std::string name);
 	void SetIsActive(bool a);
 
-	void OnHit(k2d::vi2d relative_hit_pos);
+	void OnClick(k2d::vi2d relative_hit_pos);
 
 	k2d::vf2d GetPosition() { return position; }
 	std::string GetName() { return name; }
