@@ -3,7 +3,6 @@
 #include <core/Engine.h>
 #include <ui/UIButton.h>
 
-//typedef void (*callback_function)();
 
 class UIToggleButton : public UIButton
 {
@@ -13,10 +12,19 @@ public:
 
 	void Update(double dt) override;
 
+	void ToggleFuncSideways();
+	void ToggleFuncOnOff();
+
 	void OnClick(k2d::vf2d relative_click_pos);
 
+	void ResetToUntoggledState();
 
+	void SetDarkoutActive(bool ac);
+
+	k2d::Sprite* GetDarkoutSprite() { return darkout_sprite; }
+ 
 private:
+	// This sprite is rendered when toggled is true
 	k2d::Sprite* darkout_sprite;
 
 	// Initial state is false

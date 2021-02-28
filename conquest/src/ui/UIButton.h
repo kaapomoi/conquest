@@ -2,8 +2,9 @@
 
 #include <core/Engine.h>
 #include <ui/UIClickable.h>
+#include <ui/UIBase.h>
 
-class UIButton : public UIClickable
+class UIButton : public UIClickable, public UIBase
 {
 public:
 	UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text);
@@ -20,14 +21,12 @@ public:
 
 	virtual void SetSprite(k2d::Sprite* sprite);
 	virtual void SetText(k2d::Text* text);
-	virtual void SetName(std::string name);
 
 	virtual void SetActualText(std::string new_text);
 	virtual void SetIsActive(bool a);
 
 	// Getters
 	k2d::vf2d GetPosition() { return position; }
-	std::string GetName() { return name; }
 	k2d::Sprite* GetSprite() { return sprite; }
 	k2d::Text* GetText() { return text; }
 	k2d::vi2d GetSize() { return size; }
@@ -36,7 +35,6 @@ public:
 	std::string GetActualText() { return text->GetText(); }
 
 protected:
-	std::string		name;
 	k2d::Sprite*	sprite;
 	k2d::Text*		text;
 

@@ -2,8 +2,9 @@
 
 #include <core/Engine.h>
 #include <ui/UIClickable.h>
+#include <ui/UIBase.h>
 
-class UIClickableLabel : public UIClickable
+class UIClickableLabel : public UIClickable, public UIBase
 {
 public:
 	UIClickableLabel(std::string name, std::string label_text, k2d::vi2d position, k2d::vi2d text_offset, k2d::vi2d size, k2d::GLTexture tex, k2d::SpriteBatch* sb,
@@ -35,13 +36,11 @@ public:
 
 	void SetBackground(k2d::Color bg_color);
 
-	void SetName(std::string name);
 	void SetIsActive(bool a);
 
 	void OnClick(k2d::vi2d relative_hit_pos);
 
 	k2d::vf2d GetPosition() { return position; }
-	std::string GetName() { return name; }
 	k2d::Sprite* GetSprite() { return background; }
 	k2d::vi2d GetSize() { return size; }
 	bool IsActive() { return active; }

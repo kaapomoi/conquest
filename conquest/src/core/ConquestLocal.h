@@ -8,6 +8,8 @@
 #include <ui/UIClickableLabel.h>
 #include <ui/UIClickableGraph.h>
 #include <ui/UIToggleButton.h>
+#include <ui/UIMultiLabel.h>
+#include <ui/UIProgressBar.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -20,6 +22,7 @@
 #include <tuple>
 
 #define MAKEADDRESS(a, b, c, d) ((a << 24) | (b << 16) | (c << 8) | d)
+
 namespace {
 
 	float pretty_print_function_for_percents(float in)
@@ -27,13 +30,6 @@ namespace {
 		float value = (int)(in * 10000 + .5);
 		return (float)value / 100;
 	}
-
-	float pick_chance_function(float in)
-	{
-		return 200.0f / (in + 10.0f);
-	}
-
-	
 }
 
 
@@ -52,9 +48,12 @@ public:
 	k2d::Sprite* CreateDefaultSprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
 	k2d::Sprite* create_projectile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
 	k2d::Text* create_text(std::string text, float scale, float depth = 10.f);
+	k2d::Text* create_text(std::string text, k2d::vi2d position, float scale, float depth = 10.f);
 
-	UIElement* get_ui_by_name(std::string name);
+	UIBase* get_ui_by_name(std::string name);
+	UIButton* get_button_by_name(std::string name);
 
+	float weight_selection_function(float x, float a, float b);
 	int init_game();
 	void InitGeneticAlgorithmValues();
 
@@ -65,19 +64,32 @@ public:
 	int PlayGame(AI* first, AI* second);
 
 	void UpdateTileColors();
-	void UpdateButtonColors();
-	void UpdateUIButtons();
-	void UpdateScoreboardColors();
+	void UpdateScoreboardIds();
 	void UpdateBarColors();
-	void UpdateGenerationsText();
 
 	void CalculateNewSelectionWeights();
-
 	void UpdateSelectionWeights();
 
+	void IncreaseWeightSlope();
+	void ResetWeightSlope();
+	void DecreaseWeightSlope();
+
 	void PauseGame();
+	void ToggleMapCreation();
+	void ToggleOpponentType();
 
 	void ClampGeneticAlgorithmVariables();
+	void ClampWeightSelectionVariables();
+	void ClampTileBrightness();
+
+	void UpdateTileBrightness();
+
+	void SetTargetFpsLow();
+	void SetTargetFpsMed();
+	void SetTargetFpsHigh();
+	void SetTargetFpsUnlimited();
+
+	void UpdateProgressBarValues();
 
 	void CalculateGenerationAverage();
 	void CheckIfBestOfGeneration();
@@ -136,6 +148,8 @@ public:
 private:
 	void HandleEvent(Event &e);
 
+	float find_max_local(int first, int last);
+
 	// Engine variables
 	k2d::Engine* engine;
 	k2d::SpriteBatch* sprite_batch;
@@ -175,11 +189,15 @@ private:
 
 
 	// UI
+	float							tile_brightness;
 
 	std::vector<UIButton*>			ui_buttons;
 	std::vector<UIElement*>			ui_elements;
 	std::vector<UIElement*>			bar;
-	std::vector<UIClickableLabel*>	 ui_clickable_labels;
+	std::vector<UIMultiLabel*>		ui_multilabels;
+	std::vector<UIClickableLabel*>	ui_clickable_labels;
+	std::vector<UIProgressBar*>		ui_progressbars;
+	std::vector<UIBase*>			all_of_the_ui;
 
 	UIGraph* generation_history;
 	UIGraph* current_gen_tiles_owned_histogram;
@@ -259,7 +277,7 @@ private:
 
 	bool should_create_new_map;
 
-	double average_score_this_generation;
+	int average_score_this_generation;
 
 	int current_best_of_gen_id;
 	int current_best_of_gen_tiles_owned;
@@ -269,5 +287,10 @@ private:
 
 	k2d::vi2d scaled_ui;
 
+	int p0_id;
+	int p1_id;
 
+	float weight_selection_a;
+	float weight_selection_b;
 };
+

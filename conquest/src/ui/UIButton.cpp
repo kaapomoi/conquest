@@ -1,9 +1,9 @@
 #include <ui/UIButton.h>
 
 
-UIButton::UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text)
+UIButton::UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text):
+	UIBase(name)
 {
-	this->name = name;
 	this->sprite = sprite;
 	this->text = text;
 
@@ -90,11 +90,6 @@ void UIButton::SetText(k2d::Text* text)
 	}
 	// Set the new text
 	this->text = text;
-}
-
-void UIButton::SetName(std::string name)
-{
-	this->name = name;
 }
 
 void UIButton::SetActualText(std::string new_text)

@@ -37,6 +37,9 @@ namespace k2d
 		void SetHeight(float height) { this->height = height; }
 		void SetColor(Color new_color) { this->color = new_color; }
 
+		void SetActive(bool a);
+
+
 		glm::vec2 GetPosition() { return position; }
 		glm::vec2 GetDimensions() { return glm::vec2(width, height); }
 
@@ -50,6 +53,8 @@ namespace k2d
 		glm::vec4		uv_coordinates;
 		SpriteBatch* 	sprite_batch;
 		Color			color;
+
+		bool			active;
 		bool			initialized;
 	};
 

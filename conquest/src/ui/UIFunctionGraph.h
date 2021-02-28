@@ -20,22 +20,25 @@ namespace
 		}
 		return max;
 	}
+
+	
+
 }
 
 class UIFunctionGraph : public UIGraph
 {
 public:
-	UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f);
+	UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, int first, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f);
 	virtual ~UIFunctionGraph();
 
 	void Update(double dt);
 
 	void SetFunctionPointer(the_function f);
 
-
 private:
 	void UpdateGraphValues();
 
+	int first_value;
 
 	the_function func_pointer;
 };

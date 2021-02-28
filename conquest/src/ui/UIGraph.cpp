@@ -1,8 +1,8 @@
 #include <ui/UIGraph.h>
 
-UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, int max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb)
+UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb):
+	UIBase(name)
 {
-	this->name = name;
 	this->position = position;
 	this->size = size;
 	this->max_data_points = max_data_points;
@@ -153,9 +153,14 @@ void UIGraph::SetDataToFollow(std::vector<float>* data)
 	UpdateBarPositions();
 }
 
-void UIGraph::SetMaxDataValue(int max_data_value)
+void UIGraph::SetMaxDataValue(float max_data_value)
 {
 	this->max_data_value = max_data_value;
+}
+
+void UIGraph::SetMaxDataPoints(int max_data_points)
+{
+	this->max_data_points = max_data_points;
 }
 
 void UIGraph::AddHorizontalLine(float percent_of_max_value, k2d::Color color)
@@ -191,11 +196,6 @@ void UIGraph::SetBackground(k2d::Color bg_color)
 	{
 		background->SetColor(bg_color);
 	}
-}
-
-void UIGraph::SetName(std::string name)
-{
-	this->name = name;
 }
 
 void UIGraph::SetIsActive(bool a)

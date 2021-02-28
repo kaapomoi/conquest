@@ -10,7 +10,8 @@ namespace k2d
 		sprite_batch(0),
 		texture(),
 		initialized(false),
-		depth(0)
+		depth(0),
+		active(true)
 	{
 		//std::cout << "addr" << &sprite_batch << "\n";
 	}
@@ -27,6 +28,7 @@ namespace k2d
 		sprite_batch = _sprite_batch;
 		initialized = true;
 		this->depth = depth;
+		this->active = true;
 	}
 
 	/// Default constructor
@@ -61,6 +63,7 @@ namespace k2d
 		sprite_batch = _sprite_batch;
 		this->depth = depth;
 		initialized = true;
+		this->active = true;
 	}
 
 	/// Sets UV, used by AnimationComponent
@@ -77,13 +80,21 @@ namespace k2d
 			KUSI_ERROR("SPRITE not initialized, error...");
 		}
 		
-		// Create destination rectangle for sprite
-		glm::vec4 dest_rect((-width / 2.0f) + position.x, (-height / 2.0f) + position.y, width, height);
-		//glm::vec4 dest_rect(position.x, position.y, width, height);
+		if (active)
+		{
+			// Create destination rectangle for sprite
+			glm::vec4 dest_rect((-width / 2.0f) + position.x, (-height / 2.0f) + position.y, width, height);
+			//glm::vec4 dest_rect(position.x, position.y, width, height);
 		
 
-		// Add the sprite to the spritebatch
-		sprite_batch->Draw(dest_rect, uv_coordinates, texture.id, color, depth);
+			// Add the sprite to the spritebatch
+			sprite_batch->Draw(dest_rect, uv_coordinates, texture.id, color, depth);
+		}
+	}
+
+	void Sprite::SetActive(bool a)
+	{
+		active = a;
 	}
 
 }

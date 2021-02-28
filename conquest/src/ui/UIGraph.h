@@ -1,11 +1,12 @@
 #pragma once
 
 #include <core/Engine.h>
+#include <ui/UIBase.h>
 
-class UIGraph
+class UIGraph : public UIBase
 {
 public:
-	UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, int max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb);
+	UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb);
 	virtual ~UIGraph();
 
 	virtual void Update(double dt);
@@ -19,7 +20,9 @@ public:
 	virtual void AddDataPoint(float data);
 
 	virtual void SetDataToFollow(std::vector<float>* data);
-	virtual void SetMaxDataValue(int max_data_value);
+	virtual void SetMaxDataValue(float max_data_value);
+
+	virtual void SetMaxDataPoints(int max_data_points);
 
 	virtual void AddHorizontalLine(float percent_of_max_value, k2d::Color color);
 
@@ -28,13 +31,10 @@ public:
 
 	virtual void SetBackground(k2d::Color bg_color);
 
-	virtual void SetName(std::string name);
 	virtual void SetIsActive(bool a);
-
 
 	k2d::vf2d GetPosition() { return position; }
 	k2d::vi2d GetSize() { return size; }
-	std::string GetName() { return name; }
 	std::vector<k2d::Sprite*> GetSprites() { return bar_sprites; }
 	std::vector<k2d::Text*> GetTexts() { return texts; }
 	bool IsActive() { return active; }
@@ -50,7 +50,7 @@ protected:
 	std::vector<float>*			data_points;
 
 	int max_data_points;
-	int max_data_value;
+	float max_data_value;
 
 	k2d::vf2d		position;
 	k2d::vi2d		size;

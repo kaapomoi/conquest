@@ -32,6 +32,7 @@
     <ClCompile Include="src\core\ServerSim.cpp" />
     <ClCompile Include="src\neuralnet\NeuralNet.cpp" />
     <ClCompile Include="src\neuralnet\Neuron.cpp" />
+    <ClCompile Include="src\ui\UIBase.cpp" />
     <ClCompile Include="src\ui\UIButton.cpp" />
     <ClCompile Include="src\ui\UIClickable.cpp" />
     <ClCompile Include="src\ui\UIClickableGraph.cpp" />
@@ -39,6 +40,8 @@
     <ClCompile Include="src\ui\UIElement.cpp" />
     <ClCompile Include="src\ui\UIFunctionGraph.cpp" />
     <ClCompile Include="src\ui\UIGraph.cpp" />
+    <ClCompile Include="src\ui\UIMultiLabel.cpp" />
+    <ClCompile Include="src\ui\UIProgressBar.cpp" />
     <ClCompile Include="src\ui\UIToggleButton.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
     <ClCompile Include="src\util\sqlite3.c" />
@@ -57,6 +60,7 @@
     <ClInclude Include="src\core\ServerSim.h" />
     <ClInclude Include="src\neuralnet\NeuralNet.h" />
     <ClInclude Include="src\neuralnet\Neuron.h" />
+    <ClInclude Include="src\ui\UIBase.h" />
     <ClInclude Include="src\ui\UIButton.h" />
     <ClInclude Include="src\ui\UIClickable.h" />
     <ClInclude Include="src\ui\UIClickableGraph.h" />
@@ -64,6 +68,8 @@
     <ClInclude Include="src\ui\UIElement.h" />
     <ClInclude Include="src\ui\UIFunctionGraph.h" />
     <ClInclude Include="src\ui\UIGraph.h" />
+    <ClInclude Include="src\ui\UIMultiLabel.h" />
+    <ClInclude Include="src\ui\UIProgressBar.h" />
     <ClInclude Include="src\ui\UIToggleButton.h" />
     <ClInclude Include="src\util\cFunction.h" />
     <ClInclude Include="src\util\DatabaseHandler.h" />

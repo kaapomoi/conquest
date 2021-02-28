@@ -1,9 +1,9 @@
 #include <ui/UIClickableLabel.h>
 
 UIClickableLabel::UIClickableLabel(std::string name, std::string label_text, k2d::vi2d position, k2d::vi2d text_offset, k2d::vi2d size, k2d::GLTexture tex, k2d::SpriteBatch* sb,
-	std::map<GLchar, k2d::Character>& _font, float _scale, float _depth, k2d::Color _color)
+	std::map<GLchar, k2d::Character>& _font, float _scale, float _depth, k2d::Color _color):
+	 UIBase(name)
 {
-	this->name = name;
 	this->position = position;
 	this->size = size;
 	this->bar_texture = tex;
@@ -108,11 +108,6 @@ void UIClickableLabel::SetBackground(k2d::Color bg_color)
 	{
 		background->SetColor(bg_color);
 	}
-}
-
-void UIClickableLabel::SetName(std::string name)
-{
-	this->name = name;
 }
 
 void UIClickableLabel::SetIsActive(bool a)

@@ -23,6 +23,14 @@ void UIClickableGraph::Update(double dt)
 void UIClickableGraph::OnClick(k2d::vf2d relative_position)
 {
 	float bar_width = (float) size.x / (float) max_data_points;
+
+	int resolution = 1;
+
+	if (bar_width < 1.0f)
+	{
+		resolution = ceil(1 / bar_width);
+	}
+
 	float percentage_of_x_size = (float) relative_position.x / (float) size.x;
 
 	float click_height = (float)relative_position.y /(float)size.y;
@@ -34,11 +42,11 @@ void UIClickableGraph::OnClick(k2d::vf2d relative_position)
 		index = max_data_points - 1;
 	}
 
-	// Value is between 0.f and 1.0f
-	/*float* f = data_points->data();
-	f += index;
-	*f = click_height;*/
-	data_points->at(index) = click_height * max_data_value;
+	// modify each bar to the right of the resolution threshhold
+	for (size_t	i = index; i < index + resolution && i < max_data_points; i++)
+	{
+		data_points->at(i) = click_height * max_data_value;
+	}
 	UpdateBarPositions();
 
 	// Call callbacks

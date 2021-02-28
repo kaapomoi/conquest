@@ -1,8 +1,10 @@
 #include <ui/UIFunctionGraph.h>
 
-UIFunctionGraph::UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points,  k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f) :
+UIFunctionGraph::UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, int first, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f) :
 	UIGraph(name, position, size, max_data_points, find_max(0, max_data_points, f), bar_tex, sb), func_pointer(f)
 {
+	this->first_value = first;
+
 	// Add empty datapoints to underlying graph
 	for (size_t i = 0; i < max_data_points; i++)
 	{
@@ -45,7 +47,7 @@ void UIFunctionGraph::UpdateGraphValues()
 		for (size_t i = 0; i < data_points->size(); i++)
 		{
 			// calculate the value for the position i ( x )
-			data_points->at(i) = func_pointer(i);
+			data_points->at(i) = func_pointer(i + first_value);
 			float height = data_points->at(i) / max_data_value * size.y;
 			
 			bar_sprites.at(i)->SetWidth(width);

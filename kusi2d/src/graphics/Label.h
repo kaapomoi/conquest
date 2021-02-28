@@ -52,7 +52,6 @@ namespace k2d
 		void SetPosition(vf2d pos) { x = pos.x; y = pos.y; }
 
 		vf2d GetPosition() { return vf2d(x, y); }
-		//vf2d GetDimensions() { return vf2d(text.length() * 50.0f, 90.0f); }
 
 	private:
 		pretty_print_func print_func;
