@@ -2,13 +2,10 @@
 
 
 UIMultiLabel::UIMultiLabel(std::string name, k2d::vi2d position, k2d::vi2d size, float row_height, float scale, float depth, std::map<GLchar, k2d::Character>& _font, k2d::GLTexture tex, k2d::SpriteBatch* _sprite_batch):
-	font(_font), UIBase(name)
+	font(_font), UIBase(name, position, size, depth)
 {
-	this->position = position;
-	this->size = size;
 	this->sb = _sprite_batch;
 	this->scale = scale;
-	this->depth = depth;
 	this->background = nullptr;
 	this->bg_tex = tex;
 	this->row_height = row_height;

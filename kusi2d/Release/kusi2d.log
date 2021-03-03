@@ -1,12 +1,5 @@
-﻿  Engine.cpp
-  GraphicsSystem.cpp
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-  Label.cpp
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\Label.cpp(28,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\Label.cpp(36,41): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-  Sprite.cpp
+﻿  Sprite.cpp
 opengl32.lib(OPENGL32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 glew32.lib(glew32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 freetype.lib(freetype.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
-  kusi2d.vcxproj -> C:\Users\Kaapo\Projects\conquest\kusi2d\\build\Win32\Release\kusi2d.lib
+  kusi2d.vcxproj -> C:\Users\Kaapo\Projects\conquest\kusi2d\build\Win32\Release\kusi2d.lib

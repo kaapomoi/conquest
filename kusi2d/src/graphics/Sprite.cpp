@@ -43,6 +43,19 @@ namespace k2d
 	//{
 
 	//}
+	Sprite::Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch)
+	{
+		position = glm::vec2(_position.x, _position.y);
+		width = size.x;
+		height = size.y;
+		uv_coordinates = glm::vec4(0, 0, 1, 1);
+		color = _color;
+		texture = _texture;
+		sprite_batch = _sprite_batch;
+		initialized = true;
+		this->depth = depth;
+		this->active = true;
+	}
 
 	/// Destructor
 	Sprite::~Sprite()
@@ -65,6 +78,8 @@ namespace k2d
 		initialized = true;
 		this->active = true;
 	}
+
+	
 
 	/// Sets UV, used by AnimationComponent
 	void Sprite::SetUV(glm::vec4 _uv)

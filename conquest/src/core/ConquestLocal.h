@@ -2,7 +2,6 @@
 
 #include <core/Engine.h>
 #include <core/GameObject.h>
-#include <ui/UIElement.h>
 #include <ui/UIGraph.h>
 #include <ui/UIFunctionGraph.h>
 #include <ui/UIClickableLabel.h>
@@ -10,6 +9,7 @@
 #include <ui/UIToggleButton.h>
 #include <ui/UIMultiLabel.h>
 #include <ui/UIProgressBar.h>
+#include <ui/UIScoreBar.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -65,8 +65,9 @@ public:
 
 	void UpdateTileColors();
 	void UpdateScoreboardIds();
-	void UpdateBarColors();
 
+
+	// Callback functions for buttons
 	void CalculateNewSelectionWeights();
 	void UpdateSelectionWeights();
 
@@ -88,6 +89,8 @@ public:
 	void SetTargetFpsMed();
 	void SetTargetFpsHigh();
 	void SetTargetFpsUnlimited();
+
+	void UpdateScorebarValues();
 
 	void UpdateProgressBarValues();
 
@@ -111,28 +114,6 @@ public:
 	std::map<GLchar, k2d::Character> LoadFont(const char* _file);
 
 	std::map<GLchar, k2d::Character> LoadChars();
-
-	void read(char* start_position, void* to, int size, int* offset) {
-		memcpy(to, start_position + *offset, size);
-		*offset += size;
-	}
-
-	void write(char* start_position, void* data, int size, int* offset)
-	{
-		memcpy(start_position + *offset, data, size);
-		*offset += size;
-	}
-
-	enum class TURN
-	{
-		PLAYER1 = 0,
-		PLAYER2
-	};
-
-	typedef struct {
-		int packet_type;
-		int id;
-	} packet_header_t;
 
 	bool valid_tile(uint8_t x, uint8_t y, k2d::vi2d map_size)
 	{
@@ -192,8 +173,6 @@ private:
 	float							tile_brightness;
 
 	std::vector<UIButton*>			ui_buttons;
-	std::vector<UIElement*>			ui_elements;
-	std::vector<UIElement*>			bar;
 	std::vector<UIMultiLabel*>		ui_multilabels;
 	std::vector<UIClickableLabel*>	ui_clickable_labels;
 	std::vector<UIProgressBar*>		ui_progressbars;
@@ -201,6 +180,7 @@ private:
 
 	UIGraph* generation_history;
 	UIGraph* current_gen_tiles_owned_histogram;
+	UIScoreBar* scorebar;
 	UIClickableGraph* pick_chance_graph;
 
 
@@ -217,8 +197,6 @@ private:
 	int spectator_id;
 
 	int num_players = 0;
-
-	TURN whose_turn = TURN::PLAYER1;
 
 	uint8_t num_colors;
 
@@ -277,6 +255,8 @@ private:
 
 	bool should_create_new_map;
 
+	int half_of_tiles;
+
 	int average_score_this_generation;
 
 	int current_best_of_gen_id;
@@ -289,6 +269,12 @@ private:
 
 	int p0_id;
 	int p1_id;
+	
+	int p0_tiles;
+	int p1_tiles;
+
+	k2d::Color p0_color;
+	k2d::Color p1_color;
 
 	float weight_selection_a;
 	float weight_selection_b;

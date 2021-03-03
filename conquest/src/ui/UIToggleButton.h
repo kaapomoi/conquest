@@ -7,7 +7,7 @@
 class UIToggleButton : public UIButton
 {
 public:
-	UIToggleButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text, k2d::Sprite* darkout_sprite, bool toggled = false);
+	UIToggleButton(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, k2d::Sprite* sprite, k2d::Text* text, k2d::Sprite* darkout_sprite, bool toggled = false);
 	~UIToggleButton();
 
 	void Update(double dt) override;

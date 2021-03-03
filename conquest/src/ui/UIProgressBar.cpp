@@ -2,11 +2,8 @@
 
 
 UIProgressBar::UIProgressBar(std::string name, k2d::vf2d position, k2d::vf2d size, float depth, k2d::GLTexture texture, k2d::SpriteBatch* sb):
-	UIBase(name), progress_int(nullptr), progress_float(nullptr), progress_double(nullptr),target_int(nullptr), target_float(nullptr), target_double(nullptr)
+	UIBase(name, position, size, depth), progress_int(nullptr), progress_float(nullptr), progress_double(nullptr),target_int(nullptr), target_float(nullptr), target_double(nullptr)
 {
-	this->position = position;
-	this->size = size;
-	this->depth = depth;
 	this->texture = texture;
 	this->sb = sb;
 	this->text = nullptr;
@@ -68,7 +65,10 @@ void UIProgressBar::Update(double dt)
 	{
 		text->Update();
 	}
-
+	if (background_sprite)
+	{
+		background_sprite->Tick();
+	}
 }
 
 void UIProgressBar::AddProgressValue(int* i)
@@ -106,12 +106,19 @@ void UIProgressBar::AddText(k2d::Text* text)
 	this->text = text;
 }
 
-void UIProgressBar::SetActive(bool a)
-{
-	active = a;
-}
-
 void UIProgressBar::UpdateProgressBarValues()
 {
 	should_update = true;
+}
+
+void UIProgressBar::AddBackground(k2d::Color color)
+{
+	if (!background_sprite)
+	{
+		background_sprite = new k2d::Sprite(k2d::vf2d(position.x + size.x * 0.5f, position.y), size, depth - 0.5f, color, texture, sb);
+	}
+	else
+	{
+		background_sprite->SetColor(color);
+	}
 }

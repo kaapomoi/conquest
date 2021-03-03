@@ -20,19 +20,13 @@ public:
 	void AddTargetValue(double* d);
 
 	void AddText(k2d::Text* text);
-
-	void SetActive(bool a);
 	
 	void UpdateProgressBarValues();
 
-	k2d::vf2d GetPosition() { return position; }
-	k2d::vf2d GetSize() { return size; }
+	void AddBackground(k2d::Color color);
 
 private:
-	k2d::vf2d position;
-	k2d::vf2d size;
-	float depth;
-
+	k2d::Sprite* background_sprite;
 	k2d::Sprite* progress_bar_sprite;
 	k2d::Text* text;
 
@@ -49,5 +43,4 @@ private:
 	double* target_double;
 
 	bool should_update;
-	bool active;
 };

@@ -1,7 +1,7 @@
 #include <ui/UIToggleButton.h>
 
-UIToggleButton::UIToggleButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text, k2d::Sprite* darkout_sprite, bool toggled): 
-	UIButton(name, position, size, sprite, text)
+UIToggleButton::UIToggleButton(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, k2d::Sprite* sprite, k2d::Text* text, k2d::Sprite* darkout_sprite, bool toggled):
+	UIButton(name, position, size, depth, sprite, text)
 {
 	this->darkout_sprite = darkout_sprite;
 	this->toggled = toggled;

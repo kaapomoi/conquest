@@ -50,6 +50,7 @@ ConquestLocal::ConquestLocal() :
 
 		UpdateSelectionWeights();
 		
+		half_of_tiles = server_sim.GetMapSize().x * server_sim.GetMapSize().y * 0.5;
 
 		// run game
 		run();
@@ -407,13 +408,14 @@ int ConquestLocal::create_ui()
 	UIToggleButton* opponent_choice = new UIToggleButton("OpponentChoice",
 		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2),
 		k2d::vi2d(scaled_ui.x, scaled_ui.y * 0.5f),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("  Bad   Simple", 0.10f, 25.0f),
 		new k2d::Sprite(glm::vec2(0.0f, 0.0f),
 			scaled_ui.x * 0.5f, scaled_ui.y * 0.5f,
 			26.0f,
 			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 128), load_texture_from_cache("full"), sprite_batch));
-	opponent_choice->SetIsActive(true);
+	opponent_choice->SetActive(true);
 	opponent_choice->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, -4));
 	opponent_choice->AddCallbackFunction(opponent_choice, &UIToggleButton::ToggleFuncSideways);
 	opponent_choice->AddCallbackFunction(this, &ConquestLocal::ToggleOpponentType);
@@ -426,10 +428,11 @@ int ConquestLocal::create_ui()
 	UIToggleButton* new_map_button = new UIToggleButton("NewMapButton",
 		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2.5f),
 		k2d::vi2d(scaled_ui.x, scaled_ui.y),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("New Map", 0.13f, 25.0f),
 		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
-	new_map_button->SetIsActive(true);
+	new_map_button->SetActive(true);
 	new_map_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
 	new_map_button->AddCallbackFunction(new_map_button, &UIToggleButton::ToggleFuncOnOff);
 	new_map_button->AddCallbackFunction(this, &ConquestLocal::ToggleMapCreation);
@@ -440,10 +443,11 @@ int ConquestLocal::create_ui()
 	UIToggleButton* pause_button = new UIToggleButton("PauseButton",
 		k2d::vi2d(0 - scaled_ui.x + tile_size.x / 2, scaled_ui.y / 2 + scaled_ui.y + tile_size.y * 0.5f),
 		k2d::vi2d(scaled_ui.x, scaled_ui.y),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Pause", 0.15f, 25.0f),
 		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
-	pause_button->SetIsActive(true);
+	pause_button->SetActive(true);
 	pause_button->SetTextOffset(k2d::vf2d(-tile_size.x * 1.3f, -tile_size.y * 0.2f));
 	pause_button->AddCallbackFunction(pause_button, &UIToggleButton::ToggleFuncOnOff);
 	pause_button->AddCallbackFunction(this, &ConquestLocal::PauseGame);
@@ -456,9 +460,10 @@ int ConquestLocal::create_ui()
 	UIButton* decrease_slope_button = new UIButton("DecreaseWeightSlopeButton",
 		k2d::vi2d(0 - scaled_ui.x * 0.5f - tile_size.x * 0.5f, tile_size.y * map_size.y * 1.0f - scaled_ui.y * 3.0f + tile_size.y * 1.5f),
 		k2d::vi2d(scaled_ui.x * 0.5f, scaled_ui.y * 0.5f),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Up", 0.10f, 25.0f));
-	decrease_slope_button->SetIsActive(true);
+	decrease_slope_button->SetActive(true);
 	decrease_slope_button->SetTextOffset(k2d::vf2d(-tile_size.x * 0.5f, -tile_size.y * 0.2f));
 	decrease_slope_button->AddCallbackFunction(this, &ConquestLocal::DecreaseWeightSlope);
 	decrease_slope_button->AddCallbackFunction(this, &ConquestLocal::CalculateNewSelectionWeights);
@@ -469,9 +474,10 @@ int ConquestLocal::create_ui()
 	UIButton* reset_slope_button = new UIButton("ResetWeightSlopeButton",
 		k2d::vi2d(0 - scaled_ui.x * 0.5f - tile_size.x * 0.5f, tile_size.y * map_size.y * 1.0f - scaled_ui.y * 4.0f + tile_size.y * 2.5f),
 		k2d::vi2d(scaled_ui.x * 0.5f, scaled_ui.y * 0.5f),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Reset", 0.10f, 25.0f));
-	reset_slope_button->SetIsActive(true);
+	reset_slope_button->SetActive(true);
 	reset_slope_button->SetTextOffset(k2d::vf2d(-tile_size.x * 0.9f, -tile_size.y * 0.2f));
 	reset_slope_button->AddCallbackFunction(this, &ConquestLocal::ResetWeightSlope);
 	reset_slope_button->AddCallbackFunction(this, &ConquestLocal::CalculateNewSelectionWeights);
@@ -482,9 +488,10 @@ int ConquestLocal::create_ui()
 	UIButton* increase_slope_button = new UIButton("IncreaseWeightSlopeButton",
 		k2d::vi2d(0 - scaled_ui.x * 0.5f - tile_size.x * 0.5f, tile_size.y * map_size.y * 1.0f - scaled_ui.y * 5.0f + tile_size.y * 3.5f),
 		k2d::vi2d(scaled_ui.x * 0.5f, scaled_ui.y * 0.5f),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Down", 0.10f, 25.0f));
-	increase_slope_button->SetIsActive(true);
+	increase_slope_button->SetActive(true);
 	increase_slope_button->SetTextOffset(k2d::vf2d(-tile_size.x * 0.9f, -tile_size.y * 0.2f));
 	increase_slope_button->AddCallbackFunction(this, &ConquestLocal::IncreaseWeightSlope);
 	increase_slope_button->AddCallbackFunction(this, &ConquestLocal::CalculateNewSelectionWeights);
@@ -495,9 +502,10 @@ int ConquestLocal::create_ui()
 	UIButton* fps_button_low = new UIButton("FPSButtonLow",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Lo", 0.10f, 25.0f));
-	fps_button_low->SetIsActive(true);
+	fps_button_low->SetActive(true);
 	fps_button_low->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
 	fps_button_low->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsLow);
 	ui_buttons.push_back(fps_button_low);
@@ -505,9 +513,10 @@ int ConquestLocal::create_ui()
 	UIButton* fps_button_med = new UIButton("FPSButtonMed",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 2.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Me", 0.10f, 25.0f));
-	fps_button_med->SetIsActive(true);
+	fps_button_med->SetActive(true);
 	fps_button_med->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
 	fps_button_med->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsMed);
 	ui_buttons.push_back(fps_button_med);
@@ -515,9 +524,10 @@ int ConquestLocal::create_ui()
 	UIButton* fps_button_high = new UIButton("FPSButtonHigh",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 3.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Hi", 0.10f, 25.0f));
-	fps_button_high->SetIsActive(true);
+	fps_button_high->SetActive(true);
 	fps_button_high->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
 	fps_button_high->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsHigh);
 	ui_buttons.push_back(fps_button_high);
@@ -525,9 +535,10 @@ int ConquestLocal::create_ui()
 	UIButton* fps_button_unlimited = new UIButton("FPSButtonUnlimited",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 4.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
+		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("U", 0.10f, 25.0f));
-	fps_button_unlimited->SetIsActive(true);
+	fps_button_unlimited->SetActive(true);
 	fps_button_unlimited->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
 	fps_button_unlimited->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsUnlimited);
 	ui_buttons.push_back(fps_button_unlimited);
@@ -543,8 +554,9 @@ int ConquestLocal::create_ui()
 	*/
 	// Generation history graph
 	generation_history = new UIGraph("GenHistory",
-		k2d::vi2d(0 -tile_size.x * 0.5f + scaled_ui.x * 2 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
+		k2d::vi2d(0 -tile_size.x * 0.5f + scaled_ui.x * 2 + tile_size.x * 2, -scaled_ui.y * 1 - tile_size.y * 2),
 		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2),
+		25.0f,
 		100, 1200, // max points, max_value
 		load_texture_from_cache("full"), sprite_batch);
 	generation_history->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
@@ -553,8 +565,9 @@ int ConquestLocal::create_ui()
 
 	// Current gen tiles owned histogram
 	current_gen_tiles_owned_histogram = new UIGraph("CurrentGenTilesOwned",
-		k2d::vi2d(0 - tile_size.x * 0.5f + scaled_ui.x * 3 + scaled_ui.x * 4 + tile_size.x * 2, -scaled_ui.y * 2 - tile_size.y * 2),
+		k2d::vi2d(0 - tile_size.x * 0.5f + scaled_ui.x * 3 + scaled_ui.x * 4 + tile_size.x * 2, -scaled_ui.y * 1 - tile_size.y * 2),
 		k2d::vi2d(scaled_ui.x * 5, scaled_ui.y * 2),
+		25.0f,
 		200, 1200, // max_points, max_value
 		load_texture_from_cache("full"), sprite_batch);
 	current_gen_tiles_owned_histogram->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
@@ -564,8 +577,9 @@ int ConquestLocal::create_ui()
 
 	// Current gen tiles owned histogram
 	pick_chance_graph = new UIClickableGraph("PickChanceGraph",
-		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 1.5f, tile_size.y * map_size.y * 0.5f - scaled_ui.y * 0.5f - tile_size.y * 0.5f),
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 1.5f, tile_size.y * map_size.y * 0.5f + scaled_ui.y * 0.5f - tile_size.y * 0.5f),
 		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2), ceil(population_size * top_percentile),
+		25.0f,
 		find_max_local(0, ceil(population_size * top_percentile)), // max_data_value
 		load_texture_from_cache("full"), sprite_batch);
 	pick_chance_graph->SetBackground(k2d::Color(20, 255));
@@ -584,9 +598,27 @@ int ConquestLocal::create_ui()
 
 	generation_progressbar->AddProgressValue(&last_played_index);
 	generation_progressbar->AddTargetValue(&population_size);
+	generation_progressbar->AddBackground(k2d::Color(64, 255));
 	ui_progressbars.push_back(generation_progressbar);
 
 #pragma endregion
+
+#pragma region ScoreBar
+
+	scorebar = new UIScoreBar("ScoreBar", k2d::vf2d(-tile_size.x *0.5f + tile_size.x * map_size.x * 0.5f, tile_size.y * map_size.y + tile_size.y * 2.5f),
+		k2d::vf2d(tile_size.x * map_size.x, tile_size.y * 2.0f),
+		25.0f,
+		load_texture_from_cache("full"),
+		sprite_batch);
+	scorebar->AddBackground(k2d::Color(64, 255));
+	scorebar->SetMaxTileCount(map_size.x * map_size.y);
+	scorebar->SetVariablePointers(&p0_tiles, &p0_color, &p1_tiles, &p1_color);
+	scorebar->AddMarker(&half_of_tiles, k2d::Color(255, 255, 0, 128));
+	scorebar->AddMarker(&average_score_this_generation, k2d::Color(255, 0,0, 128));
+	scorebar->AddMarker(&previous_tiles_owned, k2d::Color(0, 0, 255, 128));
+
+#pragma endregion
+
 
 
 	// Insert all the freshly created ui elements into this vector
@@ -597,6 +629,7 @@ int ConquestLocal::create_ui()
 	all_of_the_ui.push_back(generation_history);
 	all_of_the_ui.push_back(current_gen_tiles_owned_histogram);
 	all_of_the_ui.push_back(pick_chance_graph);
+	all_of_the_ui.push_back(scorebar);
 
 	return 0;
 }
@@ -734,7 +767,7 @@ int ConquestLocal::main_loop()
 			UpdateTileColors();
 			UpdateScoreboardIds();
 			UpdateScoreboardIds();
-			UpdateBarColors();
+			UpdateScorebarValues();
 		}
 
 		ClampGeneticAlgorithmVariables();
@@ -747,47 +780,16 @@ int ConquestLocal::main_loop()
 		// TODO: remoev if
 		if (ui_enabled)
 		{
-			generation_history->Update(dt);
-			current_gen_tiles_owned_histogram->Update(dt);
-			pick_chance_graph->Update(dt);
-
 			for (GameObject* tile : tiles)
 			{
 				// Draw tile
 				tile->Update(dt);
 			}
 
-			// Update gameobjects
-			for (UIElement* ui : ui_elements)
+			for (UIBase* ui : all_of_the_ui)
 			{
 				ui->Update(dt);
 			}
-
-			for (UIElement* ui : bar)
-			{
-				ui->Update(dt);
-			}
-
-			for (UIClickableLabel* l : ui_clickable_labels)
-			{
-				l->Update(dt);
-			}
-
-			for (UIButton* b : ui_buttons)
-			{
-				b->Update(dt);
-			}
-
-			for (UIMultiLabel* l : ui_multilabels)
-			{
-				l->Update(dt);
-			}
-
-			for (UIProgressBar* b : ui_progressbars)
-			{
-				b->Update(dt);
-			}
-
 		}
 
 		update_input();
@@ -877,96 +879,37 @@ void ConquestLocal::update_input()
 		k2d::vi2d click_pos = engine->ScreenToWorld(engine->GetMouseCoords());
 		std::cout << "click: " << click_pos << "\n";
 
-		for (UIElement* button : ui_elements)
+		std::vector<UIClickable*> temp_clicked;
+
+		for (UIBase* ui : all_of_the_ui)
 		{
-			if (button->IsActive() && button->IsButton())
+			if (ui->IsActive())
 			{
-				// BOt left position
-				k2d::vi2d button_pos;
-				button_pos.x = button->GetSprite()->GetPosition().x - button->GetSprite()->GetDimensions().x / 2;
-				button_pos.y = button->GetSprite()->GetPosition().y - button->GetSprite()->GetDimensions().y / 2;
-				k2d::vi2d button_dims;
-				button_dims.x = button->GetSprite()->GetDimensions().x;
-				button_dims.y = button->GetSprite()->GetDimensions().y;
-				// Check if its a hit
-				if (click_pos.x > button_pos.x && click_pos.x < (button_pos.x + button_dims.x)
-					&& click_pos.y > button_pos.y && click_pos.y < (button_pos.y + button_dims.y))
+				UIClickable* c = dynamic_cast<UIClickable*> (ui);
+				if (c)
 				{
-					std::cout << "HIT BUTTON " << button->GetName() << "!!\n";
-					button->SetIsHit(true);
+					// BOt left position
+					k2d::vf2d button_pos;
+					button_pos.x = ui->GetPosition().x - ui->GetSize().x / 2;
+					button_pos.y = ui->GetPosition().y - ui->GetSize().y / 2;
+					k2d::vf2d button_dims;
+					button_dims.x = ui->GetSize().x;
+					button_dims.y = ui->GetSize().y;
+
+					int dx = click_pos.x - button_pos.x;
+					int dy = click_pos.y - button_pos.y;
+
+					// Check if its a hit
+					if (dx > 0 && dx < button_dims.x
+						&& dy > 0 && dy < button_dims.y)
+					{
+						c->OnClick(k2d::vf2d(dx, dy));
+					}
+					
 				}
 			}
 		}
 
-		for (UIClickableLabel* l : ui_clickable_labels)
-		{
-			if (l->IsActive())
-			{
-				// BOt left position
-				k2d::vi2d button_pos;
-				button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
-				button_pos.y = l->GetPosition().y - l->GetSize().y / 2;
-				k2d::vi2d button_dims;
-				button_dims.x = l->GetSize().x;
-				button_dims.y = l->GetSize().y;
-
-				int dx = click_pos.x - button_pos.x;
-				int dy = click_pos.y - button_pos.y;
-
-				// Check if its a hit
-				if (dx > 0 && dx < button_dims.x
-					&& dy > 0  && dy < button_dims.y)
-				{
-					l->OnClick(k2d::vi2d(dx, dy));
-				}
-			}
-		}
-
-		for (UIButton* b : ui_buttons)
-		{
-			if (b->IsActive())
-			{
-				// BOt left position
-				k2d::vi2d button_pos;
-				button_pos.x = b->GetPosition().x - b->GetSize().x / 2;
-				button_pos.y = b->GetPosition().y - b->GetSize().y / 2;
-				k2d::vi2d button_dims;
-				button_dims.x = b->GetSize().x;
-				button_dims.y = b->GetSize().y;
-
-				int dx = click_pos.x - button_pos.x;
-				int dy = click_pos.y - button_pos.y;
-
-				// Check if its a hit
-				if (dx > 0 && dx < button_dims.x
-					&& dy > 0 && dy < button_dims.y)
-				{
-					b->OnClick(k2d::vi2d(dx, dy));
-				}
-			}
-		}
-
-		UIClickableGraph* l = pick_chance_graph;
-		if (l->IsActive())
-		{
-			// BOt left position
-			k2d::vi2d button_pos;
-			button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
-			button_pos.y = l->GetPosition().y;
-			k2d::vi2d button_dims;
-			button_dims.x = l->GetSize().x;
-			button_dims.y = l->GetSize().y;
-
-			int dx = click_pos.x - button_pos.x;
-			int dy = click_pos.y - button_pos.y;
-
-			// Check if its a hit
-			if (dx > 0 && dx < button_dims.x
-				&& dy > 0 && dy < button_dims.y)
-			{
-				l->OnClick(k2d::vi2d(dx, dy));
-			}
-		}
 	}
 
 	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_RIGHT))
@@ -977,10 +920,10 @@ void ConquestLocal::update_input()
 		if (l->IsActive())
 		{
 			// BOt left position
-			k2d::vi2d button_pos;
+			k2d::vf2d button_pos;
 			button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
-			button_pos.y = l->GetPosition().y;
-			k2d::vi2d button_dims;
+			button_pos.y = l->GetPosition().y - l->GetSize().y / 2;
+			k2d::vf2d button_dims;
 			button_dims.x = l->GetSize().x;
 			button_dims.y = l->GetSize().y;
 
@@ -992,7 +935,7 @@ void ConquestLocal::update_input()
 				&& dy > 0 && dy < button_dims.y)
 			{
 
-				l->OnClick(k2d::vi2d(dx, dy));
+				l->OnClick(k2d::vf2d(dx, dy));
 			}
 		}
 	}
@@ -1113,7 +1056,6 @@ void ConquestLocal::update_input()
 			skins.at(i) = loaded_skins.at(rand_col(random_engine));
 		}
 		UpdateTileColors();
-		UpdateBarColors();
 	}
 #pragma endregion
 }
@@ -1177,93 +1119,6 @@ void ConquestLocal::UpdateScoreboardIds()
 			}
 		}
 	}
-}
-
-void ConquestLocal::UpdateBarColors()
-{
-	float num_player_tiles = 0;
-	float num_tiles = map_size.x * map_size.y;
-	float num_remaining_tiles = num_tiles;
-	for (int i = 0; i < players.size(); i++)
-	{
-		if (players[i].id >= 0 && players[i].id != players[0].id)
-		{
-			num_remaining_tiles -= players[i].tiles_owned;
-		}
-	}
-
-	float start = -tile_size.x / 2;
-	float map_width = tile_size.x * map_size.x;
-
-	for (UIElement* ui : bar)
-	{
-		delete ui;
-	}
-
-	bar.clear();
-
-	// player of this client always goes on the left
-	float width = ceil((players[0].tiles_owned * map_width) / num_tiles);
-	UIElement* bar_ui0 = new UIElement("Bar",
-		k2d::vi2d(ceil(start + width / 2), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), width, tile_size.y * 2, 30.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(players[0].num_owned), load_texture_from_cache("full"), sprite_batch),
-		0);
-	start += width;
-	bar.push_back(bar_ui0);
-	num_remaining_tiles -= players[0].tiles_owned;
-
-	width = ceil((num_remaining_tiles * map_width) / num_tiles);
-	UIElement* darkout = new UIElement("Bar",
-		k2d::vi2d(ceil(start + width / 2), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), width, tile_size.y * 2, 30.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(40, 40, 40, 255), load_texture_from_cache("full"), sprite_batch),
-		0);
-	start += width;
-	bar.push_back(darkout);
-
-	for (int i = 0; i < players.size(); i++)
-	{
-		if (players[i].id != players[0].id && players[i].id >= 0)
-		{
-			width = ceil((players[i].tiles_owned * map_width) / num_tiles);
-			UIElement* bar_ui0 = new UIElement("Bar",
-				k2d::vi2d(ceil(start + width / 2), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-				new k2d::Sprite(glm::vec2(0.0f, 0.0f), width, tile_size.y * 2, 30.0f,
-					glm::vec4(0.f, 0.f, 1.f, 1.f), skins.at(players[i].num_owned), load_texture_from_cache("full"), sprite_batch),
-				0);
-			start += width;
-			bar.push_back(bar_ui0);
-			num_remaining_tiles -= players[i].tiles_owned;
-		}
-	}
-
-	float offset = ceil(current_best_of_gen_tiles_owned * map_width / num_tiles);
-	UIElement* current_best = new UIElement("CurrentBestBar",
-		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y* 2, 31.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255), load_texture_from_cache("full"), sprite_batch),
-		0);
-	current_best->SetIsActive(true);
-	bar.push_back(current_best);
-
-	offset = ceil(map_width / 2);
-	UIElement* halfway = new UIElement("HalfwayBar",
-		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y * 2, 31.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255,255,255, 50), load_texture_from_cache("full"), sprite_batch),
-		0);
-	halfway->SetIsActive(true);
-	bar.push_back(halfway);
-
-	offset = ceil(average_score_this_generation * map_width / num_tiles);
-	UIElement* average = new UIElement("AverageBar",
-		k2d::vi2d(ceil(-tile_size.x / 2 + offset), tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2),
-		new k2d::Sprite(glm::vec2(0.0f, 0.0f), 1.0f, tile_size.y * 2, 31.0f,
-			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(255, 255, 255, 150), load_texture_from_cache("full"), sprite_batch),
-		0);
-	average->SetIsActive(true);
-	bar.push_back(average);
 }
 
 void ConquestLocal::CalculateNewSelectionWeights()
@@ -1370,6 +1225,19 @@ void ConquestLocal::SetTargetFpsUnlimited()
 	engine->SetTargetFps(100000.0f);
 }
 
+void ConquestLocal::UpdateScorebarValues()
+{
+	p0_tiles = players.at(0).tiles_owned;
+	p0_color = k2d::Color(skins.at(players.at(0).num_owned));
+	p1_tiles = players.at(1).tiles_owned;
+	p1_color = k2d::Color(skins.at(players.at(1).num_owned));
+	UIScoreBar* ui = dynamic_cast<UIScoreBar*>(get_ui_by_name("ScoreBar"));
+	if (ui)
+	{
+		ui->UpdateBar();
+	}
+}
+
 void ConquestLocal::UpdateProgressBarValues()
 {
 	for (UIProgressBar* b : ui_progressbars)
@@ -1411,7 +1279,6 @@ void ConquestLocal::GetRandomColorFromLoadedSkins(int index)
 	skins.at(index) = loaded_skins.at(rand_col(random_engine));
 
 	UpdateTileColors();
-	UpdateBarColors();
 }
 
 int ConquestLocal::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x_, uint8_t y_)

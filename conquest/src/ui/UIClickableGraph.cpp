@@ -1,7 +1,7 @@
 #include <ui/UIClickableGraph.h>
 
-UIClickableGraph::UIClickableGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb):
-	UIGraph(name, position, size, max_data_points, max_data_value, bar_tex, sb)
+UIClickableGraph::UIClickableGraph(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb):
+	UIGraph(name, position, size, depth, max_data_points, max_data_value, bar_tex, sb)
 {
 	
 }

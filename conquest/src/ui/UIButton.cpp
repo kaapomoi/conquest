@@ -1,14 +1,11 @@
 #include <ui/UIButton.h>
 
 
-UIButton::UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sprite* sprite, k2d::Text* text):
-	UIBase(name)
+UIButton::UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, k2d::Sprite* sprite, k2d::Text* text):
+	UIBase(name, position, size, depth)
 {
 	this->sprite = sprite;
 	this->text = text;
-
-	this->position = position;
-	this->size = size;
 	this->active = true;
 
 	if (sprite != nullptr)
@@ -16,12 +13,14 @@ UIButton::UIButton(std::string name, k2d::vi2d position, k2d::vi2d size, k2d::Sp
 		sprite->SetPosition(glm::vec3(position.x, position.y, 0.0f));
 		sprite->SetWidth(size.x);
 		sprite->SetHeight(size.y);
+		sprite->SetDepth(depth);
 	}
 
 	text_pos_offset = 0;
 	if (text != nullptr)
 	{
 		text->SetPosition(position + text_pos_offset);
+		text->SetDepth(depth + 0.5f);
 	}
 }
 
@@ -47,9 +46,10 @@ void UIButton::Update(double dt)
 	}
 }
 
-void UIButton::SetPosition(k2d::vi2d new_pos)
+void UIButton::SetPosition(k2d::vf2d new_pos)
 {
-	position = new_pos;
+	UIBase::SetPosition(new_pos);
+	
 	if (sprite != nullptr)
 	{
 		sprite->SetPosition(glm::vec3(new_pos.x, new_pos.y, 0.0f));
@@ -98,11 +98,6 @@ void UIButton::SetActualText(std::string new_text)
 	{
 		text->SetText(new_text);
 	}
-}
-
-void UIButton::SetIsActive(bool a)
-{
-	active = a;
 }
 
 void UIButton::OnClick()

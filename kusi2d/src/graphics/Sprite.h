@@ -17,6 +17,7 @@ namespace k2d
 		Sprite();
 		Sprite(glm::vec2 _position, float _width, float _height, float depth,
 			glm::vec4 _uv_coordinates, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch);
+		Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch);
 		//Sprite(SpriteBatch& _sprite_batch);
 		~Sprite();
 
@@ -35,6 +36,7 @@ namespace k2d
 		void SetPosition(glm::vec2 _position) { position = _position; }
 		void SetWidth(float width) { this->width = width; }
 		void SetHeight(float height) { this->height = height; }
+		void SetDepth(float depth) { this->depth = depth; }
 		void SetColor(Color new_color) { this->color = new_color; }
 
 		void SetActive(bool a);

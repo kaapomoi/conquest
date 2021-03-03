@@ -1,10 +1,8 @@
 #include <ui/UIGraph.h>
 
-UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb):
-	UIBase(name)
+UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb):
+	UIBase(name, position, size, depth)
 {
-	this->position = position;
-	this->size = size;
 	this->max_data_points = max_data_points;
 	this->max_data_value = max_data_value;
 	this->bar_texture = bar_tex;
@@ -13,6 +11,7 @@ UIGraph::UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_d
 	this->active = true;
 	this->is_button = false;
 	this->is_hit = false;
+	this->background = nullptr;
 	this->data_points = new std::vector<float>();
 }
 
@@ -67,7 +66,7 @@ void UIGraph::UpdateBarPositions()
 	{
 		float height = (data_points->at(i) / max_data_value) * size.y;
 		bar_sprites.at(i)->SetWidth(width);
-		bar_sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y + height * 0.5f));
+		bar_sprites.at(i)->SetPosition(glm::vec2(start_x + offset, position.y - size.y * 0.5f + height * 0.5f));
 		bar_sprites.at(i)->SetHeight(height);
 		offset += width;
 		if (should_be_gray && data_points->size() >= max_data_points)
@@ -165,7 +164,7 @@ void UIGraph::SetMaxDataPoints(int max_data_points)
 
 void UIGraph::AddHorizontalLine(float percent_of_max_value, k2d::Color color)
 {
-	float bot_level = position.y;
+	float bot_level = position.y - size.y * 0.5f;
 	float width = size.x;
 	float height = 1.0f;
 
@@ -190,15 +189,10 @@ void UIGraph::SetBackground(k2d::Color bg_color)
 {
 	if (!background)
 	{
-		background = new k2d::Sprite(glm::vec2(position.x, position.y + size.y * 0.5f), size.x, size.y, 21.0f, glm::vec4(0, 0, 1, 1), bg_color, bar_texture, sb);
+		background = new k2d::Sprite(glm::vec2(position.x, position.y), size.x, size.y, 21.0f, glm::vec4(0, 0, 1, 1), bg_color, bar_texture, sb);
 	}
 	else
 	{
 		background->SetColor(bg_color);
 	}
-}
-
-void UIGraph::SetIsActive(bool a)
-{
-	this->active = a;
 }

@@ -42,6 +42,7 @@
     <ClCompile Include="src\ui\UIGraph.cpp" />
     <ClCompile Include="src\ui\UIMultiLabel.cpp" />
     <ClCompile Include="src\ui\UIProgressBar.cpp" />
+    <ClCompile Include="src\ui\UIScoreBar.cpp" />
     <ClCompile Include="src\ui\UIToggleButton.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
     <ClCompile Include="src\util\sqlite3.c" />
@@ -70,6 +71,7 @@
     <ClInclude Include="src\ui\UIGraph.h" />
     <ClInclude Include="src\ui\UIMultiLabel.h" />
     <ClInclude Include="src\ui\UIProgressBar.h" />
+    <ClInclude Include="src\ui\UIScoreBar.h" />
     <ClInclude Include="src\ui\UIToggleButton.h" />
     <ClInclude Include="src\util\cFunction.h" />
     <ClInclude Include="src\util\DatabaseHandler.h" />

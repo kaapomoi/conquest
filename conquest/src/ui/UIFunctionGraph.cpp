@@ -1,7 +1,7 @@
 #include <ui/UIFunctionGraph.h>
 
-UIFunctionGraph::UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, int first, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f) :
-	UIGraph(name, position, size, max_data_points, find_max(0, max_data_points, f), bar_tex, sb), func_pointer(f)
+UIFunctionGraph::UIFunctionGraph(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, int max_data_points, int first, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb, the_function f) :
+	UIGraph(name, position, size, depth, max_data_points, find_max(0, max_data_points, f), bar_tex, sb), func_pointer(f)
 {
 	this->first_value = first;
 

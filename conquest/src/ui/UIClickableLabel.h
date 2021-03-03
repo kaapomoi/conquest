@@ -12,9 +12,9 @@ public:
 		float _scale, float _depth, k2d::Color _color);
 	~UIClickableLabel();
 
-	void Update(double dt);
+	void Update(double dt)override;
 
-	void SetPosition(k2d::vf2d new_pos);
+	void SetPosition(k2d::vf2d new_pos) override;
 	void SetIsHit(bool is_hit);
 
 	// Just dont look at this, ok?
@@ -38,23 +38,18 @@ public:
 
 	void SetIsActive(bool a);
 
-	void OnClick(k2d::vi2d relative_hit_pos);
+	void OnClick(k2d::vf2d relative_hit_pos) override;
 
-	k2d::vf2d GetPosition() { return position; }
 	k2d::Sprite* GetSprite() { return background; }
-	k2d::vi2d GetSize() { return size; }
 	bool IsActive() { return active; }
 	bool IsHit() { return is_hit; }
 
 private:
 	k2d::SpriteBatch*			sb;
 	k2d::GLTexture				bar_texture;
-	std::string					name;
 	k2d::Sprite*				background;
 	k2d::Label*					label;
 
-	k2d::vf2d		position;
-	k2d::vi2d		size;
 	bool			modifiable;
 	int				variable_multiplier;
 	bool			active;

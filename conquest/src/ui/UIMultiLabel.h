@@ -13,11 +13,9 @@ public:
 
 	void AddBackground(k2d::Color color = k2d::Color(255));
 
-	void Update(double dt);
+	void Update(double dt)override;
 
 private:
-	k2d::vi2d					position;
-	k2d::vi2d					size;
 	k2d::Sprite*				background;
 	k2d::SpriteBatch*			sb;
 	k2d::GLTexture				bg_tex;
@@ -26,7 +24,6 @@ private:
 	std::vector<k2d::Label*>	label_rows;
 
 	float						scale;
-	float						depth;
 
 	float						row_height;
 };

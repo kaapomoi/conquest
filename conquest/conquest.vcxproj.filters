@@ -69,9 +69,6 @@
     <ClCompile Include="src\ui\UIClickableLabel.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\UIElement.cpp">
-      <Filter>src\ui</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\UIFunctionGraph.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
@@ -97,6 +94,12 @@
       <Filter>src\ui</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\UIProgressBar.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\UIScoreBar.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\UIElement.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,9 +152,6 @@
     <ClInclude Include="src\ui\UIClickableLabel.h">
       <Filter>src\ui</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\UIElement.h">
-      <Filter>src\ui</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\UIFunctionGraph.h">
       <Filter>src\ui</Filter>
     </ClInclude>
@@ -180,6 +180,12 @@
       <Filter>src\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\UIProgressBar.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\UIScoreBar.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\UIElement.h">
       <Filter>src\ui</Filter>
     </ClInclude>
   </ItemGroup>

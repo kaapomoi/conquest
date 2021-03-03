@@ -2,7 +2,7 @@
 
 UIClickableLabel::UIClickableLabel(std::string name, std::string label_text, k2d::vi2d position, k2d::vi2d text_offset, k2d::vi2d size, k2d::GLTexture tex, k2d::SpriteBatch* sb,
 	std::map<GLchar, k2d::Character>& _font, float _scale, float _depth, k2d::Color _color):
-	 UIBase(name)
+	 UIBase(name, position, size, depth)
 {
 	this->position = position;
 	this->size = size;
@@ -11,6 +11,9 @@ UIClickableLabel::UIClickableLabel(std::string name, std::string label_text, k2d
 	this->active = true;
 	this->is_hit = false;
 	this->modifiable = false;
+	this->depth = depth;
+	this->background = nullptr;
+	this->variable_multiplier = 1;
 	// TODO : fix position to accomodate offsets
 	label = new k2d::Label(label_text, _font, position.x + text_offset.x, position.y + text_offset.y, _scale, _depth, _color, sb);
 }
@@ -40,7 +43,7 @@ void UIClickableLabel::Update(double dt)
 
 void UIClickableLabel::SetPosition(k2d::vf2d new_pos)
 {
-	position = new_pos;
+	UIBase::SetPosition(new_pos);
 }
 
 void UIClickableLabel::SetIsHit(bool is_hit)
@@ -115,7 +118,7 @@ void UIClickableLabel::SetIsActive(bool a)
 	this->active = a;
 }
 
-void UIClickableLabel::OnClick(k2d::vi2d relative_hit_pos)
+void UIClickableLabel::OnClick(k2d::vf2d relative_hit_pos)
 {
 	if (modifiable)
 	{

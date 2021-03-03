@@ -40,6 +40,7 @@ namespace k2d
 		/// Sets text to render
 		void SetText(std::string _text) { text = _text; }
 		void SetPosition(vf2d pos) { x = pos.x; y = pos.y; }
+		void SetDepth(float d) { this->depth = d; }
 
 		std::string GetText() { return text; }
 

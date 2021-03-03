@@ -6,14 +6,14 @@
 class UIGraph : public UIBase
 {
 public:
-	UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb);
+	UIGraph(std::string name, k2d::vi2d position, k2d::vi2d size, float depth, int max_data_points, float max_data_value, k2d::GLTexture bar_tex, k2d::SpriteBatch* sb);
 	virtual ~UIGraph();
 
-	virtual void Update(double dt);
+	virtual void Update(double dt)override;
 
 	virtual void UpdateBarPositions();
 
-	virtual void SetPosition(k2d::vf2d new_pos);
+	virtual void SetPosition(k2d::vf2d new_pos) override;
 	virtual void SetIsButton(bool is_but);
 	virtual void SetIsHit(bool is_hit);
 
@@ -31,18 +31,13 @@ public:
 
 	virtual void SetBackground(k2d::Color bg_color);
 
-	virtual void SetIsActive(bool a);
 
-	k2d::vf2d GetPosition() { return position; }
-	k2d::vi2d GetSize() { return size; }
 	std::vector<k2d::Sprite*> GetSprites() { return bar_sprites; }
 	std::vector<k2d::Text*> GetTexts() { return texts; }
-	bool IsActive() { return active; }
 
 protected:
 	k2d::SpriteBatch*			sb;
 	k2d::GLTexture				bar_texture;
-	std::string					name;
 	k2d::Sprite*				background;
 	std::vector<k2d::Sprite*>	horizontal_line_sprites;
 	std::vector<k2d::Sprite*>	bar_sprites;
@@ -52,10 +47,7 @@ protected:
 	int max_data_points;
 	float max_data_value;
 
-	k2d::vf2d		position;
-	k2d::vi2d		size;
 	bool			should_be_gray;
-	bool			active;
 	bool			is_button;
 	bool			is_hit;
 };
