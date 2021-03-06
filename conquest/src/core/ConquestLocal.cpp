@@ -1,9 +1,8 @@
 #include <core/ConquestLocal.h>
 
 ConquestLocal::ConquestLocal(std::string title, int width, int height, int target_fps, bool v_sync) :
-	// Init with mapsize, colors
-	server_sim(k2d::vi2d(40, 30), 6),
-	k2d::Application(title, width, height, target_fps, v_sync)
+	k2d::Application(title, width, height, target_fps, v_sync),
+	server_sim(nullptr)
 {
 	Setup();
 }
@@ -49,7 +48,7 @@ void ConquestLocal::Setup()
 	CalculateNewSelectionWeights();
 	UpdateSelectionWeights();
 
-	half_of_tiles = server_sim.GetMapSize().x * server_sim.GetMapSize().y * 0.5;
+	half_of_tiles = server_sim->GetMapSize().x * server_sim->GetMapSize().y * 0.5;
 
 	// Start the main loop by calling base::Setup()
 	k2d::Application::Setup();
@@ -62,6 +61,8 @@ float ConquestLocal::weight_selection_function(float x, float a, float b)
 
 int ConquestLocal::init_game()
 {
+	// Init with mapsize, colors
+	server_sim = new ServerSim(k2d::vi2d(40, 30), 6);
 	load_texture_into_cache("empty", "Textures/tiles/square100x100.png");
 	load_texture_into_cache("selected", "Textures/tiles/selection100x100.png");
 	load_texture_into_cache("ss", "Textures/tiles/ss100x100.png");
@@ -107,8 +108,8 @@ int ConquestLocal::init_game()
 	}
 
 	// TODO set this somehow
-	map_size = server_sim.GetMapSize();
-	num_colors = server_sim.GetTakenColors().size();
+	map_size = server_sim->GetMapSize();
+	num_colors = server_sim->GetTakenColors().size();
 
 	// Randomizer init
 	random_engine.seed((unsigned int) time(NULL));
@@ -133,8 +134,8 @@ int ConquestLocal::create_ai()
 {
 	population_size = 100;
 
-	bad_ai = new BadAI(0, &server_sim);
-	simple_ai = new SimpleAI(1, &server_sim);
+	bad_ai = new BadAI(0, server_sim);
+	simple_ai = new SimpleAI(1, server_sim);
 
 	opponent = bad_ai;
 	bad_ai_enabled = true;
@@ -144,7 +145,7 @@ int ConquestLocal::create_ai()
 
 	for (size_t i = 0; i < population_size; i++)
 	{
-		ai_agents.push_back(new NeuralAI(running_agent_id++, &server_sim));
+		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim));
 	}
 
 	return 0;
@@ -614,21 +615,21 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	SimpleAI* tmp1 = dynamic_cast<SimpleAI*>(first);
 	if (tmp1)
 	{
-		tmp1->SetMapSize(server_sim.GetMapSize());
-		tmp1->SetStartingPosition(server_sim.GetStartingPositions()[0]);
+		tmp1->SetMapSize(server_sim->GetMapSize());
+		tmp1->SetStartingPosition(server_sim->GetStartingPositions()[0]);
 		tmp1->SetCurrentColorOwned(0);
 	}
 
 	SimpleAI* tmp2 = dynamic_cast<SimpleAI*>(second);
 	if (tmp2)
 	{
-		tmp2->SetMapSize(server_sim.GetMapSize());
-		tmp2->SetStartingPosition(server_sim.GetStartingPositions()[1]);
+		tmp2->SetMapSize(server_sim->GetMapSize());
+		tmp2->SetStartingPosition(server_sim->GetStartingPositions()[1]);
 		tmp2->SetCurrentColorOwned(1);
 	}
 
-	server_sim.ConnectToServer(first->GetClientId());
-	server_sim.ConnectToServer(second->GetClientId());
+	server_sim->ConnectToServer(first->GetClientId());
+	server_sim->ConnectToServer(second->GetClientId());
 
 	// Set the first players id as the turn player id
 	first->SetCurrentTurnPlayersId(first->GetClientId());
@@ -643,7 +644,7 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	second->SetWhichPlayerAmI(1);
 
 
-	server_sim.StartGame();
+	server_sim->StartGame();
 
 	return 0;
 }
@@ -655,12 +656,12 @@ void ConquestLocal::PreRender()
 
 void ConquestLocal::Update()
 {
-	if (!server_sim.GetGameInProgress())
+	if (!server_sim->GetGameInProgress())
 	{
 		if (last_played_index >= 0)
 		{
-			server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
-			server_sim.DisconnectFromServer(opponent->GetClientId());
+			server_sim->DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
+			server_sim->DisconnectFromServer(opponent->GetClientId());
 			CheckIfBestOfGeneration();
 			CalculateGenerationAverage();
 			SetPreviousIdAndTileCount();
@@ -683,6 +684,7 @@ void ConquestLocal::Update()
 
 			generation_history->AddDataPoint(average_score_this_generation);
 			average_score_this_generation = 0;
+
 			// Create a new map after the generation has played their games
 			if (should_create_new_map)
 			{
@@ -692,7 +694,7 @@ void ConquestLocal::Update()
 				{
 					map_button->ResetToUntoggledState();
 				}
-				server_sim.CreateNewMap();
+				server_sim->CreateNewMap();
 			}
 		}
 
@@ -712,19 +714,22 @@ void ConquestLocal::Update()
 
 	if (!paused)
 	{
-		server_sim.Update();
+		server_sim->Update();
 
 		for (AI* ai : ai_agents)
 		{
 			// Remove later TODO
-			ai->Update();
+			if (ai->GetInGame())
+			{
+				ai->Update();
+			}
 		}
 
 		opponent->Update();
 	}
 
-	tilemap = server_sim.GetBoardState();
-	players = server_sim.GetPlayers();
+	tilemap = server_sim->GetBoardState();
+	players = server_sim->GetPlayers();
 
 	// TODO: remoev if
 	if (ui_enabled)
@@ -738,7 +743,7 @@ void ConquestLocal::Update()
 	ClampGeneticAlgorithmVariables();
 
 	// Handle events
-	Event e = server_sim.GetNextEventFromQueue(spectator_id);
+	Event e = server_sim->GetNextEventFromQueue(spectator_id);
 	HandleEvent(e);
 
 
@@ -803,7 +808,7 @@ void ConquestLocal::GeneticAlgorithm()
 		//NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[index2]);
 		//NeuralAI* child = new NeuralAI(tmp1, tmp2, running_agent_id++, &server_sim);
 
-		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, &server_sim);
+		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, server_sim);
 
 		// Randomize the mutation type
 		//if (index1 == index2)
@@ -1383,8 +1388,8 @@ void ConquestLocal::HandleEvent(Event& e)
 		std::string data = e.GetData();
 		// turn agents id = std::stoi(data));
 
-		taken_colors = server_sim.GetTakenColors();
-		turns_played = server_sim.GetTurnsPlayed();
+		taken_colors = server_sim->GetTakenColors();
+		turns_played = server_sim->GetTurnsPlayed();
 
 		break;
 	}

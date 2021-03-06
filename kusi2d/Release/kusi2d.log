@@ -1,7 +1,6 @@
-﻿  Application.cpp
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\core\Application.cpp(13,16): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Kaapo\Projects\conquest\kusi2d\src\core\Application.cpp(32,27): warning C4244: 'argument': conversion from 'float' to 'uint32_t', possible loss of data
-  Engine.cpp
+﻿  GraphicsSystem.cpp
+C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\Kaapo\Projects\conquest\kusi2d\src\graphics\GraphicsSystem.cpp(48,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
 opengl32.lib(OPENGL32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 glew32.lib(glew32.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored
 freetype.lib(freetype.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR already defined in SDL2.lib(SDL2.dll); second definition ignored

@@ -128,10 +128,6 @@ private:
 
 	float find_max_local(int first, int last);
 
-	
-
-
-
 	k2d::vi2d tile_size;
 
 	k2d::vi2d mouse_grid_pos;
@@ -180,7 +176,7 @@ private:
 
 	std::vector<k2d::vi2d> sc;
 
-	ServerSim server_sim;
+	ServerSim* server_sim;
 
 	int turns_played;
 

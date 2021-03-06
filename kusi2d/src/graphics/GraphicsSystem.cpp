@@ -145,7 +145,7 @@ namespace k2d
 		// If its not in the map
 		if (mit == glsl_programs.end())
 		{
-			KUSI_DEBUG("Creating shaders with id %s\n", _id);
+			KUSI_DEBUG("Creating shaders with id %s\n", _id.c_str());
 			GLSLProgram* prog = new GLSLProgram();
 			shader_compile_success = prog->CompileShaders(_vertex_shader_file, _fragment_shader_file);
 
