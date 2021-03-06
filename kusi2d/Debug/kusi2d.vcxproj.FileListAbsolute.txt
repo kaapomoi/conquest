@@ -1,2 +1,0 @@
-C:\Users\Kaapo\Projects\conquest\kusi2d\build\Win32\Debug\kusi2d.pdb
-C:\Users\Kaapo\Projects\conquest\kusi2d\Debug\kusi2d.pdb

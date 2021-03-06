@@ -1,3 +1,0 @@
-player_walk
-10
-8 2 2 0
