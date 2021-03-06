@@ -105,6 +105,8 @@ namespace k2d
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+		
+		
 		// Try for the first 128 chars
 		for (GLubyte c = 0; c < 128; c++)
 		{
@@ -115,6 +117,8 @@ namespace k2d
 				continue;
 			}
 
+			
+
 			// Generate texture
 			GLuint texture;
 			glGenTextures(1, &texture);
@@ -122,7 +126,7 @@ namespace k2d
 			glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
-				GL_ALPHA,
+				GL_RGBA8,
 				face->glyph->bitmap.width,
 				face->glyph->bitmap.rows,
 				0,
@@ -132,8 +136,8 @@ namespace k2d
 			);
 
 			// Set texture options
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			// Now store character for later use

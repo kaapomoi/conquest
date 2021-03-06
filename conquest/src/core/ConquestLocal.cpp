@@ -196,6 +196,8 @@ int ConquestLocal::create_ui()
 	scaled_ui = tile_size * 4;
 	tile_brightness = 0.5f;
 
+	variable_change_multiplier = 1;
+
 	ui_enabled = true;
 
 #pragma region MultiLabels
@@ -331,7 +333,7 @@ int ConquestLocal::create_ui()
 
 	// top percentile label
 	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
-		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(0 - scaled_ui.x * 7.5 + tile_size.x * 1.5, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
 		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
 		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -350,7 +352,7 @@ int ConquestLocal::create_ui()
 
 	// Mutation rate label
 	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 5  + tile_size.x * 2.5, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
+		k2d::vi2d(0 - scaled_ui.x * 7.5  + tile_size.x * 1.5, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
 		k2d::vi2d(-scaled_ui.x * 0.7f, tile_size.y * 0.f - 5),
 		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
@@ -1426,7 +1428,7 @@ k2d::Sprite* ConquestLocal::create_projectile_sprite(const char* texture_name, k
 
 k2d::Text* ConquestLocal::create_text(std::string text, float scale, float depth)
 {
-	return new k2d::Text(text, font1, 0, 0, scale, depth, k2d::Color(255), sprite_batch);
+	return new k2d::Text(text, font1, 0, 0, scale, depth, k2d::Color(255,255, 0, 255), sprite_batch);
 }
 
 k2d::Text* ConquestLocal::create_text(std::string text, k2d::vi2d position, float scale, float depth)

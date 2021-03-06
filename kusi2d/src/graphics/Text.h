@@ -11,6 +11,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <freetype/ftcolor.h>
+#include <freetype/ftbitmap.h>
+
 #include <util/util.h>
 
 namespace k2d
