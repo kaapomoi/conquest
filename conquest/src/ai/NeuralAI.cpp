@@ -1,73 +1,15 @@
 #include <ai/NeuralAI.h>
 
-NeuralAI::NeuralAI(int id, ServerSim* server_sim) :
+NeuralAI::NeuralAI(int id, ServerSim* server_sim, std::vector<int> topology) :
 	AI(id, server_sim), 
 	// Set the topology of the net
-	neural_net({ (server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size() + 1,
-		90,
-		90,
-		(int) server_sim->GetTakenColors().size()})
+	neural_net(topology)
 {
 	rand_engine.seed(time(NULL));
 	tiles_owned = 0;
 	parent_a_id = -1;
 	parent_b_id = -1;
 	try_best = 0;
-}
-//((server_sim->GetMapSize().x * server_sim->GetMapSize().y) * (int)server_sim->GetTakenColors().size()) + (int)server_sim->GetTakenColors().size() + 1,
-NeuralAI::NeuralAI(NeuralAI* parent_a, NeuralAI* parent_b, int id, ServerSim* server_sim):
-	AI(id, server_sim),
-	neural_net({ (server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size() + 1,
-		90,
-		90,
-		(int)server_sim->GetTakenColors().size() }),
-	parent_a_id(parent_a->GetClientId()),
-	parent_b_id(parent_b->GetClientId())
-{
-	int yep = Random::get(0, 1);
-
-	std::vector<std::vector<Neuron>>& a_layers = parent_a->GetNeuralNet()->GetLayers();
-	std::vector<std::vector<Neuron>>& b_layers = parent_b->GetNeuralNet()->GetLayers();
-
-	// Flip parents
-	if (yep > 0)
-	{
-		a_layers = parent_a->GetNeuralNet()->GetLayers();
-		b_layers = parent_b->GetNeuralNet()->GetLayers();
-	}
-	else
-	{
-		b_layers = parent_a->GetNeuralNet()->GetLayers();
-		a_layers = parent_b->GetNeuralNet()->GetLayers();
-	}
-
-	std::vector<std::vector<Neuron>> res_net = a_layers;
-
-	double a_dominance = Random::get(0.0, 1.0);
-
-	for (int i = 0; i < a_layers.size(); i++)
-	{
-		int cutoff = Random::get(0, (int)a_layers[i].size() - 1);
-
-		for (int j = cutoff; j < a_layers[i].size(); j++)
-		{
-			int num_weights = (int)a_layers[i][j].output_weights.size();
-			cutoff = Random::get(0, num_weights - 1);
-
-			// Randomize biases
-			res_net[i][j].bias_weight = ((a_layers[i][j].bias_weight * a_dominance) + ((1.0 - a_dominance) * b_layers[i][j].bias_weight)) * 0.5;
-
-			for (size_t k = cutoff; k < num_weights; k++)
-			{
-				//res_net[i][j].output_weights[k] = b_layers[i][j].output_weights[k];
-
-				// weighted avg 
-				res_net[i][j].output_weights[k] = ((a_layers[i][j].output_weights[k] * a_dominance) + ((1.0 - a_dominance) * b_layers[i][j].output_weights[k])) * 0.5;
-			}
-		}
-	}
-
-	GetNeuralNet()->SetNet(res_net);
 }
 
 NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
@@ -217,7 +159,7 @@ void NeuralAI::Update()
 				board_state_single_dimension.push_back(taken_colors.at(i) ? 0.0 : 1.0);
 			}
 
-			board_state_single_dimension.push_back(which_player_am_i);
+			//board_state_single_dimension.push_back(which_player_am_i);
 
 			// Input the board state into the net
 			//neural_net.FeedForward(board_state_single_dimension, taken_colors, false);
@@ -244,7 +186,6 @@ void NeuralAI::Update()
 					return a.second > b.second;
 				}
 			);
-
 
 
 			res = results_map[try_best].first;

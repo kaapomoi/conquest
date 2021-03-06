@@ -15,6 +15,8 @@
 #include <ai/SimpleAI.h>
 #include <ai/NeuralAI.h>
 #include <util/DatabaseHandler.h>
+#include <json.hpp>
+#include <iomanip>
 #include <inttypes.h>
 #include <time.h>
 #include <queue>
@@ -94,6 +96,8 @@ public:
 	void CalculateGenerationAverage();
 	void CheckIfBestOfGeneration();
 	void SetPreviousIdAndTileCount();
+
+	void SaveGeneticAlgorithmVariablesToFile(std::string file_name);
 
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
@@ -211,6 +215,11 @@ private:
 	double close_mutation_epsilon;
 
 	float mutation_type_chance;
+	float topology_mutation_chance;
+
+	// When topology mutation triggers, randomize if the number of layers also changes
+	float num_layers_mutation_chance;
+
 
 	int		variable_change_multiplier;
 

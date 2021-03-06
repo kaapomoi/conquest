@@ -15,7 +15,7 @@ void ConquestLocal::Setup()
 {
 	// Basics
 	SetShaders("Shaders/core.vert", "Shaders/core.frag", "core", { "vertex_position", "vertex_color", "vertex_uv" });
-	engine->SetCameraPosition(k2d::vi2d(window_width / 4, window_height / 4));
+	engine->SetCameraPosition(k2d::vi2d(110, 230));
 	font1 = LoadFont("Fonts/opensans.ttf");
 
 	spectator_id = -9999;
@@ -39,6 +39,7 @@ void ConquestLocal::Setup()
 
 	// Init game
 	InitGeneticAlgorithmValues();
+
 	init_game();
 	create_ai();
 	//
@@ -119,21 +120,40 @@ int ConquestLocal::init_game()
 
 void ConquestLocal::InitGeneticAlgorithmValues()
 {
-	// 0.1f = 10%;
-	top_percentile = 0.2f;
+	//// 0.1f = 10%;
+	/*top_percentile = 0.2f;
 
 	mutation_rate = 0.01f;
 	close_mutation_rate = 0.05f;
 	close_mutation_epsilon = 0.50;
 
+	topology_mutation_chance = 0.01f;
+	num_layers_mutation_chance = 0.1f;
+
 	mutation_type_chance = 0.95f;
-	variable_change_multiplier = 1;
+	variable_change_multiplier = 1;*/
+	
+	// Load from file
+
+	std::string filename = "Data/Gen.json";
+
+	std::ifstream i(filename);
+	nlohmann::json j;
+	i >> j;
+
+	close_mutation_epsilon = j.find("close_mutation_epsilon").value();
+	close_mutation_rate = j.find("close_mutation_rate").value();
+	mutation_rate = j.find("mutation_rate").value();
+	mutation_type_chance = j.find("mutation_type_chance").value();
+	num_layers_mutation_chance = j.find("num_layers_mutation_chance").value();
+	population_size = j.find("population_size").value();
+	top_percentile = j.find("top_percentile").value();
+	topology_mutation_chance = j.find("topology_mutation_chance").value();
+
 }
 
 int ConquestLocal::create_ai()
 {
-	population_size = 100;
-
 	bad_ai = new BadAI(0, server_sim);
 	simple_ai = new SimpleAI(1, server_sim);
 
@@ -143,9 +163,29 @@ int ConquestLocal::create_ai()
 	running_agent_id = 2;
 	last_played_index = -1;
 
+	std::vector<int> default_topology{ 
+		(server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size(),
+		90,
+		90,
+		(int)server_sim->GetTakenColors().size()};
+
+	std::normal_distribution<> n_d(120, 20);
+
 	for (size_t i = 0; i < population_size; i++)
 	{
-		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim));
+		// Default number of input nodes
+		std::vector<int> topology{ (server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size() };
+
+		int num_layers = Random::get(1, 3);
+		for (size_t i = 0; i < num_layers; i++)
+		{
+			topology.push_back(std::round(n_d(random_engine)));
+		}
+
+		// Default amount of output nodes
+		topology.push_back((int) server_sim->GetTakenColors().size());
+
+		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, topology));
 	}
 
 	return 0;
@@ -154,7 +194,7 @@ int ConquestLocal::create_ai()
 int ConquestLocal::create_ui()
 {
 	scaled_ui = tile_size * 4;
-	tile_brightness = 1.0f;
+	tile_brightness = 0.5f;
 
 	ui_enabled = true;
 
@@ -176,7 +216,6 @@ int ConquestLocal::create_ui()
 	generation_ids->AddLabel("Generation", "Generation: ", &epoch);
 	generation_ids->AddLabel("PreviousID", "Previousnn: ", &previous_id);
 	generation_ids->AddLabel("GenerationBestID", "Best of gen: ", &current_best_of_gen_id);
-
 	ui_multilabels.push_back(generation_ids);
 
 	// Generation Fitness values
@@ -283,11 +322,18 @@ int ConquestLocal::create_ui()
 	ui_clickable_labels.push_back(pop_size_label);
 
 
+	/// The grid:
+	/// x = 3 2 1
+	/// -scaled_ui.x * grid_x * 2.5 + tile_size.x * grid_x * 1 + 1.5
+
+
+	
+
 	// top percentile label
 	UIClickableLabel* top_percentile_label = new UIClickableLabel("TopPercentileClickable", "Top %: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0  - 5),
-		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
 		0.12f, 26.0f, k2d::Color(255));
@@ -304,9 +350,9 @@ int ConquestLocal::create_ui()
 
 	// Mutation rate label
 	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, tile_size.y * 0.f - 5),
-		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 5  + tile_size.x * 2.5, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, tile_size.y * 0.f - 5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1, 
 		0.12f, 26.0f, k2d::Color(255));
@@ -321,9 +367,9 @@ int ConquestLocal::create_ui()
 
 	// Close Mutation rate label
 	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M. Rate: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 1.5f - tile_size.y * 1+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, - 5),
-		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 7.5 + tile_size.x * 1.5, -scaled_ui.y * 1.5f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, - 5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
 		0.12f, 26.0f, k2d::Color(255));
@@ -336,11 +382,13 @@ int ConquestLocal::create_ui()
 
 	ui_clickable_labels.push_back(close_mutation_rate_label);
 	
+
+
 	// Mutation Type Chance rate label
 	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. Type C: ",
-		k2d::vi2d(0 - scaled_ui.x * 2, -scaled_ui.y * 2.0f - tile_size.y * 1+1),
-		k2d::vi2d(-scaled_ui.x * 0.9f, - 5),
-		k2d::vi2d(scaled_ui.x * 3 + tile_size.x, scaled_ui.y * 0.5f - 2),
+		k2d::vi2d(0 - scaled_ui.x * 7.5 + tile_size.x * 1.5, -scaled_ui.y * 2.0f - tile_size.y * 1+1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, - 5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
 		0.12f, 26.0f, k2d::Color(255));
@@ -352,6 +400,42 @@ int ConquestLocal::create_ui()
 	mutation_type_chance_label->SetModifiable(true);
 
 	ui_clickable_labels.push_back(mutation_type_chance_label);
+
+	// topology mutation chance label
+	UIClickableLabel* topology_mutation_chance_label = new UIClickableLabel("TopologyMutationChanceClickable", "T M.%: ",
+		k2d::vi2d(0 - scaled_ui.x * 5.0 + tile_size.x * 2.5, -scaled_ui.y * 2.0f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	topology_mutation_chance_label->SetBackground(k2d::Color(129, 255));
+	topology_mutation_chance_label->SetVariable(&topology_mutation_chance);
+	topology_mutation_chance_label->SetModifiable(true);
+	topology_mutation_chance_label->SetBaseMultiplier(0.0001f);
+	topology_mutation_chance_label->SetPrintPrecision(4);
+	topology_mutation_chance_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(topology_mutation_chance_label);
+
+	// num layers mutation chance label
+	UIClickableLabel* num_layers_mutation_chance_label = new UIClickableLabel("NumLayersMutationChanceClickable", "L M.%: ",
+		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 2.0f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	num_layers_mutation_chance_label->SetBackground(k2d::Color(129, 255));
+	num_layers_mutation_chance_label->SetVariable(&topology_mutation_chance);
+	num_layers_mutation_chance_label->SetModifiable(true);
+	num_layers_mutation_chance_label->SetBaseMultiplier(0.0001f);
+	num_layers_mutation_chance_label->SetPrintPrecision(4);
+	num_layers_mutation_chance_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(num_layers_mutation_chance_label);
+
+	
 
 	// Turns played text
 	UIClickableLabel* turns_text = new UIClickableLabel("NRTurnsLabel", "Turns played: ",
@@ -676,6 +760,7 @@ void ConquestLocal::Update()
 		if (last_played_index >= ai_agents.size())
 		{
 			// 
+			SaveGeneticAlgorithmVariablesToFile("Data/Gen.json");
 			GeneticAlgorithm();
 			last_played_index = 0;
 
@@ -728,10 +813,14 @@ void ConquestLocal::Update()
 		opponent->Update();
 	}
 
+	// Handle events
+	Event e = server_sim->GetNextEventFromQueue(spectator_id);
+	HandleEvent(e);
+	
 	tilemap = server_sim->GetBoardState();
 	players = server_sim->GetPlayers();
 
-	// TODO: remoev if
+
 	if (ui_enabled)
 	{
 		UpdateTileColors();
@@ -742,12 +831,8 @@ void ConquestLocal::Update()
 
 	ClampGeneticAlgorithmVariables();
 
-	// Handle events
-	Event e = server_sim->GetNextEventFromQueue(spectator_id);
-	HandleEvent(e);
 
 
-	// TODO: remoev if
 	if (ui_enabled)
 	{
 		for (GameObject* tile : tiles)
@@ -788,10 +873,8 @@ void ConquestLocal::GeneticAlgorithm()
 		ai_agents.erase(ai_agents.begin() + cutoff_index, ai_agents.end());
 	}
 
-
 	UpdateSelectionWeights();
 
-	
 	int max_index = ai_agents.size() - 1;
 	std::discrete_distribution<int> distribution(selection_weights.begin(), selection_weights.begin()+ max_index);
 	ai_agents.reserve(population_size);
@@ -799,20 +882,12 @@ void ConquestLocal::GeneticAlgorithm()
 	while (ai_agents.size() < population_size)
 	{
 		int index1 = distribution(random_engine);
-		//int index2 = distribution(random_engine);
 
-		std::cout << "index = " << index1 << "\n";
-		//int index1 = Random::get(0, max_index);
-		//int index2 = Random::get(0, max_index);
 		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[index1]);
-		//NeuralAI* tmp2 = dynamic_cast<NeuralAI*>(ai_agents[index2]);
-		//NeuralAI* child = new NeuralAI(tmp1, tmp2, running_agent_id++, &server_sim);
 
 		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, server_sim);
 
 		// Randomize the mutation type
-		//if (index1 == index2)
-		
 		float close_mutation = Random::get(0.0f, 1.0f);
 		if (close_mutation < mutation_type_chance)
 		{
@@ -1125,11 +1200,13 @@ void ConquestLocal::ClampGeneticAlgorithmVariables()
 {
 	k2d::clamp(top_percentile, 0.01f, 1.0f);
 
-	k2d::clamp(mutation_rate, 0.000001f, 1.0f);
-	k2d::clamp(close_mutation_rate, 0.000001f, 1.0f);
+	k2d::clamp(mutation_rate, 0.00f, 1.0f);
+	k2d::clamp(close_mutation_rate, 0.0f, 1.0f);
 	k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
 
 	k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
+	k2d::clamp(topology_mutation_chance, 0.0f, 1.0f);
+	k2d::clamp(num_layers_mutation_chance, 0.0f, 1.0f);
 
 	k2d::clamp(population_size, 1, 100000);
 }
@@ -1218,6 +1295,42 @@ void ConquestLocal::SetPreviousIdAndTileCount()
 {
 	previous_id = ai_agents[last_played_index]->GetClientId();
 	previous_tiles_owned = ai_agents[last_played_index]->GetTilesOwned();
+}
+
+void ConquestLocal::SaveGeneticAlgorithmVariablesToFile(std::string file_name)
+{
+	using json = nlohmann::json;
+	
+	/*
+	k2d::clamp(top_percentile, 0.01f, 1.0f);
+
+	k2d::clamp(mutation_rate, 0.00f, 1.0f);
+	k2d::clamp(close_mutation_rate, 0.0f, 1.0f);
+	k2d::clamp(close_mutation_epsilon, 0.000001, 1.0);
+
+	k2d::clamp(mutation_type_chance, 0.0f, 1.0f);
+	k2d::clamp(topology_mutation_chance, 0.0f, 1.0f);
+	k2d::clamp(num_layers_mutation_chance, 0.0f, 1.0f);
+
+	k2d::clamp(population_size, 1, 100000);
+	*/
+	json j;
+
+	j["population_size"] = population_size;
+	j["top_percentile"] = top_percentile;
+	j["mutation_rate"] = mutation_rate;
+	j["close_mutation_rate"] = close_mutation_rate;
+	j["close_mutation_epsilon"] = close_mutation_epsilon;
+	j["mutation_type_chance"] = mutation_type_chance;
+	j["topology_mutation_chance"] = topology_mutation_chance;
+	j["num_layers_mutation_chance"] = num_layers_mutation_chance;
+
+	std::ofstream file;
+	file.open(file_name);
+	file << std::setw(4) << j << std::endl;
+	file.close();
+
+	return;
 }
 
 void ConquestLocal::GetRandomColorFromLoadedSkins(int index)

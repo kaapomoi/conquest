@@ -7,8 +7,7 @@ using Random = effolkronium::random_static;
 class NeuralAI : public AI
 {
 public:
-	NeuralAI(int id, ServerSim* server_sim);
-	NeuralAI(NeuralAI* parent_a, NeuralAI* parent_b, int id, ServerSim* server_sim);
+	NeuralAI(int id, ServerSim* server_sim, std::vector<int> topology);
 	NeuralAI(const NeuralAI& parent, int id, ServerSim* ss);
 	virtual ~NeuralAI();
 
