@@ -1,6 +1,6 @@
 #pragma once 
 
-#include <core/Engine.h>
+#include <core/Application.h>
 #include <core/GameObject.h>
 #include <ui/UIGraph.h>
 #include <ui/UIFunctionGraph.h>
@@ -33,22 +33,14 @@ namespace {
 }
 
 
-class ConquestLocal
+class ConquestLocal : public k2d::Application
 {
 public:
 	using Random = effolkronium::random_static;
-	ConquestLocal();
+	ConquestLocal(std::string title, int width, int height, int target_fps, bool v_sync);
 	~ConquestLocal();
 
-	int init_engine();
-
-	int load_texture_into_cache(const char* friendly_name, std::string filename);
-	k2d::GLTexture load_texture_from_cache(const char* friendly_name);
-	k2d::Sprite* create_tile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
-	k2d::Sprite* CreateDefaultSprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
-	k2d::Sprite* create_projectile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
-	k2d::Text* create_text(std::string text, float scale, float depth = 10.f);
-	k2d::Text* create_text(std::string text, k2d::vi2d position, float scale, float depth = 10.f);
+	
 
 	UIBase* get_ui_by_name(std::string name);
 	UIButton* get_button_by_name(std::string name);
@@ -58,7 +50,12 @@ public:
 	void InitGeneticAlgorithmValues();
 
 	int create_ui();
-	int run();
+
+	void Setup() override;
+
+	void PreRender() override;
+	void Update() override;
+
 
 	int create_ai();
 	int PlayGame(AI* first, AI* second);
@@ -101,19 +98,19 @@ public:
 	void GetRandomColorFromLoadedSkins(int index);
 	int bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x, uint8_t y);
 
-	int main_loop();
-
 	void GeneticAlgorithm();
 
 	void update_input();
 
-
 	k2d::vi2d WorldToGridPos(const k2d::vi2d world_pos) { return k2d::vi2d((world_pos.x + tile_size.x / 2) / tile_size.x, (world_pos.y + tile_size.y / 2) / tile_size.y); }
 	k2d::vi2d GridToWorldPos(const k2d::vi2d grid_pos) { return k2d::vi2d(grid_pos.x * tile_size.x, grid_pos.y * tile_size.y); }
 
-	std::map<GLchar, k2d::Character> LoadFont(const char* _file);
-
-	std::map<GLchar, k2d::Character> LoadChars();
+	k2d::Sprite* create_tile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
+	k2d::Sprite* CreateDefaultSprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
+	k2d::Sprite* create_projectile_sprite(const char* texture_name, k2d::Color color = k2d::Color(255), float depth = 25.0f);
+	k2d::Text* create_text(std::string text, float scale, float depth = 10.f);
+	k2d::Text* create_text(std::string text, k2d::vi2d position, float scale, float depth = 10.f);
+	
 
 	bool valid_tile(uint8_t x, uint8_t y, k2d::vi2d map_size)
 	{
@@ -131,26 +128,11 @@ private:
 
 	float find_max_local(int first, int last);
 
-	// Engine variables
-	k2d::Engine* engine;
-	k2d::SpriteBatch* sprite_batch;
+	
 
-	std::string window_title;
-	int window_width;
-	int window_height;
-	bool v_sync;
 
-	float fps_target;
-	double dt;
 
-	float camera_mvmt_speed;
-
-	// Game variables
-	std::map<const char*, k2d::GLTexture> m_texture_cache;
-
-	k2d::vi2d world_size;
 	k2d::vi2d tile_size;
-	k2d::vi2d origin;
 
 	k2d::vi2d mouse_grid_pos;
 	bool debug;
@@ -159,15 +141,6 @@ private:
 
 	// Tile map
 	std::vector<std::vector<tile>> tilemap;
-	
-
-	// Fonts
-	std::map<const char*, std::map<GLchar, k2d::Character>>	font_cache;
-	std::map<GLchar, k2d::Character> font1;
-	FT_Library		ft;
-	FT_Face			face;
-
-
 
 	// UI
 	float							tile_brightness;

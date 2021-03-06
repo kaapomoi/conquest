@@ -28,9 +28,9 @@ namespace k2d
 
 		void Init(Color _backgound_color, Window* _window);
 
-		void ReadyRendering();
+		void PreRender(std::string id);
 
-		void Tick(double _delta_seconds);
+		void Render(double _delta_seconds);
 
 		void SetBackgroundColor(k2d::Color _color);
 
@@ -38,7 +38,7 @@ namespace k2d
 
 		void AddShaders(const std::string& _vertex_shader_file,
 			const std::string& _fragment_shader_file,
-			const char* _id,
+			std::string _id,
 			std::initializer_list<std::string> _list);
 
 		Camera2D* GetCamera() { return &camera; }
@@ -48,7 +48,7 @@ namespace k2d
 
 		Color			background_color;
 		SpriteBatch*	sprite_batch;
-		std::map<const char*, GLSLProgram*> glsl_programs;
+		std::map<std::string, GLSLProgram*> glsl_programs;
 		GLSLProgram*	current_prog;
 		bool			shader_compile_success;
 		bool			initialized;

@@ -34,7 +34,7 @@ namespace k2d
 		int RunExternalLoop(uint32_t _target_fps);
 		int StopRunning();
 
-		void ReadyRendering();
+		void PreRender(const char* id);
 
 		double Update();
 

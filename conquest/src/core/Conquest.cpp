@@ -484,7 +484,7 @@ int Conquest::main_loop()
 {
 	while (engine->GetRunning())
 	{
-		engine->ReadyRendering();
+		engine->PreRender("2d");
 
 		
 

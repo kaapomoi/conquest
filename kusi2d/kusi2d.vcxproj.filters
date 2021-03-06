@@ -65,6 +65,9 @@
     <ClCompile Include="src\graphics\Label.cpp">
       <Filter>src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\Application.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Engine.h">
@@ -120,6 +123,9 @@
     </ClInclude>
     <ClInclude Include="src\graphics\Label.h">
       <Filter>src\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\Application.h">
+      <Filter>src\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

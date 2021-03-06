@@ -21,7 +21,7 @@ namespace k2d
 	}
 
 	/**
-	 *	Initializes the graphics system, loads & compiles given shaders
+	 *	Initializes the graphics system
 	 */
 	void GraphicsSystem::Init(Color _background_color, Window* _window)
 	{
@@ -53,7 +53,7 @@ namespace k2d
 
 
 	// Starts the batch and updates the camera
-	void GraphicsSystem::ReadyRendering()
+	void GraphicsSystem::PreRender(std::string id)
 	{
 		// Errorchecking, If we haven't initialized, crash engine
 		if (!initialized)
@@ -72,9 +72,6 @@ namespace k2d
 			background_color.b / 255.f, background_color.a / 255.f);
 
 
-		const char* id = "2d";
-		// Start rendering, change shaders to 3d
-
 		if (glsl_programs.find(id) != glsl_programs.end())
 		{
 			current_prog = glsl_programs.find(id)->second;
@@ -83,7 +80,7 @@ namespace k2d
 		}
 		else
 		{
-			KUSI_ERROR("No shader found with id");
+			KUSI_ERROR("No shader found with id " + std::string(id));
 		}
 
 		// Camera test
@@ -108,7 +105,7 @@ namespace k2d
 	/**
 	 *	Main Rendering function, draws spritebatches
 	 */
-	void GraphicsSystem::Tick(double _delta_seconds)
+	void GraphicsSystem::Render(double _delta_seconds)
 	{
 		// End spritebatch
 		sprite_batch->End();
@@ -121,9 +118,6 @@ namespace k2d
 		// Unbind GLSL program
 		current_prog->UnUse();
 	}
-
-
-	
 
 	/// Sets the windows background color
 	void GraphicsSystem::SetBackgroundColor(k2d::Color _color)
@@ -143,7 +137,7 @@ namespace k2d
 	 */
 	void GraphicsSystem::AddShaders(const std::string& _vertex_shader_file,
 		const std::string& _fragment_shader_file,
-		const char* _id,
+		std::string _id,
 		std::initializer_list<std::string> _list)
 	{
 		auto mit = glsl_programs.find(_id);

@@ -1,25 +1,27 @@
 #include <core/ConquestLocal.h>
 
-ConquestLocal::ConquestLocal() :
+ConquestLocal::ConquestLocal(std::string title, int width, int height, int target_fps, bool v_sync) :
 	// Init with mapsize, colors
-	server_sim(k2d::vi2d(40, 30), 6)
+	server_sim(k2d::vi2d(40, 30), 6),
+	k2d::Application(title, width, height, target_fps, v_sync)
 {
-	window_title = "Conquest AI Training";
-	window_width = 1200;
-	window_height = 900;
-	v_sync = false;
+	Setup();
+}
 
-	face = 0;
-	ft = 0;
+ConquestLocal::~ConquestLocal()
+{
+}
 
-	fps_target = 60.0f;
-	dt = 0.0000000001;
-
-	camera_mvmt_speed = 200.f;
+void ConquestLocal::Setup()
+{
+	// Basics
+	SetShaders("Shaders/core.vert", "Shaders/core.frag", "core", { "vertex_position", "vertex_color", "vertex_uv" });
+	engine->SetCameraPosition(k2d::vi2d(window_width / 4, window_height / 4));
+	font1 = LoadFont("Fonts/opensans.ttf");
 
 	spectator_id = -9999;
 
-	// Session id from time from 1-1-2000
+	// Session id for the database table. time from 1-1-2000
 	time_t t;
 	struct tm y2k = { 0 };
 	y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
@@ -27,48 +29,30 @@ ConquestLocal::ConquestLocal() :
 	time(&t);
 	int ses_id = difftime(t, mktime(&y2k));
 
-
+	// Database init
 	db_dir = "Data/TEST.db";
 	db_handler = new DatabaseHandler(ses_id, db_dir);
-
 	db_handler->CreateMatchesTable();
 
-	if (init_engine() == 0)
-	{
-		weight_selection_a = 200.0f;
-		weight_selection_b = 10.0f;
+	// Selection weights init
+	weight_selection_a = 200.0f;
+	weight_selection_b = 10.0f;
 
-		// Init game
-		InitGeneticAlgorithmValues();
-		init_game();
-		create_ai();
-		//
-		create_ui();
-		//create_ui_unit_card();
+	// Init game
+	InitGeneticAlgorithmValues();
+	init_game();
+	create_ai();
+	//
+	create_ui();
+	//create_ui_unit_card();
 
-		CalculateNewSelectionWeights();
+	CalculateNewSelectionWeights();
+	UpdateSelectionWeights();
 
-		UpdateSelectionWeights();
-		
-		half_of_tiles = server_sim.GetMapSize().x * server_sim.GetMapSize().y * 0.5;
+	half_of_tiles = server_sim.GetMapSize().x * server_sim.GetMapSize().y * 0.5;
 
-		// run game
-		run();
-	}
-}
-
-ConquestLocal::~ConquestLocal()
-{
-}
-
-int ConquestLocal::init_engine()
-{
-	engine = new k2d::Engine(window_title, window_width, window_height, v_sync);
-	sprite_batch = engine->GetSpriteBatch();
-	engine->AddShaders("Shaders/colorShading.vert", "Shaders/colorShading.frag", "2d",
-		{ "vertex_position", "vertex_color", "vertex_uv" });
-
-	return 0;
+	// Start the main loop by calling base::Setup()
+	k2d::Application::Setup();
 }
 
 float ConquestLocal::weight_selection_function(float x, float a, float b)
@@ -104,13 +88,6 @@ int ConquestLocal::init_game()
 
 	videofile.close();
 
-
-	origin = k2d::vi2d(0, 0);
-
-	engine->SetCameraPosition(k2d::vi2d(window_width / 4, window_height / 4));
-
-	font1 = LoadFont("Fonts/opensans.ttf");
- 
 	std::ifstream myfile("config/skins.txt");
 	if (!myfile) {
 		k2d::KUSI_ERROR("SKIN LOADING ERROR");
@@ -129,19 +106,11 @@ int ConquestLocal::init_game()
 		skins.push_back(loaded_skins.at(i));
 	}
 
-	// Default skins:
-	// red
-	// green
-	// blue
-	// yellow
-	// magenta
-	// cyan
-
 	// TODO set this somehow
 	map_size = server_sim.GetMapSize();
 	num_colors = server_sim.GetTakenColors().size();
 
-	// Net code
+	// Randomizer init
 	random_engine.seed((unsigned int) time(NULL));
 
 	return 0;
@@ -637,14 +606,6 @@ int ConquestLocal::create_ui()
 	return 0;
 }
 
-int ConquestLocal::run()
-{
-	engine->RunExternalLoop(fps_target);
-	main_loop();
-	
-	return 0;
-}
-
 // returns the winners id
 int ConquestLocal::PlayGame(AI* first, AI* second)
 {
@@ -687,121 +648,121 @@ int ConquestLocal::PlayGame(AI* first, AI* second)
 	return 0;
 }
 
-int ConquestLocal::main_loop()
+void ConquestLocal::PreRender()
 {
-	while (engine->GetRunning())
+	k2d::Application::PreRender();
+}
+
+void ConquestLocal::Update()
+{
+	if (!server_sim.GetGameInProgress())
 	{
-		engine->ReadyRendering();
-
-		if (!server_sim.GetGameInProgress())
+		if (last_played_index >= 0)
 		{
-			if (last_played_index >= 0)
+			server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
+			server_sim.DisconnectFromServer(opponent->GetClientId());
+			CheckIfBestOfGeneration();
+			CalculateGenerationAverage();
+			SetPreviousIdAndTileCount();
+			UpdateProgressBarValues();
+
+			current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
+		}
+
+		last_played_index++;
+
+		// One epoch done
+		if (last_played_index >= ai_agents.size())
+		{
+			// 
+			GeneticAlgorithm();
+			last_played_index = 0;
+
+			current_best_of_gen_id = 0;
+			current_best_of_gen_tiles_owned = 0;
+
+			generation_history->AddDataPoint(average_score_this_generation);
+			average_score_this_generation = 0;
+			// Create a new map after the generation has played their games
+			if (should_create_new_map)
 			{
-				server_sim.DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
-				server_sim.DisconnectFromServer(opponent->GetClientId());
-				CheckIfBestOfGeneration();
-				CalculateGenerationAverage();
-				SetPreviousIdAndTileCount();
-				UpdateProgressBarValues();
-
-				current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
-			}
-
-			last_played_index++;
-
-			// One epoch done
-			if (last_played_index >= ai_agents.size())
-			{
-				// 
-				GeneticAlgorithm();
-				last_played_index = 0;
-
-				current_best_of_gen_id = 0;
-				current_best_of_gen_tiles_owned = 0;
-
-				generation_history->AddDataPoint(average_score_this_generation);
-				average_score_this_generation = 0;
-				// Create a new map after the generation has played their games
-				if (should_create_new_map)
+				should_create_new_map = false;
+				UIToggleButton* map_button = dynamic_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
+				if (map_button)
 				{
-					should_create_new_map = false;
-					UIToggleButton* map_button = dynamic_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
-					if (map_button)
-					{
-						map_button->ResetToUntoggledState();
-					}
-					server_sim.CreateNewMap();
+					map_button->ResetToUntoggledState();
 				}
+				server_sim.CreateNewMap();
 			}
-
-			// g for bad, h for simple ai
-			if (bad_ai_enabled == true)
-			{
-				opponent = bad_ai;
-			}
-			else
-			{
-				opponent = simple_ai;
-			}
-
-			// Running agent vs. simpleAI
-			PlayGame(ai_agents.at(last_played_index), opponent);
 		}
 
-		if (!paused)
+		// g for bad, h for simple ai
+		if (bad_ai_enabled == true)
 		{
-			server_sim.Update();
-
-			for (AI* ai : ai_agents)
-			{
-				// Remove later TODO
-				ai->Update();
-			}
-
-			opponent->Update();
+			opponent = bad_ai;
 		}
-		
-		tilemap = server_sim.GetBoardState();
-		players = server_sim.GetPlayers();
-
-		// TODO: remoev if
-		if (ui_enabled)
+		else
 		{
-			UpdateTileColors();
-			UpdateScoreboardIds();
-			UpdateScoreboardIds();
-			UpdateScorebarValues();
+			opponent = simple_ai;
 		}
 
-		ClampGeneticAlgorithmVariables();
-
-		// Handle events
-		Event e = server_sim.GetNextEventFromQueue(spectator_id);
-		HandleEvent(e);
-
-
-		// TODO: remoev if
-		if (ui_enabled)
-		{
-			for (GameObject* tile : tiles)
-			{
-				// Draw tile
-				tile->Update(dt);
-			}
-
-			for (UIBase* ui : all_of_the_ui)
-			{
-				ui->Update(dt);
-			}
-		}
-
-		update_input();
-		//engine->SetWindowTitle("Conquest AI Training. fps: " + std::to_string(engine->GetCurrentFPS()));
-		dt = engine->Update();
+		// Running agent vs. simpleAI
+		PlayGame(ai_agents.at(last_played_index), opponent);
 	}
 
-	return 0;
+	if (!paused)
+	{
+		server_sim.Update();
+
+		for (AI* ai : ai_agents)
+		{
+			// Remove later TODO
+			ai->Update();
+		}
+
+		opponent->Update();
+	}
+
+	tilemap = server_sim.GetBoardState();
+	players = server_sim.GetPlayers();
+
+	// TODO: remoev if
+	if (ui_enabled)
+	{
+		UpdateTileColors();
+		UpdateScoreboardIds();
+		UpdateScoreboardIds();
+		UpdateScorebarValues();
+	}
+
+	ClampGeneticAlgorithmVariables();
+
+	// Handle events
+	Event e = server_sim.GetNextEventFromQueue(spectator_id);
+	HandleEvent(e);
+
+
+	// TODO: remoev if
+	if (ui_enabled)
+	{
+		for (GameObject* tile : tiles)
+		{
+			// Draw tile
+			tile->Update(dt);
+		}
+
+		for (UIBase* ui : all_of_the_ui)
+		{
+			ui->Update(dt);
+		}
+	}
+
+	update_input();
+	//engine->SetWindowTitle("Conquest AI Training. fps: " + std::to_string(engine->GetCurrentFPS()));
+
+	k2d::Application::Update();
 }
+
 
 void ConquestLocal::GeneticAlgorithm()
 {
@@ -1326,39 +1287,6 @@ int ConquestLocal::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint
 	return num_visited;
 }
 
-int ConquestLocal::load_texture_into_cache(const char* friendly_name, std::string filename)
-{
-	// Lookup texturemap
-	auto mit = m_texture_cache.find(friendly_name);
-
-	// If its not in the map
-	if (mit == m_texture_cache.end())
-	{
-		k2d::GLTexture tex = k2d::ImageLoader::LoadPNG(filename, false);
-
-		// Insert it into the map
-		m_texture_cache.insert(std::make_pair(friendly_name, tex));
-	}
-
-	return 0;
-}
-
-k2d::GLTexture ConquestLocal::load_texture_from_cache(const char* friendly_name)
-{
-	// Lookup texturemap
-	auto mit = m_texture_cache.find(friendly_name);
-
-	// If its not in the map
-	if (mit == m_texture_cache.end())
-	{
-		k2d::KUSI_DEBUG("Cannot find texture from cache, name: %s\nCreating new default texture", friendly_name);
-		// Make new texture from default image
-		return k2d::ImageLoader::LoadPNG("Textures/default.png", false);
-	}
-
-	return mit->second;
-}
-
 k2d::Sprite* ConquestLocal::create_tile_sprite(const char* texture_name, k2d::Color color, float depth)
 {
 	return new k2d::Sprite(glm::vec2(0.0f), tile_size.x, tile_size.y, depth,
@@ -1411,102 +1339,6 @@ UIButton* ConquestLocal::get_button_by_name(std::string name)
 	}
 	return nullptr;
 }
-
-/**
-	 *	Loads a font from the texture cache.\n
-	 *	If the font is not in the cache, \n
-	 *	it gets loaded into it from the specified file
-	 */
-std::map<GLchar, k2d::Character> ConquestLocal::LoadFont(const char* _file)
-{
-	if (FT_Init_FreeType(&ft))
-	{
-		k2d::KUSI_ERROR("ERROR::FREETYPE: Could not init Freetype Library");
-	}
-
-	if (FT_New_Face(ft, _file, 0, &face))
-	{
-		k2d::KUSI_ERROR("ERROR::FREETYPE: Failed to load font");
-	}
-
-	FT_Set_Pixel_Sizes(face, 0, 128);
-
-	// Lookup texturemap
-	auto mit = font_cache.find(_file);
-
-
-	// If its not in the map
-	if (mit == font_cache.end())
-	{
-		std::map<GLchar, k2d::Character> new_map = LoadChars();
-
-		// Insert it into the map
-		font_cache.insert(std::make_pair(_file, new_map));
-		return new_map;
-	}
-
-	// return texture
-	return mit->second;
-}
-
-/**
- *	Loads characters of a font into a usable format
- */
-std::map<GLchar, k2d::Character> ConquestLocal::LoadChars()
-{
-	std::map<GLchar, k2d::Character> characters = {};
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	// Try for the first 128 chars
-	for (GLubyte c = 0; c < 128; c++)
-	{
-		// Try to load glyph
-		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-		{
-			k2d::KUSI_DEBUG("ERROR::FREETYPE: Failed to load Glyph");
-			continue;
-		}
-
-		// Generate texture
-		GLuint texture;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_ALPHA,
-			face->glyph->bitmap.width,
-			face->glyph->bitmap.rows,
-			0,
-			GL_ALPHA,
-			GL_UNSIGNED_BYTE,
-			face->glyph->bitmap.buffer
-		);
-
-		// Set texture options
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// Now store character for later use
-		k2d::Character character = {
-			texture,
-			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-			face->glyph->advance.x
-		};
-		characters.insert(std::pair<GLchar, k2d::Character>(c, character));
-	}
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	// Free memory
-	FT_Done_Face(face);
-	FT_Done_FreeType(ft);
-
-	return characters;
-}
-
 
 void ConquestLocal::HandleEvent(Event& e)
 {

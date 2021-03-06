@@ -22,6 +22,7 @@
     <None Include="docs\Coding Conventions.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\Application.cpp" />
     <ClCompile Include="src\core\Engine.cpp" />
     <ClCompile Include="src\core\Win32_System.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
@@ -38,6 +39,7 @@
     <ClCompile Include="src\util\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\Application.h" />
     <ClInclude Include="src\core\Engine.h" />
     <ClInclude Include="src\core\Win32_System.h" />
     <ClInclude Include="src\core\Window.h" />

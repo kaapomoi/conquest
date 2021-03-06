@@ -13,12 +13,10 @@ namespace k2d
 		window(),
 		running(false)
 	{
-		//graphics_system = GraphicsSystem();
 		input_manager = InputManager();
 		graphics_system = GraphicsSystem();
 		window.Create(_window_title, _window_width, _window_height, 0, _v_sync);
 		graphics_system.Init(Color(0,0,0, 255), &window);
-		//graphics_system.Init(Color(255, 255, 0, 128), "Shaders/colorShading.vert", "Shaders/colorShading.frag");
 	}
 
 	Engine::~Engine()
@@ -84,9 +82,9 @@ namespace k2d
 		return 0;
 	}
 
-	void Engine::ReadyRendering()
+	void Engine::PreRender(const char* id)
 	{
-		graphics_system.ReadyRendering();
+		graphics_system.PreRender(id);
 		ProcessInput();
 	}
 
@@ -98,7 +96,7 @@ namespace k2d
 		double delta_seconds = sPerfClockTick(&perf_clock);
 
 
-		graphics_system.Tick(delta_seconds);
+		graphics_system.Render(delta_seconds);
 		
 
 
