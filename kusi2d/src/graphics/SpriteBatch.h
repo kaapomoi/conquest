@@ -70,6 +70,10 @@ namespace k2d
 		void Draw(const glm::vec4& _dest_rect, const glm::vec4& _uv_rect, 
 			GLuint _texture, const Color& _color, float _depth);
 
+		/// Makes a drawable object into a glyph, which will get put into a renderbatch in CreateRenderBatches()
+		void DrawAngled(const glm::vec4& _dest_rect, const glm::vec4& _uv_rect,
+			GLuint _texture, const Color& _color, float _depth, float _angle);
+
 		/// Draws all triangles of all spritebatches
 		void RenderBatches();
 

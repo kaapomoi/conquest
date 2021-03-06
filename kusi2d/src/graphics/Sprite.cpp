@@ -11,13 +11,14 @@ namespace k2d
 		texture(),
 		initialized(false),
 		depth(0),
-		active(true)
+		active(true),
+		angle(0.0f)
 	{
 		//std::cout << "addr" << &sprite_batch << "\n";
 	}
 
 	Sprite::Sprite(glm::vec2 _position, float _width, float _height, float depth,
-		glm::vec4 _uv_coordinates, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch)
+		glm::vec4 _uv_coordinates, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch, float angle)
 	{
 		position = _position;
 		width = _width;
@@ -27,6 +28,7 @@ namespace k2d
 		texture = _texture;
 		sprite_batch = _sprite_batch;
 		initialized = true;
+		this->angle = angle;
 		this->depth = depth;
 		this->active = true;
 	}
@@ -43,7 +45,7 @@ namespace k2d
 	//{
 
 	//}
-	Sprite::Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch)
+	Sprite::Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch, float angle)
 	{
 		position = glm::vec2(_position.x, _position.y);
 		width = size.x;
@@ -53,6 +55,7 @@ namespace k2d
 		texture = _texture;
 		sprite_batch = _sprite_batch;
 		initialized = true;
+		this->angle = angle;
 		this->depth = depth;
 		this->active = true;
 	}
@@ -97,13 +100,23 @@ namespace k2d
 		
 		if (active)
 		{
-			// Create destination rectangle for sprite
-			glm::vec4 dest_rect((-width / 2.0f) + position.x, (-height / 2.0f) + position.y, width, height);
-			//glm::vec4 dest_rect(position.x, position.y, width, height);
-		
 
-			// Add the sprite to the spritebatch
-			sprite_batch->Draw(dest_rect, uv_coordinates, texture.id, color, depth);
+			if (angle < 0.00001f && angle > -0.00001f)
+			{
+				glm::vec4 dest_rect((-width / 2.0f) + position.x, (-height / 2.0f) + position.y, width, height);
+
+				sprite_batch->Draw(dest_rect, uv_coordinates, texture.id, color, depth);
+			}
+			else
+			{
+				// Create destination rectangle for sprite
+				glm::vec4 dest_rect((-width / 2.0f) + position.x, (-height / 2.0f) + position.y, width, height);
+
+
+				// Add the sprite to the spritebatch
+				sprite_batch->DrawAngled(dest_rect, uv_coordinates, texture.id, color, depth, -angle);
+			}
+		
 		}
 	}
 

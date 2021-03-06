@@ -75,6 +75,43 @@ namespace k2d
 		glyphs.push_back(newGlyph);
 	}
 
+	void SpriteBatch::DrawAngled(const glm::vec4& _dest_rect, const glm::vec4& _uv_rect, GLuint _texture, const Color& _color, float _depth, float _angle)
+	{
+		float rad = k2d::DegToRad(_angle);
+		glm::vec2 c(_dest_rect.x, _dest_rect.y);
+		glm::mat2 rot_mat(glm::vec2(cos(rad), -sin(rad)), glm::vec2(sin(rad), cos(rad)));
+
+		Glyph* newGlyph = new Glyph;
+		newGlyph->texture = _texture;
+		newGlyph->depth = _depth;
+
+		newGlyph->topLeft.color = _color;
+		glm::vec2 top_left_tmp(_dest_rect.x, _dest_rect.y + _dest_rect.w);
+		top_left_tmp = rot_mat * (top_left_tmp - c) + c;
+		newGlyph->topLeft.SetPosition(top_left_tmp);
+		newGlyph->topLeft.setUV(_uv_rect.x, _uv_rect.y + _uv_rect.w);
+
+		newGlyph->bottomLeft.color = _color;
+		glm::vec2 bot_left_tmp(_dest_rect.x, _dest_rect.y);
+		bot_left_tmp = rot_mat * (bot_left_tmp - c) + c;
+		newGlyph->bottomLeft.SetPosition(bot_left_tmp);
+		newGlyph->bottomLeft.setUV(_uv_rect.x, _uv_rect.y);
+
+		newGlyph->bottomRight.color = _color;
+		glm::vec2 bot_right_tmp(_dest_rect.x + _dest_rect.z, _dest_rect.y);
+		bot_right_tmp = rot_mat * (bot_right_tmp - c) + c;
+		newGlyph->bottomRight.SetPosition(bot_right_tmp);
+		newGlyph->bottomRight.setUV(_uv_rect.x + _uv_rect.z, _uv_rect.y);
+
+		newGlyph->topRight.color = _color;
+		glm::vec2 top_right_tmp(_dest_rect.x + _dest_rect.z, _dest_rect.y + _dest_rect.w);
+		top_right_tmp = rot_mat * (top_right_tmp - c) + c;
+		newGlyph->topRight.SetPosition(top_right_tmp);
+		newGlyph->topRight.setUV(_uv_rect.x + _uv_rect.z, _uv_rect.y + _uv_rect.w);
+
+		glyphs.push_back(newGlyph);
+	}
+
 	/**
 	 *	Draws all triangles of all spritebatches
 	 */

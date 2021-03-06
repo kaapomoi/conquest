@@ -561,7 +561,8 @@ int ConquestLocal::create_ui()
 		load_texture_from_cache("full"), sprite_batch);
 	generation_history->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
 	generation_history->SetBackground(k2d::Color(40, 255));
-	generation_history->AddText(create_text("Generation Average Fitness", k2d::vi2d(generation_history->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 1.8f)), 0.12f, 24.5f));
+	generation_history->AddTrendLine(k2d::Color(255, 0, 255, 255));
+	generation_history->AddText(create_text("Generation Average Fitness", k2d::vi2d(generation_history->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
 	// Current gen tiles owned histogram
 	current_gen_tiles_owned_histogram = new UIGraph("CurrentGenTilesOwned",
@@ -572,18 +573,20 @@ int ConquestLocal::create_ui()
 		load_texture_from_cache("full"), sprite_batch);
 	current_gen_tiles_owned_histogram->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
 	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
-	current_gen_tiles_owned_histogram->AddText(create_text("Fitness", k2d::vi2d(current_gen_tiles_owned_histogram->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 1.8f)), 0.12f, 24.5f));
+	current_gen_tiles_owned_histogram->AddTrendLine(k2d::Color(255, 0,255, 255));
+	current_gen_tiles_owned_histogram->AddText(create_text("Fitness", k2d::vi2d(current_gen_tiles_owned_histogram->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
 
 	// Current gen tiles owned histogram
 	pick_chance_graph = new UIClickableGraph("PickChanceGraph",
 		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 1.5f, tile_size.y * map_size.y * 0.5f + scaled_ui.y * 0.5f - tile_size.y * 0.5f),
-		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2), ceil(population_size * top_percentile),
+		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2),
 		25.0f,
+		ceil(population_size * top_percentile),
 		find_max_local(0, ceil(population_size * top_percentile)), // max_data_value
 		load_texture_from_cache("full"), sprite_batch);
 	pick_chance_graph->SetBackground(k2d::Color(20, 255));
-	pick_chance_graph->AddText(create_text("Selection chance", k2d::vi2d(pick_chance_graph->GetPosition() + k2d::vf2d(-scaled_ui.x * 1.25f, scaled_ui.y * 1.8f)), 0.12f, 24.5f));
+	pick_chance_graph->AddText(create_text("Selection chance", k2d::vi2d(pick_chance_graph->GetPosition() + k2d::vf2d(-scaled_ui.x * 1.25f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
 #pragma endregion
 
@@ -873,13 +876,14 @@ void ConquestLocal::GeneticAlgorithm()
 void ConquestLocal::update_input()
 {
 
-	if (engine->GetInputManager().IsButtonPressedThisFrame(SDL_BUTTON_LEFT))
+	if (engine->GetInputManager().IsButtonPressedThisFrame(SDL_BUTTON_LEFT) || engine->GetInputManager().IsButtonPressed(SDL_BUTTON_RIGHT))
 	{
 		// Check which button is pressed.
 		k2d::vi2d click_pos = engine->ScreenToWorld(engine->GetMouseCoords());
 		std::cout << "click: " << click_pos << "\n";
 
-		std::vector<UIClickable*> temp_clicked;
+		// Depth checking for click
+		std::vector<UIBase*> temp_clicked;
 
 		for (UIBase* ui : all_of_the_ui)
 		{
@@ -888,6 +892,8 @@ void ConquestLocal::update_input()
 				UIClickable* c = dynamic_cast<UIClickable*> (ui);
 				if (c)
 				{
+					float dx = 0.0f;
+					float dy = 0.0f;
 					// BOt left position
 					k2d::vf2d button_pos;
 					button_pos.x = ui->GetPosition().x - ui->GetSize().x / 2;
@@ -896,48 +902,48 @@ void ConquestLocal::update_input()
 					button_dims.x = ui->GetSize().x;
 					button_dims.y = ui->GetSize().y;
 
-					int dx = click_pos.x - button_pos.x;
-					int dy = click_pos.y - button_pos.y;
+					dx = click_pos.x - button_pos.x;
+					dy = click_pos.y - button_pos.y;
 
 					// Check if its a hit
 					if (dx > 0 && dx < button_dims.x
 						&& dy > 0 && dy < button_dims.y)
 					{
-						c->OnClick(k2d::vf2d(dx, dy));
+						temp_clicked.push_back(ui);
+						//c->OnClick(k2d::vf2d(dx, dy));
 					}
-					
 				}
 			}
 		}
 
-	}
-
-	if (engine->GetInputManager().IsButtonPressed(SDL_BUTTON_RIGHT))
-	{
-		k2d::vf2d click_pos = engine->ScreenToWorld(engine->GetMouseCoords());
-
-		UIClickableGraph* l = pick_chance_graph;
-		if (l->IsActive())
-		{
-			// BOt left position
-			k2d::vf2d button_pos;
-			button_pos.x = l->GetPosition().x - l->GetSize().x / 2;
-			button_pos.y = l->GetPosition().y - l->GetSize().y / 2;
-			k2d::vf2d button_dims;
-			button_dims.x = l->GetSize().x;
-			button_dims.y = l->GetSize().y;
-
-			int dx = click_pos.x - button_pos.x;
-			int dy = click_pos.y - button_pos.y;
-
-			// Check if its a hit
-			if (dx > 0 && dx < button_dims.x
-				&& dy > 0 && dy < button_dims.y)
+		// Sort highest (closest to user) first
+		std::sort(temp_clicked.begin(), temp_clicked.end(), [](UIBase* a, UIBase* b) -> bool 
 			{
+				return a->GetDepth() > b->GetDepth();
+			});
 
-				l->OnClick(k2d::vf2d(dx, dy));
+		if (!temp_clicked.empty())
+		{
+			UIClickable* click_this = dynamic_cast<UIClickable*>(temp_clicked[0]);
+			if (click_this)
+			{
+				float dx = 0.0f;
+				float dy = 0.0f;
+
+				k2d::vf2d button_pos;
+				button_pos.x = temp_clicked[0]->GetPosition().x - temp_clicked[0]->GetSize().x / 2;
+				button_pos.y = temp_clicked[0]->GetPosition().y - temp_clicked[0]->GetSize().y / 2;
+				k2d::vf2d button_dims;
+				button_dims.x = temp_clicked[0]->GetSize().x;
+				button_dims.y = temp_clicked[0]->GetSize().y;
+
+				dx = click_pos.x - button_pos.x;
+				dy = click_pos.y - button_pos.y;
+
+				click_this->OnClick(k2d::vf2d(dx, dy));
 			}
 		}
+
 	}
 
 	if (engine->GetInputManager().IsMouseWheelScrolledThisFrame(k2d::WheelDirection::UP))
@@ -956,30 +962,6 @@ void ConquestLocal::update_input()
 		for (UIClickableLabel* l : ui_clickable_labels)
 		{
 			l->SetVariableMultiplier(variable_change_multiplier);
-		}
-	}
-
-
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_g))
-	{
-		bad_ai_enabled = true;
-	}
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_h))
-	{
-		bad_ai_enabled = false;
-	}
-
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_j))
-	{
-		should_create_new_map = true;
-	}
-
-	// Disable label rendering/updating
-	if (engine->GetInputManager().IsKeyPressedThisFrame(SDLK_v))
-	{
-		for (UIClickableLabel* l : ui_clickable_labels)
-		{
-			l->SetIsActive(!l->IsActive());
 		}
 	}
 

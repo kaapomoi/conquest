@@ -26,6 +26,9 @@ public:
 
 	virtual void AddHorizontalLine(float percent_of_max_value, k2d::Color color);
 
+	virtual void AddTrendLine(k2d::Color color);
+	virtual void CalculateTrendLine();
+
 	virtual void AddSprite(k2d::Sprite* sprite);
 	virtual void AddText(k2d::Text* text);
 
@@ -39,6 +42,7 @@ protected:
 	k2d::SpriteBatch*			sb;
 	k2d::GLTexture				bar_texture;
 	k2d::Sprite*				background;
+	k2d::Sprite*				trend_line;
 	std::vector<k2d::Sprite*>	horizontal_line_sprites;
 	std::vector<k2d::Sprite*>	bar_sprites;
 	std::vector<k2d::Text*>		texts;

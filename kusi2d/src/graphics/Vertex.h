@@ -68,6 +68,13 @@ namespace k2d
 			position.x = x;
 			position.y = y;
 		}
+		
+		void SetPosition(glm::vec2 pos) {
+			position.x = pos.x;
+			position.y = pos.y;
+		}
+
+		Position GetPosition() { return position; }
 
 		void setColor(GLubyte r, GLubyte g, GLubyte b, GLubyte a) {
 			color.r = r;

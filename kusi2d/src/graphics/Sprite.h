@@ -16,8 +16,8 @@ namespace k2d
 	public:
 		Sprite();
 		Sprite(glm::vec2 _position, float _width, float _height, float depth,
-			glm::vec4 _uv_coordinates, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch);
-		Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch);
+			glm::vec4 _uv_coordinates, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch, float angle = 0.0f);
+		Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch, float angle = 0.0f);
 		//Sprite(SpriteBatch& _sprite_batch);
 		~Sprite();
 
@@ -38,7 +38,7 @@ namespace k2d
 		void SetHeight(float height) { this->height = height; }
 		void SetDepth(float depth) { this->depth = depth; }
 		void SetColor(Color new_color) { this->color = new_color; }
-
+		void SetAngle(float a) { this->angle = a; }
 		void SetActive(bool a);
 
 
@@ -56,6 +56,7 @@ namespace k2d
 		SpriteBatch* 	sprite_batch;
 		Color			color;
 
+		float			angle;
 		bool			active;
 		bool			initialized;
 	};
