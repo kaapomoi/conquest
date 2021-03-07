@@ -40,7 +40,9 @@
     <ClCompile Include="src\ui\UIElement.cpp" />
     <ClCompile Include="src\ui\UIFunctionGraph.cpp" />
     <ClCompile Include="src\ui\UIGraph.cpp" />
+    <ClCompile Include="src\ui\UIList.cpp" />
     <ClCompile Include="src\ui\UIMultiLabel.cpp" />
+    <ClCompile Include="src\ui\UINetDisplay.cpp" />
     <ClCompile Include="src\ui\UIProgressBar.cpp" />
     <ClCompile Include="src\ui\UIScoreBar.cpp" />
     <ClCompile Include="src\ui\UIToggleButton.cpp" />
@@ -69,7 +71,9 @@
     <ClInclude Include="src\ui\UIElement.h" />
     <ClInclude Include="src\ui\UIFunctionGraph.h" />
     <ClInclude Include="src\ui\UIGraph.h" />
+    <ClInclude Include="src\ui\UIList.h" />
     <ClInclude Include="src\ui\UIMultiLabel.h" />
+    <ClInclude Include="src\ui\UINetDisplay.h" />
     <ClInclude Include="src\ui\UIProgressBar.h" />
     <ClInclude Include="src\ui\UIScoreBar.h" />
     <ClInclude Include="src\ui\UIToggleButton.h" />

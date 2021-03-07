@@ -38,10 +38,15 @@ public:
 	virtual int GetGamesWon();
 	virtual int GetTilesOwned();
 
+	virtual int GetFitness() { return fitness; }
+	virtual void SetFitness(int v) { fitness = v; }
+
 protected:
 	ServerSim* server;
 	std::vector<bool> taken_colors;
 	
+	int fitness;
+
 	bool ingame;
 	int games_played;
 	int games_won;

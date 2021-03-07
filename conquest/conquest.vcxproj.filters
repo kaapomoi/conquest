@@ -102,6 +102,12 @@
     <ClCompile Include="src\ui\UIElement.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\UINetDisplay.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\UIList.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Conquest.h">
@@ -186,6 +192,12 @@
       <Filter>src\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\UIElement.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\UINetDisplay.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\UIList.h">
       <Filter>src\ui</Filter>
     </ClInclude>
   </ItemGroup>

@@ -10,6 +10,7 @@
 #include <ui/UIMultiLabel.h>
 #include <ui/UIProgressBar.h>
 #include <ui/UIScoreBar.h>
+#include <ui/UIList.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -92,6 +93,7 @@ public:
 	void UpdateScorebarValues();
 
 	void UpdateProgressBarValues();
+	void UpdateParentIdsListValues();
 
 	void CalculateGenerationAverage();
 	void CheckIfBestOfGeneration();
@@ -155,6 +157,7 @@ private:
 	UIGraph* current_gen_tiles_owned_histogram;
 	UIScoreBar* scorebar;
 	UIClickableGraph* pick_chance_graph;
+	UIList* parent_ids_list;
 
 
 	std::string				ini_file_name;

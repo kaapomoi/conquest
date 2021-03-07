@@ -60,6 +60,7 @@ void UIToggleButton::OnClick(k2d::vf2d relative_click_pos)
 void UIToggleButton::ResetToUntoggledState()
 {
 	toggled = false;
+	darkout_sprite->SetActive(false);
 }
 
 void UIToggleButton::SetDarkoutActive(bool ac)

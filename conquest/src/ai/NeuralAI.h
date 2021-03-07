@@ -24,10 +24,17 @@ public:
 	void Mutate(float mutation_chance);
 	void CloseMutate(float mutation_chance, float epsilon);
 
+	std::vector<int>* GetParentIds() { return &parent_ids; }
+
+	void SetInGame(bool ig)override;
+
 private:
 	int try_best;
-	int parent_a_id;
-	int parent_b_id;
+	std::vector<int> parent_ids;
+
+	int fitness;
+
+	bool game_won;
 
 	// Random engine
 	std::mt19937 rand_engine;

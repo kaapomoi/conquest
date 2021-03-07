@@ -7,9 +7,9 @@ NeuralAI::NeuralAI(int id, ServerSim* server_sim, std::vector<int> topology) :
 {
 	rand_engine.seed(time(NULL));
 	tiles_owned = 0;
-	parent_a_id = -1;
-	parent_b_id = -1;
 	try_best = 0;
+	fitness = 0;
+	game_won = false;
 }
 
 NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
@@ -18,9 +18,11 @@ NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
 	this->try_best = 0;
 	this->games_played = 0;
 	this->games_won = 0;
+	this->fitness = 0;
 	this->ingame = false;
-	this->parent_a_id = parent.client_id;
-	this->parent_b_id = -1;
+	this->game_won = false;
+	this->parent_ids = parent.parent_ids;
+	this->parent_ids.push_back(parent.client_id);
 	this->current_turn_players_id = -1;
 }
 
@@ -74,7 +76,13 @@ void NeuralAI::Update()
 
 			if (winner_id == client_id)
 			{
+				//SetFitness(tiles_owned + 250 - ((turns_played - 50) * 5));
+
 				AddGameWon();
+			}
+			else
+			{
+				SetFitness(tiles_owned - ((turns_played - 50) * 2));
 			}
 
 			AddGamePlayed();
@@ -103,6 +111,13 @@ void NeuralAI::Update()
 			if (current_turn_players_id == client_id)
 			{
 				tiles_owned = std::stoi(data);
+
+				if (tiles_owned > (server->GetMapSize().x * server->GetMapSize().y * 0.5) && !game_won)
+				{
+					// Game won, calculate fitness
+					SetFitness(tiles_owned + ((100 - server->GetTurnsPlayed()) * 5));
+					game_won = true;
+				}
 			}
 			try_best = 0;
 			break;
@@ -277,4 +292,11 @@ void NeuralAI::CloseMutate(float mutation_chance, float epsilon)
 			}
 		}
 	}
+}
+
+void NeuralAI::SetInGame(bool ig)
+{
+	game_won = false;
+
+	AI::SetInGame(ig);
 }

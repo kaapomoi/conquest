@@ -1,10 +1,10 @@
 {
     "close_mutation_epsilon": 0.4,
-    "close_mutation_rate": 9.999999747378752e-06,
-    "mutation_rate": 2.000000313273631e-05,
-    "mutation_type_chance": 0.9000000953674316,
+    "close_mutation_rate": 0.0009999965550377965,
+    "mutation_rate": 0.0010001008631661534,
+    "mutation_type_chance": 0.8000003695487976,
     "num_layers_mutation_chance": 0.5,
-    "population_size": 200,
-    "top_percentile": 0.20000000298023224,
+    "population_size": 100,
+    "top_percentile": 0.20000001788139343,
     "topology_mutation_chance": 0.20000000298023224
 }

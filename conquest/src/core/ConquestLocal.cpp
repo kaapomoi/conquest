@@ -163,11 +163,11 @@ int ConquestLocal::create_ai()
 	running_agent_id = 2;
 	last_played_index = -1;
 
-	std::vector<int> default_topology{ 
+	/*std::vector<int> default_topology{ 
 		(server_sim->GetMapSize().x * server_sim->GetMapSize().y) + (int)server_sim->GetTakenColors().size(),
 		90,
 		90,
-		(int)server_sim->GetTakenColors().size()};
+		(int)server_sim->GetTakenColors().size()};*/
 
 	std::normal_distribution<> n_d(120, 20);
 
@@ -678,6 +678,17 @@ int ConquestLocal::create_ui()
 
 #pragma endregion
 
+#pragma region ParentIdsList
+
+	parent_ids_list = new UIList("ParentIdsList", 
+		k2d::vi2d(0 - scaled_ui.x * 5 + tile_size.x * 2.5, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
+		k2d::vi2d(-scaled_ui.x * 0.5f, -5),
+		k2d::vi2d(scaled_ui.x * 1, scaled_ui.y * 8.0f + tile_size.y * 2),
+		25.0f, tile_size.x, 32, 
+		load_texture_from_cache("full"), sprite_batch, font1, 0.12f, k2d::Color(255));
+	parent_ids_list->AddBackground(k2d::Color(255));
+#pragma endregion
+
 
 
 	// Insert all the freshly created ui elements into this vector
@@ -689,6 +700,7 @@ int ConquestLocal::create_ui()
 	all_of_the_ui.push_back(current_gen_tiles_owned_histogram);
 	all_of_the_ui.push_back(pick_chance_graph);
 	all_of_the_ui.push_back(scorebar);
+	all_of_the_ui.push_back(parent_ids_list);
 
 	return 0;
 }
@@ -752,6 +764,7 @@ void ConquestLocal::Update()
 			CalculateGenerationAverage();
 			SetPreviousIdAndTileCount();
 			UpdateProgressBarValues();
+			UpdateParentIdsListValues();
 
 			current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 		}
@@ -776,7 +789,7 @@ void ConquestLocal::Update()
 			if (should_create_new_map)
 			{
 				should_create_new_map = false;
-				UIToggleButton* map_button = dynamic_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
+				UIToggleButton* map_button = static_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
 				if (map_button)
 				{
 					map_button->ResetToUntoggledState();
@@ -858,10 +871,16 @@ void ConquestLocal::Update()
 
 void ConquestLocal::GeneticAlgorithm()
 {
+
+	UIList* l = static_cast<UIList*> (get_ui_by_name("ParentIdsList"));
+
+	l->SetVectorToFollow(nullptr);
+	l->UpdateListValues();
+
 	// Sort best first
 	std::sort(ai_agents.begin(), ai_agents.end(), [](AI* a, AI* b) -> bool
 	{
-		return a->GetTilesOwned() > b->GetTilesOwned();
+		return a->GetFitness() > b->GetFitness();
 	});
 
 	int cutoff_index = ceil(top_percentile * population_size);
@@ -885,7 +904,7 @@ void ConquestLocal::GeneticAlgorithm()
 	{
 		int index1 = distribution(random_engine);
 
-		NeuralAI* tmp1 = dynamic_cast<NeuralAI*>(ai_agents[index1]);
+		NeuralAI* tmp1 = static_cast<NeuralAI*>(ai_agents[index1]);
 
 		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, server_sim);
 
@@ -909,6 +928,7 @@ void ConquestLocal::GeneticAlgorithm()
 	for (AI* agent : ai_agents)
 	{
 		agent->SetTilesOwned(0);
+		agent->SetFitness(0);
 	}
 
 	k2d::KUSI_DEBUG("\n\n\n\n\n EPOCH %i DONE \n\n\n\n\n", epoch++);
@@ -918,7 +938,7 @@ void ConquestLocal::GeneticAlgorithm()
 
 void ConquestLocal::update_input()
 {
-
+	
 	if (engine->GetInputManager().IsButtonPressedThisFrame(SDL_BUTTON_LEFT) || engine->GetInputManager().IsButtonPressed(SDL_BUTTON_RIGHT))
 	{
 		// Check which button is pressed.
@@ -1127,7 +1147,7 @@ void ConquestLocal::UpdateScoreboardIds()
 			if (i == 0)
 			{
 				p0_id = players[i].id;
-				UIMultiLabel* ml = dynamic_cast<UIMultiLabel*>(get_ui_by_name("P0Scoreboard"));
+				UIMultiLabel* ml = static_cast<UIMultiLabel*>(get_ui_by_name("P0Scoreboard"));
 				if (ml)
 				{
 					ml->AddBackground(skins[players[i].num_owned]);
@@ -1136,7 +1156,7 @@ void ConquestLocal::UpdateScoreboardIds()
 			else if (i == 1)
 			{
 				p1_id = players[i].id;
-				UIMultiLabel* ml = dynamic_cast<UIMultiLabel*>(get_ui_by_name("P1Scoreboard"));
+				UIMultiLabel* ml = static_cast<UIMultiLabel*>(get_ui_by_name("P1Scoreboard"));
 				if (ml)
 				{
 					ml->AddBackground(skins[players[i].num_owned]);
@@ -1258,7 +1278,7 @@ void ConquestLocal::UpdateScorebarValues()
 	p0_color = k2d::Color(skins.at(players.at(0).num_owned));
 	p1_tiles = players.at(1).tiles_owned;
 	p1_color = k2d::Color(skins.at(players.at(1).num_owned));
-	UIScoreBar* ui = dynamic_cast<UIScoreBar*>(get_ui_by_name("ScoreBar"));
+	UIScoreBar* ui = static_cast<UIScoreBar*>(get_ui_by_name("ScoreBar"));
 	if (ui)
 	{
 		ui->UpdateBar();
@@ -1273,12 +1293,21 @@ void ConquestLocal::UpdateProgressBarValues()
 	}
 }
 
+void ConquestLocal::UpdateParentIdsListValues()
+{
+	UIList* l = static_cast<UIList*> (get_ui_by_name("ParentIdsList"));
+	NeuralAI* ai = static_cast<NeuralAI*> (ai_agents.at(last_played_index));
+
+	l->SetVectorToFollow(ai->GetParentIds());
+	l->UpdateListValues();
+}
+
 void ConquestLocal::CalculateGenerationAverage()
 {
 	int sum = 0;
 	for (size_t i = 0; i < ai_agents.size(); i++)
 	{
-		sum += ai_agents[i]->GetTilesOwned();
+		sum += ai_agents[i]->GetFitness();
 	}
 
 	average_score_this_generation = sum / (last_played_index + 1);
@@ -1286,17 +1315,17 @@ void ConquestLocal::CalculateGenerationAverage()
 
 void ConquestLocal::CheckIfBestOfGeneration()
 {
-	if (ai_agents.at(last_played_index)->GetTilesOwned() > current_best_of_gen_tiles_owned)
+	if (ai_agents.at(last_played_index)->GetFitness() > current_best_of_gen_tiles_owned)
 	{
 		current_best_of_gen_id = ai_agents.at(last_played_index)->GetClientId();
-		current_best_of_gen_tiles_owned = ai_agents.at(last_played_index)->GetTilesOwned();
+		current_best_of_gen_tiles_owned = ai_agents.at(last_played_index)->GetFitness();
 	}
 }
 
 void ConquestLocal::SetPreviousIdAndTileCount()
 {
 	previous_id = ai_agents[last_played_index]->GetClientId();
-	previous_tiles_owned = ai_agents[last_played_index]->GetTilesOwned();
+	previous_tiles_owned = ai_agents[last_played_index]->GetFitness();
 }
 
 void ConquestLocal::SaveGeneticAlgorithmVariablesToFile(std::string file_name)
