@@ -9,6 +9,8 @@ NeuralAI::NeuralAI(int id, ServerSim* server_sim, int sight_size, std::vector<in
 	tiles_owned = 0;
 	try_best = 0;
 	this->sight_size = sight_size;
+	x_weight = Random::get(0.0f, 1.0f);
+	y_weight = Random::get(0.0f, 1.0f);
 	fitness = 0;
 	game_won = false;
 }
@@ -22,6 +24,8 @@ NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
 	this->fitness = 0;
 	this->ingame = false;
 	this->game_won = false;
+	this->x_weight = parent.x_weight;
+	this->y_weight = parent.y_weight;
 	this->sight_size = parent.sight_size;
 	this->parent_ids = parent.parent_ids;
 	this->parent_ids.push_back(parent.client_id);
@@ -147,7 +151,22 @@ void NeuralAI::Update()
 
 
 			/// calculate the furthest tile from starting pos and place the middle of the sight rect on that tile
-			vision_grid_position = find_furthest_owned_tile();
+			get_end_tiles();
+			k2d::vi2d best_tile;
+
+			float best_score = 0.0f;
+			for (size_t i = 0; i < end_tiles.size(); i++)
+			{
+				float dx = end_tiles.at(i).x - server->GetStartingPositions()[which_player_am_i].x;
+				float dy = end_tiles.at(i).y - server->GetStartingPositions()[which_player_am_i].y;
+				float score = abs(dx) * x_weight + abs(dy) * y_weight;
+				if (score >= best_score)
+				{
+					best_tile = end_tiles.at(i);
+				}
+			}
+
+			vision_grid_position = best_tile;
 			k2d::vi2d& t = vision_grid_position;
 			int s_h_l = sight_size / 2;
 			int s_h_r = sight_size - s_h_l;
@@ -421,6 +440,139 @@ void NeuralAI::MutateTopology(float rate)
 	}
 }
 
+void NeuralAI::MutatePlaystyle(float epsilon)
+{
+	x_weight += Random::get(-epsilon, epsilon);
+	k2d::clamp(x_weight, 0.0f, 1.0f);
+
+	y_weight += Random::get(-epsilon, epsilon);
+	k2d::clamp(y_weight, 0.0f, 1.0f);
+}
+
+void NeuralAI::MutateSightSize(int epsilon)
+{
+	std::vector<std::vector<Neuron>>& net = GetNeuralNet()->GetLayers();
+	std::vector<std::vector<Neuron>> old_2d_first_layer;
+	std::vector<std::vector<Neuron>> new_first_layer;
+	int num_outputs = net[1].size();
+
+	// Mutate the sight size variable
+	int old_size = sight_size;
+
+	// save old layer
+	for (int y = 0; y < old_size; y++)
+	{
+		old_2d_first_layer.push_back(std::vector<Neuron>());
+		for (int x = 0; x < old_size * 2; x++)
+		{
+			old_2d_first_layer[y].push_back(net[0].at(y * old_size * 2 + x));
+		}
+	}
+	old_2d_first_layer.push_back(std::vector<Neuron>());
+	for (size_t i = 0; i < server->GetTakenColors().size(); i++)
+	{
+		old_2d_first_layer[old_size].push_back(net[0].at(old_size * old_size *2 + i));
+	}
+
+	sight_size += Random::get(-epsilon, epsilon);
+
+	k2d::clamp(sight_size, 1, server->GetMapSize().y);
+	int diff = sight_size - old_size;
+
+	int num_of_new_neurons = sight_size * sight_size * 2 + server->GetTakenColors().size();
+
+	// Fill the layer with the amount of neurons specified in the topology
+	for (int y = 0; y < sight_size; y++)
+	{
+		new_first_layer.push_back(std::vector<Neuron>());
+		for (int x = 0; x < sight_size * 2; x++)
+		{
+			new_first_layer[y].push_back(Neuron(num_outputs, y * sight_size * 2 + x));
+		}
+	}
+	std::vector<Neuron> new_1d_layer;
+	if (diff > 0)
+	{
+		if (diff % 2 == 0)
+		{
+			// Fill the layer with the amount of neurons specified in the topology
+			for (int y = diff / 2; y < old_2d_first_layer.size() - (diff / 2); y++)
+			{
+				for (int x = diff / 2; x < old_2d_first_layer[y].size() - (diff / 2); x++)
+				{
+					new_first_layer[y][x] = old_2d_first_layer[y][x];
+				}
+			}
+		}
+		else
+		{
+			// Fill the layer with the amount of neurons specified in the topology
+			for (int y = ceil((diff+1) / 2); y < old_2d_first_layer.size() - ((diff-1) / 2); y++)
+			{
+				for (int x = ceil((diff+1) / 2); x < old_2d_first_layer[y].size() - ((diff-1) / 2); x++)
+				{
+					new_first_layer[y][x] = old_2d_first_layer[y][x];
+				}
+			}
+		}
+		// Fill the layer with the amount of neurons specified in the topology
+		for (int y = 0; y < sight_size; y++)
+		{
+			for (int x = 0; x < sight_size * 2; x++)
+			{
+				new_1d_layer.push_back(new_first_layer[y][x]);
+			}
+		}
+		for (size_t i = 0; i < server->GetTakenColors().size(); i++)
+		{
+			new_1d_layer.push_back(old_2d_first_layer.at(old_size).at(i));
+		}
+		net[0] = new_1d_layer;
+	}
+	else if (diff < 0)
+	{
+		diff = -diff;
+		if (diff % 2 == 0)
+		{
+			int one_for_last_layer = 1;
+			old_2d_first_layer.erase(old_2d_first_layer.begin(), old_2d_first_layer.begin() + (diff/2) - 1);
+			old_2d_first_layer.erase(old_2d_first_layer.end() - (diff / 2) - one_for_last_layer, old_2d_first_layer.end());
+			for (size_t i = 0; i < old_2d_first_layer.size() - 1; i++)
+			{
+				old_2d_first_layer.at(i).erase(old_2d_first_layer[i].begin(), old_2d_first_layer[i].begin() + (diff / 2) - 1);
+				old_2d_first_layer.at(i).erase(old_2d_first_layer[i].end() - (diff / 2) - one_for_last_layer, old_2d_first_layer[i].end());
+			}
+		}
+		else
+		{
+			int one_for_last_layer = 1;
+			old_2d_first_layer.erase(old_2d_first_layer.begin(), old_2d_first_layer.begin() + ((diff + 1) / 2) - 1);
+			old_2d_first_layer.erase(old_2d_first_layer.end() - ((diff-1) / 2) - one_for_last_layer, old_2d_first_layer.end() - one_for_last_layer);
+			for (size_t i = 0; i < old_2d_first_layer.size() - 1; i++)
+			{
+				old_2d_first_layer.at(i).erase(old_2d_first_layer[i].begin(), old_2d_first_layer[i].begin() + ((diff+1) / 2) - 1);
+				old_2d_first_layer.at(i).erase(old_2d_first_layer[i].end() - ((diff-1) / 2) - one_for_last_layer, old_2d_first_layer[i].end());
+			}
+		}
+
+		// Fill the layer with the amount of neurons specified in the topology
+		for (int y = 0; y < sight_size; y++)
+		{
+			for (int x = 0; x < sight_size * 2; x++)
+			{
+				new_1d_layer.push_back(new_first_layer[y][x]);
+			}
+		}
+		for (size_t i = 0; i < server->GetTakenColors().size(); i++)
+		{
+			new_1d_layer.push_back(old_2d_first_layer.at(sight_size).at(i));
+			new_1d_layer.back().my_index = sight_size * sight_size * 2 + i;
+		}
+		net[0] = new_1d_layer;
+	}
+
+}
+
 void NeuralAI::SetInGame(bool ig)
 {
 	game_won = false;
@@ -428,9 +580,10 @@ void NeuralAI::SetInGame(bool ig)
 	AI::SetInGame(ig);
 }
 
-k2d::vi2d NeuralAI::find_furthest_owned_tile()
+void NeuralAI::get_end_tiles()
 {
 	std::vector<std::vector<tile>> tiles = server->GetBoardState();
+	end_tiles.clear();
 
 	int num_visited = 0;
 	// Visited array
@@ -451,6 +604,7 @@ k2d::vi2d NeuralAI::find_furthest_owned_tile()
 	// run until the queue is empty
 	while (!the_queue.empty())
 	{
+		bool new_found = false;
 		// Extrating front pair
 		std::pair<uint8_t, uint8_t> coord = the_queue.front();
 		x = coord.first;
@@ -468,6 +622,7 @@ k2d::vi2d NeuralAI::find_furthest_owned_tile()
 		{
 			the_queue.push({ x, y + 1 });
 			v[y + 1][x] = 1;
+			new_found = true;
 		}
 		// Up
 		if (valid_tile(x, y - 1, map_size)
@@ -476,6 +631,7 @@ k2d::vi2d NeuralAI::find_furthest_owned_tile()
 		{
 			the_queue.push({ x, y - 1 });
 			v[y - 1][x] = 1;
+			new_found = true;
 		}
 		// Right
 		if (valid_tile(x + 1, y, map_size)
@@ -484,6 +640,7 @@ k2d::vi2d NeuralAI::find_furthest_owned_tile()
 		{
 			the_queue.push({ x + 1, y });
 			v[y][x + 1] = 1;
+			new_found = true;
 		}
 		// Left
 		if (valid_tile(x - 1, y, map_size)
@@ -492,12 +649,14 @@ k2d::vi2d NeuralAI::find_furthest_owned_tile()
 		{
 			the_queue.push({ x - 1, y });
 			v[y][x - 1] = 1;
+			new_found = true;
+		}
+
+		if (!new_found)
+		{
+			end_tiles.push_back({x, y});
 		}
 	}
-
-	k2d::vi2d last_visited_tile(x, y);
-
-	return last_visited_tile;
 
 }
 

@@ -11,6 +11,14 @@ Neuron::Neuron(int num_outputs, int my_index)
 	//k2d::KUSI_DEBUG(", %f %i!\n", bias_weight, my_index);
 }
 
+Neuron::Neuron(const Neuron& other)
+{
+	this->bias_weight = other.bias_weight;
+	this->my_index = other.my_index;
+	this->output_value = other.output_value;
+	this->output_weights = other.output_weights;
+}
+
 Neuron::~Neuron()
 {
 

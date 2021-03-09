@@ -25,6 +25,9 @@ public:
 	void CloseMutate(float mutation_chance, float epsilon);
 	void MutateTopology(float rate);
 
+	void MutatePlaystyle(float epsilon);
+	void MutateSightSize(int epsilon);
+
 	std::vector<int>* GetParentIds() { return &parent_ids; }
 
 	void SetInGame(bool ig)override;
@@ -37,8 +40,13 @@ private:
 	std::vector<int> parent_ids;
 
 	k2d::vi2d vision_grid_position;
+	std::vector<k2d::vi2d> end_tiles;
+	std::tuple<k2d::vi2d, k2d::vi2d, k2d::vi2d> top3_tiles;
 
 	int	sight_size;
+
+	float x_weight;
+	float y_weight;
 
 	std::vector<int> fitnesses;
 
@@ -52,7 +60,7 @@ private:
 
 	NeuralNet neural_net;
 
-	k2d::vi2d find_furthest_owned_tile();
+	void get_end_tiles();
 
 	int calc_average_fitness();
 

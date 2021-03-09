@@ -6,6 +6,7 @@ class Neuron
 {
 public:
 	Neuron(int num_outputs, int my_index);
+	Neuron(const Neuron& other);
 	~Neuron();
 
 	void FeedForward(const std::vector<Neuron>& prev_layer);

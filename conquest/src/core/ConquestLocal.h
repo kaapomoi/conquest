@@ -36,11 +36,11 @@ namespace {
 	}
 }
 
+using Random = effolkronium::random_static;
 
 class ConquestLocal : public k2d::Application
 {
 public:
-	using Random = effolkronium::random_static;
 	ConquestLocal(std::string title, int width, int height, int target_fps, bool v_sync);
 	~ConquestLocal();
 
@@ -224,6 +224,13 @@ private:
 
 	float topology_mutation_chance;
 	float topology_mutation_rate;
+
+	float sight_size_mutation_rate;
+	int sight_size_mutation_epsilon;
+
+	float playstyle_mutation_rate;
+
+	float playstyle_mutation_epsilon;
 
 	// When topology mutation triggers, randomize if the number of layers also changes
 	float num_layers_mutation_chance;

@@ -152,7 +152,10 @@ void ConquestLocal::InitGeneticAlgorithmValues()
 	top_percentile = j.find("top_percentile").value();
 	topology_mutation_chance = j.find("topology_mutation_chance").value();
 	topology_mutation_rate = j.find("topology_mutation_rate").value();
-
+	playstyle_mutation_rate = j.find("playstyle_mutation_rate").value();
+	sight_size_mutation_rate = j.find("sight_size_mutation_rate").value();
+	sight_size_mutation_epsilon = j.find("sight_size_mutation_epsilon").value();
+	num_maps = j.find("num_maps").value();
 }
 
 int ConquestLocal::create_ai()
@@ -172,12 +175,12 @@ int ConquestLocal::create_ai()
 		90,
 		(int)server_sim->GetTakenColors().size()};*/
 
-	std::normal_distribution<> n_d(80, 20);
-	std::normal_distribution<> s_d(10, 3);
+	std::normal_distribution<> n_d(60, 20);
+	std::normal_distribution<> s_d(8, 3);
 
 	for (size_t i = 0; i < population_size; i++)
 	{
-		int sight_size = std::round(s_d(random_engine));
+		int sight_size = std::round(s_d(random_engine)) + 2;
 
 
 		// Default number of input nodes
@@ -186,7 +189,7 @@ int ConquestLocal::create_ai()
 		int num_layers = Random::get(1, 3);
 		for (size_t i = 0; i < num_layers; i++)
 		{
-			topology.push_back(std::round(abs(n_d(random_engine))));
+			topology.push_back(std::round(abs(n_d(random_engine))) + 10);
 		}
 
 		// Default amount of output nodes
@@ -331,6 +334,21 @@ int ConquestLocal::create_ui()
 	ui_clickable_labels.push_back(pop_size_label);
 
 
+	// population size label
+	UIClickableLabel* num_maps_label = new UIClickableLabel("NumMapsClickable", "Maps: ",
+		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 2.5f, scaled_ui.y + tile_size.x * 1.5f + 1),
+		k2d::vi2d(-scaled_ui.x * 0.5f, tile_size.y * 0.f - 5),
+		k2d::vi2d(scaled_ui.x * 2, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.15f, 26.0f, k2d::Color(255));
+	num_maps_label->SetBackground(k2d::Color(129, 255));
+	num_maps_label->SetVariable(&num_maps);
+	num_maps_label->SetModifiable(true);
+	num_maps_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+	
+	ui_clickable_labels.push_back(num_maps_label);
+
 	/// The grid:
 	/// x = 3 2 1
 	/// -scaled_ui.x * grid_x * 2.5 + tile_size.x * grid_x * 1 + 1.5
@@ -444,7 +462,73 @@ int ConquestLocal::create_ui()
 
 	ui_clickable_labels.push_back(topology_mutation_chance_label);
 
-	
+	// playstyle mutatiom
+	UIClickableLabel* playstyle_mutation_label = new UIClickableLabel("PlaystyleMutationRateClickable", "P M.%: ",
+		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 1.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	playstyle_mutation_label->SetBackground(k2d::Color(129, 255));
+	playstyle_mutation_label->SetVariable(&playstyle_mutation_rate);
+	playstyle_mutation_label->SetModifiable(true);
+	playstyle_mutation_label->SetBaseMultiplier(0.0001f);
+	playstyle_mutation_label->SetPrintPrecision(4);
+	playstyle_mutation_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(playstyle_mutation_label);
+
+	// num layers mutation chance label
+	UIClickableLabel* playstyle_mutation_epsilon_label = new UIClickableLabel("PlaystyleMutationEpsilonClickable", "P M.E: ",
+		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 1.0f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	playstyle_mutation_epsilon_label->SetBackground(k2d::Color(129, 255));
+	playstyle_mutation_epsilon_label->SetVariable(&playstyle_mutation_epsilon);
+	playstyle_mutation_epsilon_label->SetModifiable(true);
+	playstyle_mutation_epsilon_label->SetBaseMultiplier(0.0001f);
+	playstyle_mutation_epsilon_label->SetPrintPrecision(4);
+	playstyle_mutation_epsilon_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(playstyle_mutation_epsilon_label);
+
+	// num layers mutation chance label
+	UIClickableLabel* sight_size_mutation_rate_label = new UIClickableLabel("SightSizeMutationRateClickable", "S M.%: ",
+		k2d::vi2d(0 - scaled_ui.x * 2.5 + tile_size.x * 3.5, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	sight_size_mutation_rate_label->SetBackground(k2d::Color(129, 255));
+	sight_size_mutation_rate_label->SetVariable(&sight_size_mutation_rate);
+	sight_size_mutation_rate_label->SetModifiable(true);
+	sight_size_mutation_rate_label->SetBaseMultiplier(0.0001f);
+	sight_size_mutation_rate_label->SetPrintPrecision(4);
+	sight_size_mutation_rate_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(sight_size_mutation_rate_label);
+
+	// num layers mutation chance label
+	UIClickableLabel* sight_size_mutation_epsilon_label = new UIClickableLabel("SightSizeMutationEpsilonClickable", "S M.E: ",
+		k2d::vi2d(0 - scaled_ui.x * 5.0 + tile_size.x * 2.5, -scaled_ui.y * 0.5f - tile_size.y * 1 + 1),
+		k2d::vi2d(-scaled_ui.x * 0.7f, -5),
+		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
+		load_texture_from_cache("half"),
+		sprite_batch, font1,
+		0.12f, 26.0f, k2d::Color(255));
+	sight_size_mutation_epsilon_label->SetBackground(k2d::Color(129, 255));
+	sight_size_mutation_epsilon_label->SetVariable(&sight_size_mutation_epsilon);
+	sight_size_mutation_epsilon_label->SetModifiable(true);
+	sight_size_mutation_epsilon_label->SetBaseMultiplier(1);
+	sight_size_mutation_epsilon_label->SetPrintPrecision(0);
+	sight_size_mutation_epsilon_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+
+	ui_clickable_labels.push_back(sight_size_mutation_epsilon_label);
 
 	// Turns played text
 	UIClickableLabel* turns_text = new UIClickableLabel("NRTurnsLabel", "Turns played: ",
@@ -645,8 +729,8 @@ int ConquestLocal::create_ui()
 		k2d::vi2d(0 - scaled_ui.x * 2 - tile_size.x * 1.5f, tile_size.y * map_size.y * 0.5f + scaled_ui.y * 0.5f - tile_size.y * 0.5f),
 		k2d::vi2d(scaled_ui.x * 2.5f, scaled_ui.y * 2),
 		25.0f,
-		ceil(population_size * top_percentile),
-		find_max_local(0, ceil(population_size * top_percentile)), // max_data_value
+		std::lround(population_size * top_percentile),
+		find_max_local(0, std::lround(population_size * top_percentile)), // max_data_value
 		load_texture_from_cache("full"), sprite_batch);
 	pick_chance_graph->SetBackground(k2d::Color(20, 255));
 	pick_chance_graph->AddText(create_text("Selection chance", k2d::vi2d(pick_chance_graph->GetPosition() + k2d::vf2d(-scaled_ui.x * 1.25f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
@@ -900,7 +984,7 @@ void ConquestLocal::GeneticAlgorithm()
 		return a->GetFitness() > b->GetFitness();
 	});
 
-	int cutoff_index = ceil(top_percentile * population_size);
+	int cutoff_index = std::lround(top_percentile * population_size);
 	if (cutoff_index < ai_agents.size() )
 	{
 		// Pick top some % for breeding
@@ -931,6 +1015,17 @@ void ConquestLocal::GeneticAlgorithm()
 			child->MutateTopology(topology_mutation_rate);
 		}
 
+		float sight_size_mutation = Random::get(0.0f, 1.0f);
+		if (sight_size_mutation < sight_size_mutation_rate)
+		{
+			child->MutateSightSize(sight_size_mutation_epsilon);
+		}
+
+		float playstyle_mutation = Random::get(0.0f, 1.0f);
+		if (playstyle_mutation < playstyle_mutation_rate)
+		{
+			child->MutatePlaystyle(playstyle_mutation_epsilon);
+		}
 
 		// Randomize the mutation type
 		float close_mutation = Random::get(0.0f, 1.0f);
@@ -1193,7 +1288,7 @@ void ConquestLocal::UpdateScoreboardIds()
 void ConquestLocal::CalculateNewSelectionWeights()
 {
 	ClampWeightSelectionVariables();
-	selection_weights.resize(ceil(population_size * top_percentile));
+	selection_weights.resize(std::lround(population_size * top_percentile));
 	for (size_t i = 0; i < selection_weights.size(); i++)
 	{
 		// Good looking function
@@ -1203,9 +1298,9 @@ void ConquestLocal::CalculateNewSelectionWeights()
 
 void ConquestLocal::UpdateSelectionWeights()
 {
-	selection_weights.resize(ceil(population_size * top_percentile));
+	selection_weights.resize(std::lround(population_size * top_percentile));
 	
-	pick_chance_graph->SetMaxDataValue(find_max_local(0, ceil(population_size * top_percentile)));
+	pick_chance_graph->SetMaxDataValue(find_max_local(0, std::lround(population_size * top_percentile)));
 	pick_chance_graph->SetDataToFollow(&selection_weights);
 }
 
@@ -1254,9 +1349,16 @@ void ConquestLocal::ClampGeneticAlgorithmVariables()
 	k2d::clamp(topology_mutation_chance, 0.0f, 1.0f);
 	k2d::clamp(topology_mutation_rate, 0.0f, 1.0f);
 
+	k2d::clamp(playstyle_mutation_rate, 0.0f, 1.0f);
+	k2d::clamp(playstyle_mutation_epsilon, 0.0f, 1.0f);
+
+	k2d::clamp(sight_size_mutation_rate, 0.0f, 1.0f);
+	k2d::clamp(sight_size_mutation_epsilon, 0, 10);
+
 	k2d::clamp(num_layers_mutation_chance, 0.0f, 1.0f);
 
 	k2d::clamp(population_size, 1, 100000);
+	k2d::clamp(num_maps, 1, 1000);
 }
 
 void ConquestLocal::ClampWeightSelectionVariables()
@@ -1400,6 +1502,10 @@ void ConquestLocal::SaveGeneticAlgorithmVariablesToFile(std::string file_name)
 	j["topology_mutation_chance"] = topology_mutation_chance;
 	j["topology_mutation_rate"] = topology_mutation_rate;
 	j["num_layers_mutation_chance"] = num_layers_mutation_chance;
+	j["playstyle_mutation_rate"] = playstyle_mutation_rate;
+	j["sight_size_mutation_rate"] = sight_size_mutation_rate;
+	j["sight_size_mutation_epsilon"] = sight_size_mutation_epsilon;
+	j["num_maps"] = num_maps;
 
 	std::ofstream file;
 	file.open(file_name);
