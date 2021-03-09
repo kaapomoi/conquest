@@ -47,6 +47,8 @@ namespace k2d
 
 	extern float DegToRad(float _deg);
 
+    extern double map_to_range(double val, double in_min, double in_max, double out_min, double out_max);
+
     template<typename T>
     void clamp(T& in, T min, T max) {
         if(in <= min)

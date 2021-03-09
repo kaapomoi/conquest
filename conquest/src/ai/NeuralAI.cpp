@@ -1,6 +1,6 @@
 #include <ai/NeuralAI.h>
 
-NeuralAI::NeuralAI(int id, ServerSim* server_sim, std::vector<int> topology) :
+NeuralAI::NeuralAI(int id, ServerSim* server_sim, int sight_size, std::vector<int> topology) :
 	AI(id, server_sim), 
 	// Set the topology of the net
 	neural_net(topology)
@@ -8,6 +8,7 @@ NeuralAI::NeuralAI(int id, ServerSim* server_sim, std::vector<int> topology) :
 	rand_engine.seed(time(NULL));
 	tiles_owned = 0;
 	try_best = 0;
+	this->sight_size = sight_size;
 	fitness = 0;
 	game_won = false;
 }
@@ -21,6 +22,7 @@ NeuralAI::NeuralAI(const NeuralAI& parent, int id, ServerSim* ss):
 	this->fitness = 0;
 	this->ingame = false;
 	this->game_won = false;
+	this->sight_size = parent.sight_size;
 	this->parent_ids = parent.parent_ids;
 	this->parent_ids.push_back(parent.client_id);
 	this->current_turn_players_id = -1;
@@ -82,7 +84,8 @@ void NeuralAI::Update()
 			}
 			else
 			{
-				SetFitness(tiles_owned - ((turns_played - 50) * 2));
+				fitnesses.push_back(tiles_owned - ((turns_played - 50) * 2));
+				SetFitness(calc_average_fitness());
 			}
 
 			AddGamePlayed();
@@ -112,10 +115,11 @@ void NeuralAI::Update()
 			{
 				tiles_owned = std::stoi(data);
 
-				if (tiles_owned > (server->GetMapSize().x * server->GetMapSize().y * 0.5) && !game_won)
+				if (tiles_owned > (server->GetMapSize().x * server->GetMapSize().y * 0.5f) && !game_won)
 				{
 					// Game won, calculate fitness
-					SetFitness(tiles_owned + ((100 - server->GetTurnsPlayed()) * 5));
+					fitnesses.push_back(tiles_owned + ((100 - server->GetTurnsPlayed()) * 5));
+					SetFitness(calc_average_fitness());
 					game_won = true;
 				}
 			}
@@ -141,21 +145,69 @@ void NeuralAI::Update()
 			std::vector<double> board_state_single_dimension;
 			std::vector<std::vector<tile>> board_state = server->GetBoardState();
 
-			// Convert the 2d array into a single dimension array of doubles
-			for (size_t i = 0; i < board_state.size(); i++)
+
+			/// calculate the furthest tile from starting pos and place the middle of the sight rect on that tile
+			vision_grid_position = find_furthest_owned_tile();
+			k2d::vi2d& t = vision_grid_position;
+			int s_h_l = sight_size / 2;
+			int s_h_r = sight_size - s_h_l;
+
+			int margin_left = t.x - s_h_l;
+			int margin_right = board_state[0].size() - (t.x + s_h_r);
+			int margin_bot = t.y - s_h_l;
+			int margin_top = board_state.size() - (t.y + s_h_r);
+
+			if (margin_left < 0)
 			{
-				for (size_t j = 0; j < board_state[i].size(); j++)
+				t.x -= margin_left;
+			}
+			if (margin_right < 0)
+			{
+				t.x += margin_right;
+			}
+			if (margin_bot < 0)
+			{
+				t.y -= margin_bot;
+			}
+			if (margin_top < 0)
+			{
+				t.y += margin_top;
+			}
+
+
+			//// Convert the 2d array into a single dimension array of doubles
+			for (size_t i = t.y - s_h_l; i < t.y + s_h_r; i++)
+			{
+				for (size_t j = t.x - s_h_l; j < t.x + s_h_r; j++)
 				{
 					double in_value = board_state[i][j].color;
 					double min_in_range = 0.0;
 					double max_in_range = 1.0 * (taken_colors.size() - 1);
 					double min_out_range = -1.0;
 					double max_out_range = 1.0;
-					double x = (in_value - min_in_range) / (max_in_range - min_in_range);
-					double result = min_out_range + (max_out_range - min_out_range) * x;
 
-					//board_state_single_dimension.push_back((double)board_state[i][j].color * 0.1);
+					double result = k2d::map_to_range(in_value, min_in_range, max_in_range, min_out_range, max_out_range);
+
+
 					board_state_single_dimension.push_back(result);
+
+					uint8_t owner = board_state[i][j].owner;
+					if (owner == -9)
+					{
+						// this tile is neutral
+						board_state_single_dimension.push_back(0);
+					}
+					else if (owner != which_player_am_i)
+					{
+						// Opponent owns this tile
+						board_state_single_dimension.push_back(-1);
+					}
+					else
+					{
+						// We own this tile
+						board_state_single_dimension.push_back(1);
+					}
+
 
 
 					// Different approach, one bit per color, 0.0 or 1.0 
@@ -166,6 +218,33 @@ void NeuralAI::Update()
 					//board_state_single_dimension.at(i * board_state.size() + j + board_state[i][j].color) = 1.0;
 				}
 			}
+
+
+			//// Convert the 2d array into a single dimension array of doubles
+			//for (size_t i = 0; i < board_state.size(); i++)
+			//{
+			//	for (size_t j = 0; j < board_state[i].size(); j++)
+			//	{
+			//		double in_value = board_state[i][j].color;
+			//		double min_in_range = 0.0;
+			//		double max_in_range = 1.0 * (taken_colors.size() - 1);
+			//		double min_out_range = -1.0;
+			//		double max_out_range = 1.0;
+			//		double x = (in_value - min_in_range) / (max_in_range - min_in_range);
+			//		double result = min_out_range + (max_out_range - min_out_range) * x;
+
+			//		//board_state_single_dimension.push_back((double)board_state[i][j].color * 0.1);
+			//		board_state_single_dimension.push_back(result);
+
+
+			//		// Different approach, one bit per color, 0.0 or 1.0 
+			//		/*for (size_t i = 0; i < taken_colors.size(); i++)
+			//		{
+			//			board_state_single_dimension.push_back(0.0);
+			//		}*/
+			//		//board_state_single_dimension.at(i * board_state.size() + j + board_state[i][j].color) = 1.0;
+			//	}
+			//}
 
 			// Players owned colors
 			for (size_t i = 0; i < taken_colors.size(); i++)
@@ -294,9 +373,152 @@ void NeuralAI::CloseMutate(float mutation_chance, float epsilon)
 	}
 }
 
+void NeuralAI::MutateTopology(float rate)
+{
+	std::vector<std::vector<Neuron>>& net = GetNeuralNet()->GetLayers();
+
+	// should only affect hidden layers
+	for (int i = 1; i < net.size() - 1; i++)
+	{
+		for (int j = 0; j < net[i].size(); j++)
+		{
+			float r = Random::get(0.0f, 1.0f);
+			if (r < rate)
+			{
+				// Erase node if we hit it
+				net[i].erase(net[i].begin() + j);
+				// Move my_index of this layers nodes one back	
+				for (size_t k = j; k < net[i].size(); k++)
+				{
+					net[i].at(k).my_index = net[i].at(k).my_index - 1;
+				}
+
+				// Remove the output weights of the previous layer connected to this neuron
+				for (size_t k = 0; k < net[i-1].size(); k++)
+				{
+					net[i - 1].at(k).output_weights.erase(net[i - 1].at(k).output_weights.begin() + j);
+				}
+
+			}
+			else if (r > (1.0f - rate))
+			{
+				//net[i].push_back(Neuron(net[i+1].size(), ));
+				net[i].insert(net[i].begin() + j, Neuron(net[i + 1].size(), j));
+
+				// Move my_index of this layers nodes one forward	
+				for (size_t k = j + 1; k < net[i].size(); k++)
+				{
+					net[i].at(k).my_index = net[i].at(k).my_index + 1;
+				}
+
+				// Remove the output weights of the previous layer connected to this neuron
+				for (size_t k = 0; k < net[i - 1].size(); k++)
+				{
+					net[i - 1].at(k).output_weights.insert(net[i - 1].at(k).output_weights.begin()+ j, Random::get(-1.0, 1.0));
+				}
+			}
+		}
+	}
+}
+
 void NeuralAI::SetInGame(bool ig)
 {
 	game_won = false;
 
 	AI::SetInGame(ig);
+}
+
+k2d::vi2d NeuralAI::find_furthest_owned_tile()
+{
+	std::vector<std::vector<tile>> tiles = server->GetBoardState();
+
+	int num_visited = 0;
+	// Visited array
+	uint8_t v[100][100];
+	memset(v, 0, sizeof(v));
+
+	std::queue<std::pair<uint8_t, uint8_t>> the_queue;
+
+	k2d::vi2d starting_pos = server->GetStartingPositions()[which_player_am_i];
+
+	the_queue.push({ starting_pos.x, starting_pos.y });
+	v[starting_pos.y][starting_pos.x] = 1;
+
+	k2d::vi2d map_size = server->GetMapSize();
+
+	int x = -1;
+	int y = -1;
+	// run until the queue is empty
+	while (!the_queue.empty())
+	{
+		// Extrating front pair
+		std::pair<uint8_t, uint8_t> coord = the_queue.front();
+		x = coord.first;
+		y = coord.second;
+
+		num_visited++;
+
+		// Poping front pair of queue
+		the_queue.pop();
+
+		// Down
+		if (valid_tile(x, y + 1, map_size)
+			&& v[y + 1][x] == 0
+			&& (tiles[y + 1][x].owner == which_player_am_i))
+		{
+			the_queue.push({ x, y + 1 });
+			v[y + 1][x] = 1;
+		}
+		// Up
+		if (valid_tile(x, y - 1, map_size)
+			&& v[y - 1][x] == 0
+			&& (tiles[y - 1][x].owner == which_player_am_i))
+		{
+			the_queue.push({ x, y - 1 });
+			v[y - 1][x] = 1;
+		}
+		// Right
+		if (valid_tile(x + 1, y, map_size)
+			&& v[y][x + 1] == 0
+			&& (tiles[y][x + 1].owner == which_player_am_i))
+		{
+			the_queue.push({ x + 1, y });
+			v[y][x + 1] = 1;
+		}
+		// Left
+		if (valid_tile(x - 1, y, map_size)
+			&& v[y][x - 1] == 0
+			&& (tiles[y][x - 1].owner == which_player_am_i))
+		{
+			the_queue.push({ x - 1, y });
+			v[y][x - 1] = 1;
+		}
+	}
+
+	k2d::vi2d last_visited_tile(x, y);
+
+	return last_visited_tile;
+
+}
+
+int NeuralAI::calc_average_fitness()
+{
+	int sum = 0;
+	for (size_t i = 0; i < fitnesses.size(); i++)
+	{
+		sum += fitnesses.at(i);
+	}
+
+	return sum / (int) fitnesses.size();
+}
+
+bool NeuralAI::valid_tile(uint8_t x, uint8_t y, k2d::vi2d map_size)
+{
+	if (x < 0 || y < 0) {
+		return false;
+	}
+	if (x >= map_size.x || y >= map_size.y) {
+		return false;
+	}
+	return true;
 }

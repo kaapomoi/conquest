@@ -65,6 +65,14 @@ namespace k2d
 		return _deg * 3.14159265359f / 180;
 	}
 
+	double map_to_range(double val, double in_min, double in_max, double out_min, double out_max)
+	{
+		double x = (val - in_min) / (in_max - in_min);
+		double result = out_min + (out_max - out_min) * x;
+
+		return result;
+	}
+
 	/*double clamp(double& in, double min, double max)
 	{
 		if (in <= min)

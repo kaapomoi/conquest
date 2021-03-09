@@ -34,6 +34,7 @@ namespace k2d
 
 		void Tick();
 		void SetPosition(glm::vec2 _position) { position = _position; }
+		void SetPosition(k2d::vf2d pos) { position.x = pos.x, position.y = pos.y; }
 		void SetWidth(float width) { this->width = width; }
 		void SetHeight(float height) { this->height = height; }
 		void SetDepth(float depth) { this->depth = depth; }

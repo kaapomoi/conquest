@@ -108,6 +108,9 @@
     <ClCompile Include="src\ui\UIList.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\UIRectangle.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\Conquest.h">
@@ -198,6 +201,9 @@
       <Filter>src\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\UIList.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\UIRectangle.h">
       <Filter>src\ui</Filter>
     </ClInclude>
   </ItemGroup>

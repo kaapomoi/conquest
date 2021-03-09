@@ -44,6 +44,7 @@
     <ClCompile Include="src\ui\UIMultiLabel.cpp" />
     <ClCompile Include="src\ui\UINetDisplay.cpp" />
     <ClCompile Include="src\ui\UIProgressBar.cpp" />
+    <ClCompile Include="src\ui\UIRectangle.cpp" />
     <ClCompile Include="src\ui\UIScoreBar.cpp" />
     <ClCompile Include="src\ui\UIToggleButton.cpp" />
     <ClCompile Include="src\util\DatabaseHandler.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="src\ui\UIMultiLabel.h" />
     <ClInclude Include="src\ui\UINetDisplay.h" />
     <ClInclude Include="src\ui\UIProgressBar.h" />
+    <ClInclude Include="src\ui\UIRectangle.h" />
     <ClInclude Include="src\ui\UIScoreBar.h" />
     <ClInclude Include="src\ui\UIToggleButton.h" />
     <ClInclude Include="src\util\cFunction.h" />

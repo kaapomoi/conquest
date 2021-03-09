@@ -28,7 +28,7 @@ class ServerSim
 {
 // Public functions
 public:
-	ServerSim(k2d::vi2d map_size, int num_colors);
+	ServerSim(k2d::vi2d map_size, int num_colors, int num_maps);
 	~ServerSim();
 
 
@@ -41,7 +41,7 @@ public:
 	bool ReceiveInput(int player_id, int input_number);
 
 	// Start a game with the players connected to the "server"
-	int StartGame();
+	int StartGame(int map_index);
 
 	// Get the tilemap
 	std::vector<std::vector<tile>> GetBoardState();
@@ -63,13 +63,13 @@ public:
 
 	k2d::vi2d GetMapSize();
 
-	void CreateNewMap();
+	void CreateNewMaps();
 
 // Private functions
 private:
 	player_t new_player(int id);
 	
-	void create_game(int num_players);
+	void create_game(int num_players, int map_index);
 
 	// Inits the taken colors for the amount of players connected to the server. Also inits color_owned and scores for players.
 	void init_players_and_taken_colors();
@@ -140,5 +140,7 @@ private:
 	EventQueue event_queue;
 
 	// Initial map tiles
-	std::string tiless;
+	std::vector<std::string> maps;
+
+	int num_maps;
 };

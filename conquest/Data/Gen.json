@@ -4,7 +4,8 @@
     "mutation_rate": 0.0010001008631661534,
     "mutation_type_chance": 0.8000003695487976,
     "num_layers_mutation_chance": 0.5,
-    "population_size": 100,
+    "population_size": 10,
     "top_percentile": 0.20000001788139343,
-    "topology_mutation_chance": 0.20000000298023224
+    "topology_mutation_chance": 0.10000002384185791,
+    "topology_mutation_rate": 0.00010000023030443117
 }

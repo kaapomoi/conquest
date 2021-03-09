@@ -11,6 +11,7 @@
 #include <ui/UIProgressBar.h>
 #include <ui/UIScoreBar.h>
 #include <ui/UIList.h>
+#include <ui/UIRectangle.h>
 #include <core/ServerSim.h>
 #include <ai/BadAI.h>
 #include <ai/SimpleAI.h>
@@ -95,6 +96,8 @@ public:
 	void UpdateProgressBarValues();
 	void UpdateParentIdsListValues();
 
+	void UpdateDebugRectanglePosition();
+
 	void CalculateGenerationAverage();
 	void CheckIfBestOfGeneration();
 	void SetPreviousIdAndTileCount();
@@ -158,7 +161,7 @@ private:
 	UIScoreBar* scorebar;
 	UIClickableGraph* pick_chance_graph;
 	UIList* parent_ids_list;
-
+	UIRectangle* nn_vision_rect;
 
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;
@@ -218,7 +221,9 @@ private:
 	double close_mutation_epsilon;
 
 	float mutation_type_chance;
+
 	float topology_mutation_chance;
+	float topology_mutation_rate;
 
 	// When topology mutation triggers, randomize if the number of layers also changes
 	float num_layers_mutation_chance;
@@ -259,5 +264,8 @@ private:
 
 	float weight_selection_a;
 	float weight_selection_b;
+
+	int map_index;
+	int num_maps;
 };
 
