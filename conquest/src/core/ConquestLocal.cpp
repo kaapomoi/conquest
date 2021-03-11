@@ -153,6 +153,7 @@ void ConquestLocal::InitGeneticAlgorithmValues()
 	topology_mutation_chance = j.find("topology_mutation_chance").value();
 	topology_mutation_rate = j.find("topology_mutation_rate").value();
 	playstyle_mutation_rate = j.find("playstyle_mutation_rate").value();
+	playstyle_mutation_epsilon = j.find("playstyle_mutation_epsilon").value();
 	sight_size_mutation_rate = j.find("sight_size_mutation_rate").value();
 	sight_size_mutation_epsilon = j.find("sight_size_mutation_epsilon").value();
 	num_maps = j.find("num_maps").value();
@@ -175,21 +176,23 @@ int ConquestLocal::create_ai()
 		90,
 		(int)server_sim->GetTakenColors().size()};*/
 
-	std::normal_distribution<> n_d(60, 20);
-	std::normal_distribution<> s_d(8, 3);
-
+	std::uniform_real_distribution<float> n_d(0.1f, 1.1f);
+	std::normal_distribution<> s_d(5, 2);
+	int prev_layer_neurons = 0;
 	for (size_t i = 0; i < population_size; i++)
 	{
-		int sight_size = std::round(s_d(random_engine)) + 2;
-
+		int sight_size = std::round(s_d(random_engine)) + 3;
+		prev_layer_neurons = sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size();
 
 		// Default number of input nodes
 		std::vector<int> topology{ sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size() };
 
+
 		int num_layers = Random::get(1, 3);
 		for (size_t i = 0; i < num_layers; i++)
 		{
-			topology.push_back(std::round(abs(n_d(random_engine))) + 10);
+			prev_layer_neurons = prev_layer_neurons * n_d(random_engine);
+			topology.push_back(std::round(prev_layer_neurons) + 5);
 		}
 
 		// Default amount of output nodes
@@ -346,6 +349,7 @@ int ConquestLocal::create_ui()
 	num_maps_label->SetVariable(&num_maps);
 	num_maps_label->SetModifiable(true);
 	num_maps_label->AddCallbackFunction(this, &ConquestLocal::ClampGeneticAlgorithmVariables);
+	num_maps_label->AddCallbackFunction(this, &ConquestLocal::CreateNewMaps);
 	
 	ui_clickable_labels.push_back(num_maps_label);
 
@@ -1226,6 +1230,7 @@ void ConquestLocal::update_input()
 
 void ConquestLocal::UpdateTileColors()
 {
+	UpdateTileBrightness();
 	if (tiles.size() < map_size.x * map_size.y)
 	{
 		// Clear tiles, and create new tiles to replace them
@@ -1503,6 +1508,7 @@ void ConquestLocal::SaveGeneticAlgorithmVariablesToFile(std::string file_name)
 	j["topology_mutation_rate"] = topology_mutation_rate;
 	j["num_layers_mutation_chance"] = num_layers_mutation_chance;
 	j["playstyle_mutation_rate"] = playstyle_mutation_rate;
+	j["playstyle_mutation_epsilon"] = playstyle_mutation_epsilon;
 	j["sight_size_mutation_rate"] = sight_size_mutation_rate;
 	j["sight_size_mutation_epsilon"] = sight_size_mutation_epsilon;
 	j["num_maps"] = num_maps;
@@ -1639,6 +1645,12 @@ UIButton* ConquestLocal::get_button_by_name(std::string name)
 		}
 	}
 	return nullptr;
+}
+
+void ConquestLocal::CreateNewMaps()
+{
+	server_sim->SetNumMaps(num_maps);
+	server_sim->CreateNewMaps();
 }
 
 void ConquestLocal::HandleEvent(Event& e)

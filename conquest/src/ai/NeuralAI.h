@@ -35,6 +35,8 @@ public:
 	int GetSightSize() { return sight_size; }
 	k2d::vi2d GetCurrentVisionPosition() { return vision_grid_position; }
 
+	void ClearFitnesses();
+
 private:
 	int try_best;
 	std::vector<int> parent_ids;

@@ -133,6 +133,8 @@ public:
 	}
 
 private:
+	void CreateNewMaps();
+
 	void HandleEvent(Event &e);
 
 	float find_max_local(int first, int last);

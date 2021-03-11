@@ -155,7 +155,19 @@ void NeuralAI::Update()
 			k2d::vi2d best_tile;
 
 			float best_score = 0.0f;
-			for (size_t i = 0; i < end_tiles.size(); i++)
+			k2d::vi2d start_pos = server->GetStartingPositions()[which_player_am_i];
+			std::sort(end_tiles.begin(), end_tiles.end(), [start_pos, this](const k2d::vi2d a, const k2d::vi2d b) -> bool
+				{
+					float dx_a = a.x - start_pos.x;
+					float dy_a = a.y - start_pos.y;
+					float score_a = abs(dx_a) * x_weight + abs(dy_a) * y_weight;
+					float dx_b = b.x - start_pos.x;
+					float dy_b = b.y - start_pos.y;
+					float score_b = abs(dx_b) * x_weight + abs(dy_b) * y_weight;
+					return score_a > score_b;
+				});
+
+			/*for (size_t i = 0; i < end_tiles.size(); i++)
 			{
 				float dx = end_tiles.at(i).x - server->GetStartingPositions()[which_player_am_i].x;
 				float dy = end_tiles.at(i).y - server->GetStartingPositions()[which_player_am_i].y;
@@ -164,7 +176,9 @@ void NeuralAI::Update()
 				{
 					best_tile = end_tiles.at(i);
 				}
-			}
+			}*/
+			//Random::get(0, (int) end_tiles.size()-1)
+			best_tile = end_tiles.at(0);
 
 			vision_grid_position = best_tile;
 			k2d::vi2d& t = vision_grid_position;
@@ -476,7 +490,7 @@ void NeuralAI::MutateSightSize(int epsilon)
 
 	sight_size += Random::get(-epsilon, epsilon);
 
-	k2d::clamp(sight_size, 1, server->GetMapSize().y);
+	k2d::clamp(sight_size, 3, server->GetMapSize().y);
 	int diff = sight_size - old_size;
 
 	int num_of_new_neurons = sight_size * sight_size * 2 + server->GetTakenColors().size();
@@ -578,6 +592,11 @@ void NeuralAI::SetInGame(bool ig)
 	game_won = false;
 
 	AI::SetInGame(ig);
+}
+
+void NeuralAI::ClearFitnesses()
+{
+	fitnesses.clear();
 }
 
 void NeuralAI::get_end_tiles()

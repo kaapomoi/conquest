@@ -65,6 +65,8 @@ public:
 
 	void CreateNewMaps();
 
+	void SetNumMaps(int num_maps) { this->num_maps = num_maps; }
+
 // Private functions
 private:
 	player_t new_player(int id);

@@ -389,7 +389,7 @@ void ServerSim::force_change_to(uint8_t x, uint8_t y, uint8_t forbid, std::unifo
     // Create random colors until its not the forbidden color
     while (tilemap[y][x].color == forbid)
     {
-        printf("Creating a new color at %i,%i\n", x, y);
+        //printf("Creating a new color at %i,%i\n", x, y);
         tilemap[y][x].color = num_gen(rand_engine);
     }
 }
