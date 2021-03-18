@@ -37,6 +37,41 @@ NeuralAI::~NeuralAI()
 
 }
 
+std::vector<NeuralAI*> NeuralAI::CrossBreed(NeuralAI* other_parent, int& running_id)
+{
+	NeuralAI* a = new NeuralAI(*this);
+	NeuralAI* b = new NeuralAI(*other_parent);
+
+	a->client_id = running_id++;
+	b->client_id = running_id++;
+
+	std::vector<std::vector<Neuron>>& net_a = a->GetNeuralNet()->GetLayers();
+
+	std::vector<std::vector<Neuron>>& net_b = b->GetNeuralNet()->GetLayers();
+
+	for (size_t layer = 0; layer < net_a.size(); layer++)
+	{
+		int crossover_index = Random::get(1, (int) net_a[layer].size() - 2);
+		for (size_t neuron_index = 0; neuron_index < net_a[layer].size(); neuron_index++)
+		{
+			// Cross the neurons 
+			if (neuron_index >= crossover_index)
+			{
+				Neuron tmp_neuron = net_a[layer][neuron_index];
+				net_a[layer][neuron_index] = net_b[layer][neuron_index];
+				net_b[layer][neuron_index] = tmp_neuron;
+			}
+		}
+	}
+
+	std::vector<NeuralAI*> children;
+
+	children.push_back(a);
+	children.push_back(b);
+
+	return children;
+}
+
 void NeuralAI::Update()
 {
 	if (ingame)
@@ -178,7 +213,15 @@ void NeuralAI::Update()
 				}
 			}*/
 			//Random::get(0, (int) end_tiles.size()-1)
-			best_tile = end_tiles.at(0);
+			std::vector<float> weights;
+			for (size_t i = 0; i < end_tiles.size(); i++)
+			{
+				weights.push_back(100 / (float) (i + 1));
+			}
+			std::discrete_distribution<int> distribution(weights.begin(), weights.begin() + end_tiles.size());
+			std::mt19937 r_engine;
+
+			best_tile = end_tiles.at(distribution(r_engine));
 
 			vision_grid_position = best_tile;
 			k2d::vi2d& t = vision_grid_position;

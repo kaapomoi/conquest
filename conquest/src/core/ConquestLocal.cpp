@@ -176,29 +176,40 @@ int ConquestLocal::create_ai()
 		90,
 		(int)server_sim->GetTakenColors().size()};*/
 
-	std::uniform_real_distribution<float> n_d(0.1f, 1.1f);
-	std::normal_distribution<> s_d(5, 2);
-	int prev_layer_neurons = 0;
+	//std::uniform_real_distribution<float> n_d(0.1f, 1.1f);
+	//std::normal_distribution<> s_d(5, 2);
+	//int prev_layer_neurons = 0;
+	//for (size_t i = 0; i < population_size; i++)
+	//{
+	//	int sight_size = std::round(s_d(random_engine)) + 3;
+	//	prev_layer_neurons = sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size();
+
+	//	// Default number of input nodes
+	//	std::vector<int> topology{ sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size() };
+
+
+	//	int num_layers = Random::get(1, 3);
+	//	for (size_t i = 0; i < num_layers; i++)
+	//	{
+	//		prev_layer_neurons = prev_layer_neurons * n_d(random_engine);
+	//		topology.push_back(std::round(prev_layer_neurons) + 5);
+	//	}
+
+	//	// Default amount of output nodes
+	//	topology.push_back((int) server_sim->GetTakenColors().size());
+
+	//	ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, topology));
+	//}
+
+	int sight_size = 9;
+	std::vector<int> default_topology{
+		(sight_size * sight_size * 2) + (int)server_sim->GetTakenColors().size(),
+		50,
+		30,
+		(int)server_sim->GetTakenColors().size()};
 	for (size_t i = 0; i < population_size; i++)
 	{
-		int sight_size = std::round(s_d(random_engine)) + 3;
-		prev_layer_neurons = sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size();
-
-		// Default number of input nodes
-		std::vector<int> topology{ sight_size * sight_size * 2 + (int)server_sim->GetTakenColors().size() };
-
-
-		int num_layers = Random::get(1, 3);
-		for (size_t i = 0; i < num_layers; i++)
-		{
-			prev_layer_neurons = prev_layer_neurons * n_d(random_engine);
-			topology.push_back(std::round(prev_layer_neurons) + 5);
-		}
-
-		// Default amount of output nodes
-		topology.push_back((int) server_sim->GetTakenColors().size());
-
-		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, topology));
+		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, default_topology));
 	}
 
 	return 0;
@@ -1007,51 +1018,62 @@ void ConquestLocal::GeneticAlgorithm()
 	// Breed new AIs until we have the original amount of agents
 	while (ai_agents.size() < population_size)
 	{
+		
 		int index1 = distribution(random_engine);
+		int index2 = distribution(random_engine);
 
 		NeuralAI* tmp1 = static_cast<NeuralAI*>(ai_agents[index1]);
+		NeuralAI* tmp2 = static_cast<NeuralAI*>(ai_agents[index2]);
 
-		NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, server_sim);
+		std::vector<NeuralAI*> children = tmp1->CrossBreed(tmp2, running_agent_id);
 
-		float topology_mutation = Random::get(0.0f, 1.0f);
-		if (topology_mutation < topology_mutation_chance)
+		//NeuralAI* child = new NeuralAI(*tmp1, running_agent_id++, server_sim);
+
+		for (NeuralAI* child : children)
 		{
-			child->MutateTopology(topology_mutation_rate);
-		}
 
-		float sight_size_mutation = Random::get(0.0f, 1.0f);
-		if (sight_size_mutation < sight_size_mutation_rate)
-		{
-			child->MutateSightSize(sight_size_mutation_epsilon);
-		}
+			/*float topology_mutation = Random::get(0.0f, 1.0f);
+			if (topology_mutation < topology_mutation_chance)
+			{
+				child->MutateTopology(topology_mutation_rate);
+			}
 
-		float playstyle_mutation = Random::get(0.0f, 1.0f);
-		if (playstyle_mutation < playstyle_mutation_rate)
-		{
-			child->MutatePlaystyle(playstyle_mutation_epsilon);
-		}
+			float sight_size_mutation = Random::get(0.0f, 1.0f);
+			if (sight_size_mutation < sight_size_mutation_rate)
+			{
+				child->MutateSightSize(sight_size_mutation_epsilon);
+			}*/
 
-		// Randomize the mutation type
-		float close_mutation = Random::get(0.0f, 1.0f);
-		if (close_mutation < mutation_type_chance)
-		{
-			// Mutates the child close to the parent
-			child->CloseMutate(close_mutation_rate, close_mutation_epsilon);
-		}
-		else
-		{
-			// Mutate the agent randomly
-			child->Mutate(mutation_rate);
-		}
+			float playstyle_mutation = Random::get(0.0f, 1.0f);
+			if (playstyle_mutation < playstyle_mutation_rate)
+			{
+				child->MutatePlaystyle(playstyle_mutation_epsilon);
+			}
 
-		// Push the child into the pool
-		ai_agents.push_back(child);
+			// Randomize the mutation type
+			float close_mutation = Random::get(0.0f, 1.0f);
+			if (close_mutation < mutation_type_chance)
+			{
+				// Mutates the child close to the parent
+				child->CloseMutate(close_mutation_rate, close_mutation_epsilon);
+			}
+			else
+			{
+				// Mutate the agent randomly
+				child->Mutate(mutation_rate);
+			}
+
+			// Push the child into the pool
+			ai_agents.push_back(child);
+		}
 	}
 
 	for (AI* agent : ai_agents)
 	{
 		agent->SetTilesOwned(0);
 		agent->SetFitness(0);
+		NeuralAI* a = static_cast<NeuralAI*>(agent);
+		a->ClearFitnesses();
 	}
 
 	k2d::KUSI_DEBUG("\n\n\n\n\n EPOCH %i DONE \n\n\n\n\n", epoch++);

@@ -11,6 +11,8 @@ public:
 	NeuralAI(const NeuralAI& parent, int id, ServerSim* ss);
 	virtual ~NeuralAI();
 
+	std::vector<NeuralAI*> CrossBreed(NeuralAI* other_parent, int& running_id);
+
 	void Update() override;
 
 	bool SendInputToServer(int input_num) override;
