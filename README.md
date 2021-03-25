@@ -1,6 +1,8 @@
 Conquest
 ===
 
+**This project has evolved into a neural net training app. The neural net agents play the game and get improved via a genetic algorithm.**
+
 A game for 1-6 players where the objective is to capture the most tiles. The winner is decided when there are no 'neutral' tiles left.
 
 ## How to play:
