@@ -10,6 +10,7 @@
 #include <ui/UIMultiLabel.h>
 #include <ui/UIProgressBar.h>
 #include <ui/UIScoreBar.h>
+#include <ui/UINetDisplay.h>
 #include <ui/UIList.h>
 #include <ui/UIRectangle.h>
 #include <core/ServerSim.h>
@@ -164,6 +165,7 @@ private:
 	UIClickableGraph* pick_chance_graph;
 	UIList* parent_ids_list;
 	UIRectangle* nn_vision_rect;
+	UINetDisplay* nn_display;
 
 	std::string				ini_file_name;
 	std::vector<k2d::Color> loaded_skins;

@@ -41,6 +41,11 @@ std::vector<NeuralAI*> NeuralAI::CrossBreed(NeuralAI* other_parent, int& running
 {
 	NeuralAI* a = new NeuralAI(*this);
 	NeuralAI* b = new NeuralAI(*other_parent);
+	a->parent_ids.push_back(this->client_id);
+	a->parent_ids.push_back(other_parent->client_id);
+
+	b->parent_ids.push_back(this->client_id);
+	b->parent_ids.push_back(other_parent->client_id);
 
 	a->client_id = running_id++;
 	b->client_id = running_id++;
@@ -271,7 +276,7 @@ void NeuralAI::Update()
 					if (owner == -9)
 					{
 						// this tile is neutral
-						board_state_single_dimension.push_back(0);
+						board_state_single_dimension.push_back(-1);
 					}
 					else if (owner != which_player_am_i)
 					{

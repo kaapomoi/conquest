@@ -35,19 +35,22 @@ UIList::~UIList()
 
 void UIList::Update(double dt)
 {
-	if (needs_update)
+	if (active)
 	{
-		UpdatePositions();
-	}
+		if (needs_update)
+		{
+			UpdatePositions();
+		}
 
-	for (k2d::Text* t : text_lines)
-	{
-		t->Update();
-	}
+		for (k2d::Text* t : text_lines)
+		{
+			t->Update();
+		}
 
-	if (background_sprite)
-	{
-		background_sprite->Tick();
+		if (background_sprite)
+		{
+			background_sprite->Tick();
+		}
 	}
 }
 

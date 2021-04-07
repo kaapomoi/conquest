@@ -1,6 +1,5 @@
 #pragma once
 
-#include <util/util.h>
 #include <core/Engine.h>
 
 namespace k2d
@@ -20,7 +19,9 @@ namespace k2d
 
 		virtual void Update();
 
+		k2d::Sprite* FromToLineSprite(vf2d from, vf2d to, float depth, const char* texture_name);
 
+		void ModifySpriteToLineSprite(vf2d from, vf2d to, k2d::Sprite* sprite);
 	protected:
 		Engine* engine;
 		SpriteBatch* sprite_batch;
@@ -43,7 +44,7 @@ namespace k2d
 		// Texture cache
 		std::map<const char*, k2d::GLTexture> m_texture_cache;
 
-		int load_texture_into_cache(const char* friendly_name, std::string filename);
+		int load_texture_into_cache(const char* friendly_name, std::string filename, bool interpolation = false);
 		k2d::GLTexture load_texture_from_cache(const char* friendly_name);
 
 	private:

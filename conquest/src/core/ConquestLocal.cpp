@@ -71,7 +71,9 @@ int ConquestLocal::init_game()
 	load_texture_into_cache("ss", "Textures/tiles/ss100x100.png");
 	load_texture_into_cache("dot", "Textures/tiles/dot100x100.png");
 	load_texture_into_cache("full", "Textures/tiles/full100x100.png");
+	load_texture_into_cache("full_i", "Textures/tiles/full100x100.png", true);
 	load_texture_into_cache("half", "Textures/tiles/halfalpha100x100.png");
+
 
 
 	load_texture_into_cache("ui", "Textures/ui/ui.png");
@@ -201,7 +203,7 @@ int ConquestLocal::create_ai()
 	//	ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, topology));
 	//}
 
-	int sight_size = 9;
+	int sight_size = 6;
 	std::vector<int> default_topology{
 		(sight_size * sight_size * 2) + (int)server_sim->GetTakenColors().size(),
 		50,
@@ -793,11 +795,25 @@ int ConquestLocal::create_ui()
 		25.0f, tile_size.x, 32, 
 		load_texture_from_cache("full"), sprite_batch, font1, 0.12f, k2d::Color(255));
 	parent_ids_list->AddBackground(k2d::Color(255));
+	parent_ids_list->SetActive(false);
+
 #pragma endregion
 
 #pragma region Rectangles
 
 	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(128, 128, 0, 192)));
+
+#pragma endregion
+
+#pragma region NetDisplay
+
+	nn_display = new UINetDisplay("NetDisplay", 
+		k2d::vi2d(0 - scaled_ui.x * 6.75 + tile_size.x * 4, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
+		k2d::vi2d(scaled_ui.x * 5.0, scaled_ui.y * 8.0f + tile_size.y * 2),
+		25.0f,
+		load_texture_from_cache("full"),
+		sprite_batch, this);
+	//nn_display->AddBackground(k2d::Color(255, 0, 255, 255));
 
 #pragma endregion
 
@@ -813,6 +829,7 @@ int ConquestLocal::create_ui()
 	all_of_the_ui.push_back(scorebar);
 	all_of_the_ui.push_back(parent_ids_list);
 	all_of_the_ui.push_back(nn_vision_rect);
+	all_of_the_ui.push_back(nn_display);
 
 	return 0;
 }
@@ -873,20 +890,21 @@ void ConquestLocal::Update()
 		server_sim->DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
 		server_sim->DisconnectFromServer(opponent->GetClientId());
 
+		// If this agents has played through all the maps
 		if (map_index >= num_maps)
 		{
 			CheckIfBestOfGeneration();
 			CalculateGenerationAverage();
 			SetPreviousIdAndTileCount();
 			UpdateProgressBarValues();
-			UpdateParentIdsListValues();
+			//UpdateParentIdsListValues();
 			current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 			
 			map_index = 0;
 			last_played_index++;
 		}
 
-		// One epoch done
+		// One generation done
 		if (last_played_index >= ai_agents.size())
 		{
 			// 
@@ -913,7 +931,6 @@ void ConquestLocal::Update()
 			}
 		}
 
-		// g for bad, h for simple ai
 		if (bad_ai_enabled == true)
 		{
 			opponent = bad_ai;
@@ -925,6 +942,8 @@ void ConquestLocal::Update()
 
 		// Running agent vs. simpleAI
 		PlayGame(ai_agents.at(last_played_index), opponent);
+		
+		nn_display->SetNeuralNetPtr(static_cast<NeuralAI*>(ai_agents.at(last_played_index))->GetNeuralNet());
 	}
 
 	if (!paused)
@@ -1018,9 +1037,13 @@ void ConquestLocal::GeneticAlgorithm()
 	// Breed new AIs until we have the original amount of agents
 	while (ai_agents.size() < population_size)
 	{
-		
 		int index1 = distribution(random_engine);
 		int index2 = distribution(random_engine);
+		// Dont allow same parent twice
+		if (index1 == index2)
+		{
+			continue;
+		}
 
 		NeuralAI* tmp1 = static_cast<NeuralAI*>(ai_agents[index1]);
 		NeuralAI* tmp2 = static_cast<NeuralAI*>(ai_agents[index2]);

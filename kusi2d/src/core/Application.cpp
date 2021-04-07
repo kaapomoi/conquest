@@ -16,7 +16,6 @@ namespace k2d
 		ft = 0;
 
 		dt = 0.0;
-
 	}
 
 	Application::~Application()
@@ -46,6 +45,33 @@ namespace k2d
 	void Application::Update()
 	{
 		dt = engine->Update();
+	}
+
+	k2d::Sprite* Application::FromToLineSprite(vf2d from, vf2d to, float depth, const char* texture_name)
+	{
+		float angle_rad = atan2(from.y - to.y, from.x - to.x);
+		float angle_deg = angle_rad * 180.0f / 3.141592f;
+		vf2d mid_pos = to - from;
+		float len = from.x - to.x;
+		float length = std::sqrt((from.x - to.x) * (from.x - to.x) + (from.y - to.y) * (from.y - to.y));
+		float height = 1.0f;
+
+
+		return new k2d::Sprite(to + vf2d(length/2, 0), vf2d(length, height), depth, k2d::Color(255), load_texture_from_cache(texture_name), sprite_batch, angle_deg);
+	}
+
+	void Application::ModifySpriteToLineSprite(vf2d from, vf2d to, k2d::Sprite* sprite)
+	{
+		float angle_rad = atan2(from.y - to.y, from.x - to.x);
+		float angle_deg = angle_rad * 180.0f / 3.141592f;
+		vf2d mid_pos = to - from;
+		float length = from.x - to.x;
+		float height = 1.0f;
+
+		sprite->SetAngle(angle_deg);
+		sprite->SetPosition(mid_pos);
+		sprite->SetWidth(length);
+		sprite->SetHeight(1.0f);
 	}
 
 	void Application::MainLoop()
@@ -158,7 +184,7 @@ namespace k2d
 		return characters;
 	}
 
-	int Application::load_texture_into_cache(const char* friendly_name, std::string filename)
+	int Application::load_texture_into_cache(const char* friendly_name, std::string filename, bool interpolation)
 	{
 		// Lookup texturemap
 		auto mit = m_texture_cache.find(friendly_name);
@@ -166,7 +192,7 @@ namespace k2d
 		// If its not in the map
 		if (mit == m_texture_cache.end())
 		{
-			k2d::GLTexture tex = k2d::ImageLoader::LoadPNG(filename, false);
+			k2d::GLTexture tex = k2d::ImageLoader::LoadPNG(filename, interpolation);
 
 			// Insert it into the map
 			m_texture_cache.insert(std::make_pair(friendly_name, tex));

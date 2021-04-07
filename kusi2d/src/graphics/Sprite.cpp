@@ -14,7 +14,7 @@ namespace k2d
 		active(true),
 		angle(0.0f)
 	{
-		//std::cout << "addr" << &sprite_batch << "\n";
+
 	}
 
 	Sprite::Sprite(glm::vec2 _position, float _width, float _height, float depth,
@@ -33,18 +33,6 @@ namespace k2d
 		this->active = true;
 	}
 
-	/// Default constructor
-	//Sprite::Sprite(SpriteBatch& _sprite_batch) :
-	//	offset(0.0f),
-	//	width(0.0f),
-	//	height(0.0f),
-	//	uv_coordinates(0.0f),
-	//	sprite_batch(_sprite_batch),
-	//	texture()
-	//	//sprite_batch(static_cast<GraphicsSystem*>(this->GetSystem())->GetSpriteBatch())
-	//{
-
-	//}
 	Sprite::Sprite(k2d::vf2d _position, k2d::vf2d size, float depth, Color _color, GLTexture _texture, SpriteBatch* _sprite_batch, float angle)
 	{
 		position = glm::vec2(_position.x, _position.y);
@@ -81,8 +69,6 @@ namespace k2d
 		initialized = true;
 		this->active = true;
 	}
-
-	
 
 	/// Sets UV, used by AnimationComponent
 	void Sprite::SetUV(glm::vec4 _uv)
