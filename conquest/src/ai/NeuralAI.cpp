@@ -272,22 +272,22 @@ void NeuralAI::Update()
 
 					board_state_single_dimension.push_back(result);
 
-					uint8_t owner = board_state[i][j].owner;
-					if (owner == -9)
-					{
-						// this tile is neutral
-						board_state_single_dimension.push_back(-1);
-					}
-					else if (owner != which_player_am_i)
-					{
-						// Opponent owns this tile
-						board_state_single_dimension.push_back(-1);
-					}
-					else
-					{
-						// We own this tile
-						board_state_single_dimension.push_back(1);
-					}
+					//uint8_t owner = board_state[i][j].owner;
+					//if (owner == -9)
+					//{
+					//	// this tile is neutral
+					//	board_state_single_dimension.push_back(-1);
+					//}
+					//else if (owner != which_player_am_i)
+					//{
+					//	// Opponent owns this tile
+					//	board_state_single_dimension.push_back(-1);
+					//}
+					//else
+					//{
+					//	// We own this tile
+					//	board_state_single_dimension.push_back(1);
+					//}
 
 
 

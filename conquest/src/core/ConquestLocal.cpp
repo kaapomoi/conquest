@@ -203,12 +203,13 @@ int ConquestLocal::create_ai()
 	//	ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, topology));
 	//}
 
-	int sight_size = 6;
+	int sight_size = 7;
 	std::vector<int> default_topology{
-		(sight_size * sight_size * 2) + (int)server_sim->GetTakenColors().size(),
-		50,
+		(sight_size * sight_size) + (int)server_sim->GetTakenColors().size(),
+		40,
 		30,
 		(int)server_sim->GetTakenColors().size()};
+
 	for (size_t i = 0; i < population_size; i++)
 	{
 		ai_agents.push_back(new NeuralAI(running_agent_id++, server_sim, sight_size, default_topology));
@@ -393,7 +394,7 @@ int ConquestLocal::create_ui()
 
 
 	// Mutation rate label
-	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M. Rate: ",
+	UIClickableLabel* mutation_label = new UIClickableLabel("MutationRateClickable", "R M.R: ",
 		k2d::vi2d(0 - scaled_ui.x * 7.5  + tile_size.x * 1.5, - scaled_ui.y * 1.0f - tile_size.y * 1+1),
 		k2d::vi2d(-scaled_ui.x * 0.7f, tile_size.y * 0.f - 5),
 		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
@@ -403,14 +404,14 @@ int ConquestLocal::create_ui()
 	mutation_label->SetBackground(k2d::Color(129, 255));
 	mutation_label->SetVariable(&mutation_rate);
 	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
-	mutation_label->SetPrintPrecision(6);
-	mutation_label->SetBaseMultiplier(0.000001f);
+	mutation_label->SetPrintPrecision(4);
+	mutation_label->SetBaseMultiplier(0.0001f);
 	mutation_label->SetModifiable(true);
 
 	ui_clickable_labels.push_back(mutation_label);
 
 	// Close Mutation rate label
-	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M. Rate: ",
+	UIClickableLabel* close_mutation_rate_label = new UIClickableLabel("CloseMutationRateClickable", "C M.R: ",
 		k2d::vi2d(0 - scaled_ui.x * 7.5 + tile_size.x * 1.5, -scaled_ui.y * 1.5f - tile_size.y * 1+1),
 		k2d::vi2d(-scaled_ui.x * 0.7f, - 5),
 		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
@@ -420,8 +421,8 @@ int ConquestLocal::create_ui()
 	close_mutation_rate_label->SetBackground(k2d::Color(129, 255));
 	close_mutation_rate_label->SetVariable(&close_mutation_rate);
 	//mutation_label->SetPrettyPrintFunc(pretty_print_function_for_percents);
-	close_mutation_rate_label->SetPrintPrecision(6);
-	close_mutation_rate_label->SetBaseMultiplier(0.000001f);
+	close_mutation_rate_label->SetPrintPrecision(4);
+	close_mutation_rate_label->SetBaseMultiplier(0.0001f);
 	close_mutation_rate_label->SetModifiable(true);
 
 	ui_clickable_labels.push_back(close_mutation_rate_label);
@@ -429,7 +430,7 @@ int ConquestLocal::create_ui()
 
 
 	// Mutation Type Chance rate label
-	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. Type C: ",
+	UIClickableLabel* mutation_type_chance_label = new UIClickableLabel("MutationTypeChanceClickable", "M. T. C: ",
 		k2d::vi2d(0 - scaled_ui.x * 7.5 + tile_size.x * 1.5, -scaled_ui.y * 2.0f - tile_size.y * 1+1),
 		k2d::vi2d(-scaled_ui.x * 0.7f, - 5),
 		k2d::vi2d(scaled_ui.x * 2.5, scaled_ui.y * 0.5f - 2),
@@ -801,7 +802,7 @@ int ConquestLocal::create_ui()
 
 #pragma region Rectangles
 
-	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(128, 128, 0, 192)));
+	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(128, 0, 128, 128)));
 
 #pragma endregion
 

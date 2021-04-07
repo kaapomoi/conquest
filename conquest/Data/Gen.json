@@ -1,10 +1,10 @@
 {
     "close_mutation_epsilon": 0.3,
-    "close_mutation_rate": 0.019999999552965164,
-    "mutation_rate": 0.010000101290643215,
+    "close_mutation_rate": 0.0009999999310821295,
+    "mutation_rate": 0.0010001014452427626,
     "mutation_type_chance": 0.800000011920929,
     "num_layers_mutation_chance": 0.5,
-    "num_maps": 1,
+    "num_maps": 10,
     "playstyle_mutation_epsilon": 0.30000001192092896,
     "playstyle_mutation_rate": 0.09999999403953552,
     "population_size": 100,

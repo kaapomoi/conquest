@@ -106,7 +106,7 @@ void UINetDisplay::SetNeuralNetPtr(NeuralNet* nn)
 
 void UINetDisplay::UpdatePositions()
 {
-	static const int layer_alphas[] = {5, 30, 192};
+	static const int layer_alphas[] = {15, 30, 128};
 	if (net)
 	{
 		std::vector<std::vector<Neuron>>& layers = net->GetLayers();
