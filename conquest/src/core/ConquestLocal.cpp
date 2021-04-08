@@ -58,6 +58,7 @@ void ConquestLocal::StartGame()
 	CalculateNewSelectionWeights();
 	UpdateSelectionWeights();
 	get_ui_by_name("StartButton")->SetActive(false);
+	SaveGeneticAlgorithmVariablesToFile("Data/Gen.json");
 	started = true;
 }
 
@@ -69,7 +70,7 @@ float ConquestLocal::weight_selection_function(float x, float a, float b)
 int ConquestLocal::init_game()
 {
 	// Init with mapsize, colors
-	server_sim = new ServerSim(k2d::vi2d(40, 30), 6, num_maps);
+	server_sim = new ServerSim(k2d::vi2d(40, 30), 5, num_maps);
 	load_texture_into_cache("empty", "Textures/tiles/square100x100.png");
 	load_texture_into_cache("selected", "Textures/tiles/selection100x100.png");
 	load_texture_into_cache("ss", "Textures/tiles/ss100x100.png");
@@ -209,7 +210,7 @@ int ConquestLocal::create_ai()
 
 	int sight_size = 7;
 	std::vector<int> default_topology{
-		(sight_size * sight_size) + (int)server_sim->GetTakenColors().size(),
+		(sight_size * sight_size),
 		30,
 		20,
 		(int)server_sim->GetTakenColors().size()};
@@ -908,10 +909,9 @@ void ConquestLocal::Update()
 			if (map_index >= num_maps)
 			{
 				CheckIfBestOfGeneration();
-				CalculateGenerationAverage();
 				SetPreviousIdAndTileCount();
 				UpdateProgressBarValues();
-				//UpdateParentIdsListValues();
+				UpdateParentIdsListValues();
 				current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 			
 				map_index = 0;
@@ -921,9 +921,10 @@ void ConquestLocal::Update()
 			// One generation done
 			if (last_played_index >= ai_agents.size())
 			{
-				// 
 				SaveGeneticAlgorithmVariablesToFile("Data/Gen.json");
 				GeneticAlgorithm();
+				CalculateGenerationAverage();
+				ClearAgentFitnesses();
 				last_played_index = 0;
 
 				current_best_of_gen_id = 0;
@@ -1111,13 +1112,7 @@ void ConquestLocal::GeneticAlgorithm()
 		}
 	}
 
-	for (AI* agent : ai_agents)
-	{
-		agent->SetTilesOwned(0);
-		agent->SetFitness(0);
-		NeuralAI* a = static_cast<NeuralAI*>(agent);
-		a->ClearFitnesses();
-	}
+	
 
 	k2d::KUSI_DEBUG("\n\n\n\n\n EPOCH %i DONE \n\n\n\n\n", epoch++);
 
@@ -1486,6 +1481,17 @@ void ConquestLocal::SetTargetGameTimeUnlimited()
 	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonUnlimited"))->SetDarkoutActive(false);
 }
 
+void ConquestLocal::ClearAgentFitnesses()
+{
+	for (AI* agent : ai_agents)
+	{
+		agent->SetTilesOwned(0);
+		agent->SetFitness(0);
+		NeuralAI* a = static_cast<NeuralAI*>(agent);
+		a->ClearFitnesses();
+	}
+}
+
 void ConquestLocal::UpdateScorebarValues()
 {
 	p0_tiles = players.at(0).tiles_owned;
@@ -1537,13 +1543,14 @@ void ConquestLocal::UpdateDebugRectanglePosition()
 
 void ConquestLocal::CalculateGenerationAverage()
 {
+	int cutoff_index = std::lround(top_percentile * population_size);
 	int sum = 0;
-	for (size_t i = 0; i < ai_agents.size(); i++)
+	for (size_t i = 0; i < cutoff_index; i++)
 	{
 		sum += ai_agents[i]->GetFitness();
 	}
 
-	average_score_this_generation = sum / (last_played_index + 1);
+	average_score_this_generation = sum / (cutoff_index + 1);
 }
 
 void ConquestLocal::CheckIfBestOfGeneration()

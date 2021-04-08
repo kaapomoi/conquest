@@ -7,7 +7,7 @@
     "num_maps": 1,
     "playstyle_mutation_epsilon": 0.30000001192092896,
     "playstyle_mutation_rate": 0.09999999403953552,
-    "population_size": 50,
+    "population_size": 100,
     "sight_size_mutation_epsilon": 3,
     "sight_size_mutation_rate": 0.09999985247850418,
     "top_percentile": 0.20000000298023224,

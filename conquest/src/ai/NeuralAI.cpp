@@ -328,11 +328,11 @@ void NeuralAI::Update()
 			//}
 
 			// Players owned colors
-			for (size_t i = 0; i < taken_colors.size(); i++)
-			{
-				// 1 if free, 0.0 if taken
-				board_state_single_dimension.push_back(taken_colors.at(i) ? 0.0 : 1.0);
-			}
+			//for (size_t i = 0; i < taken_colors.size(); i++)
+			//{
+			//	// 1 if free, 0.0 if taken
+			//	board_state_single_dimension.push_back(taken_colors.at(i) ? 0.0 : 1.0);
+			//}
 
 			//board_state_single_dimension.push_back(which_player_am_i);
 

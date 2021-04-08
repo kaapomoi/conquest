@@ -15,8 +15,6 @@ UIClickableGraph::~UIClickableGraph()
 
 void UIClickableGraph::Update(double dt)
 {
-
-
 	UIGraph::Update(dt);
 }
 

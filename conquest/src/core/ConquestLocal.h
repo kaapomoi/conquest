@@ -94,6 +94,8 @@ public:
 	void SetTargetGameTimeHigh();
 	void SetTargetGameTimeUnlimited();
 
+	void ClearAgentFitnesses();
+
 	void UpdateScorebarValues();
 
 	void UpdateProgressBarValues();
