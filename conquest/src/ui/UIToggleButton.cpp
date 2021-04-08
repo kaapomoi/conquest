@@ -9,6 +9,9 @@ UIToggleButton::UIToggleButton(std::string name, k2d::vi2d position, k2d::vi2d s
 	if (darkout_sprite != nullptr)
 	{
 		darkout_sprite->SetPosition(glm::vec3(position.x, position.y, 0.0f));
+		darkout_sprite->SetWidth(size.x);
+		darkout_sprite->SetHeight(size.y);
+		darkout_sprite->SetDepth(depth + 1.0f);
 	}
 }
 
@@ -26,7 +29,7 @@ void UIToggleButton::Update(double dt)
 
 void UIToggleButton::ToggleFuncSideways()
 {
-	float x_offset = size.x / 4;
+	float x_offset = size.x / 2;
 	if (toggled)
 	{
 		darkout_sprite->SetPosition(glm::vec2(position.x - x_offset, position.y));

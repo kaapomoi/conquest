@@ -77,6 +77,8 @@ public:
 	void ResetWeightSlope();
 	void DecreaseWeightSlope();
 
+	void StartGame();
+
 	void PauseGame();
 	void ToggleMapCreation();
 	void ToggleOpponentType();
@@ -251,6 +253,8 @@ private:
 	bool ui_enabled;
 
 	// Is the simulation paused
+	bool started;
+
 	bool paused;
 
 	bool bad_ai_enabled;

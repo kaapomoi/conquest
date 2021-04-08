@@ -39,22 +39,26 @@ void ConquestLocal::Setup()
 
 	should_update_game = 0.01667f;
 
-	// Init game
+	started = false;
 	InitGeneticAlgorithmValues();
-
+	// Init game
 	init_game();
-	create_ai();
-	//
-	create_ui();
-	//create_ui_unit_card();
-
-	CalculateNewSelectionWeights();
-	UpdateSelectionWeights();
-
 	half_of_tiles = server_sim->GetMapSize().x * server_sim->GetMapSize().y * 0.5;
+
+
+	create_ui();
 
 	// Start the main loop by calling base::Setup()
 	k2d::Application::Setup();
+}
+
+void ConquestLocal::StartGame()
+{
+	create_ai();
+	CalculateNewSelectionWeights();
+	UpdateSelectionWeights();
+	get_ui_by_name("StartButton")->SetActive(false);
+	started = true;
 }
 
 float ConquestLocal::weight_selection_function(float x, float a, float b)
@@ -585,24 +589,21 @@ int ConquestLocal::create_ui()
 	opponent_choice->AddCallbackFunction(opponent_choice, &UIToggleButton::ToggleFuncSideways);
 	opponent_choice->AddCallbackFunction(this, &ConquestLocal::ToggleOpponentType);
 	// Ugly position init
-	opponent_choice->GetDarkoutSprite()->SetPosition(glm::vec2(opponent_choice->GetDarkoutSprite()->GetPosition().x + opponent_choice->GetSize().x / 4, opponent_choice->GetDarkoutSprite()->GetPosition().y));
+	opponent_choice->GetDarkoutSprite()->SetPosition(glm::vec2(opponent_choice->GetDarkoutSprite()->GetPosition().x + opponent_choice->GetSize().x / 2, opponent_choice->GetDarkoutSprite()->GetPosition().y));
 	opponent_choice->SetDarkoutActive(true);
 
 	ui_buttons.push_back(opponent_choice);
 
-	UIToggleButton* new_map_button = new UIToggleButton("NewMapButton",
+	UIButton* start_button = new UIButton("StartButton",
 		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2.5f),
 		k2d::vi2d(scaled_ui.x, scaled_ui.y),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("New Map", 0.13f, 25.0f),
-		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
-	new_map_button->SetActive(true);
-	new_map_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
-	new_map_button->AddCallbackFunction(new_map_button, &UIToggleButton::ToggleFuncOnOff);
-	new_map_button->AddCallbackFunction(this, &ConquestLocal::ToggleMapCreation);
-	new_map_button->SetDarkoutActive(false);
-	ui_buttons.push_back(new_map_button);
+		create_text("Start", 0.15f, 25.0f));
+	start_button->SetActive(true);
+	start_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
+	start_button->AddCallbackFunction(this, &ConquestLocal::StartGame);
+	ui_buttons.push_back(start_button);
 
 	// Pause button
 	UIToggleButton* pause_button = new UIToggleButton("PauseButton",
@@ -663,47 +664,55 @@ int ConquestLocal::create_ui()
 	increase_slope_button->AddCallbackFunction(this, &ConquestLocal::UpdateSelectionWeights);
 	ui_buttons.push_back(increase_slope_button);
 
-	
-	UIButton* fps_button_low = new UIButton("FPSButtonLow",
+
+	UIToggleButton* fps_button_low = new UIToggleButton("FPSButtonLow",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("Lo", 0.10f, 25.0f));
+		create_text("Lo", 0.10f, 25.0f),
+		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
 	fps_button_low->SetActive(true);
+	fps_button_low->SetDarkoutActive(true);
 	fps_button_low->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
 	fps_button_low->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeLow);
 	ui_buttons.push_back(fps_button_low);
 
-	UIButton* fps_button_med = new UIButton("FPSButtonMed",
+	UIToggleButton* fps_button_med = new UIToggleButton("FPSButtonMed",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 2.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("Me", 0.10f, 25.0f));
+		create_text("Me", 0.10f, 25.0f),
+		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
 	fps_button_med->SetActive(true);
+	fps_button_med->SetDarkoutActive(true);
 	fps_button_med->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
 	fps_button_med->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeMed);
 	ui_buttons.push_back(fps_button_med);
 
-	UIButton* fps_button_high = new UIButton("FPSButtonHigh",
+	UIToggleButton* fps_button_high = new UIToggleButton("FPSButtonHigh",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 3.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("Hi", 0.10f, 25.0f));
+		create_text("Hi", 0.10f, 25.0f),
+		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
 	fps_button_high->SetActive(true);
+	fps_button_high->SetDarkoutActive(false);
 	fps_button_high->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
 	fps_button_high->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeHigh);
 	ui_buttons.push_back(fps_button_high);
 
-	UIButton* fps_button_unlimited = new UIButton("FPSButtonUnlimited",
+	UIToggleButton* fps_button_unlimited = new UIToggleButton("FPSButtonUnlimited",
 		k2d::vi2d(0 + map_size.x * tile_size.x + tile_size.x * 4.0f, map_size.y * tile_size.y + tile_size.y * 2.0f),
 		k2d::vi2d(scaled_ui.x * 0.25f-2, scaled_ui.y * 0.25f - 2),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("U", 0.10f, 25.0f));
+		create_text("U", 0.10f, 25.0f),
+		CreateDefaultSprite("full", k2d::Color(0, 128), 26.0f));
 	fps_button_unlimited->SetActive(true);
+	fps_button_unlimited->SetDarkoutActive(true);
 	fps_button_unlimited->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
 	fps_button_unlimited->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeUnlimited);
 	ui_buttons.push_back(fps_button_unlimited);
@@ -803,6 +812,7 @@ int ConquestLocal::create_ui()
 #pragma region Rectangles
 
 	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(128, 0, 128, 128)));
+	nn_vision_rect->SetActive(false);
 
 #pragma endregion
 
@@ -887,84 +897,87 @@ void ConquestLocal::PreRender()
 
 void ConquestLocal::Update()
 {
-	if (!server_sim->GetGameInProgress())
+	if (started)
 	{
-		server_sim->DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
-		server_sim->DisconnectFromServer(opponent->GetClientId());
-
-		// If this agents has played through all the maps
-		if (map_index >= num_maps)
+		if (!server_sim->GetGameInProgress())
 		{
-			CheckIfBestOfGeneration();
-			CalculateGenerationAverage();
-			SetPreviousIdAndTileCount();
-			UpdateProgressBarValues();
-			//UpdateParentIdsListValues();
-			current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
+			server_sim->DisconnectFromServer(ai_agents.at(last_played_index)->GetClientId());
+			server_sim->DisconnectFromServer(opponent->GetClientId());
+
+			// If this agents has played through all the maps
+			if (map_index >= num_maps)
+			{
+				CheckIfBestOfGeneration();
+				CalculateGenerationAverage();
+				SetPreviousIdAndTileCount();
+				UpdateProgressBarValues();
+				//UpdateParentIdsListValues();
+				current_gen_tiles_owned_histogram->AddDataPoint(previous_tiles_owned);
 			
-			map_index = 0;
-			last_played_index++;
-		}
+				map_index = 0;
+				last_played_index++;
+			}
 
-		// One generation done
-		if (last_played_index >= ai_agents.size())
-		{
-			// 
-			SaveGeneticAlgorithmVariablesToFile("Data/Gen.json");
-			GeneticAlgorithm();
-			last_played_index = 0;
-
-			current_best_of_gen_id = 0;
-			current_best_of_gen_tiles_owned = 0;
-
-			generation_history->AddDataPoint(average_score_this_generation);
-			average_score_this_generation = 0;
-
-			// Create a new map after the generation has played their games
-			if (should_create_new_map)
+			// One generation done
+			if (last_played_index >= ai_agents.size())
 			{
-				should_create_new_map = false;
-				UIToggleButton* map_button = static_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
-				if (map_button)
+				// 
+				SaveGeneticAlgorithmVariablesToFile("Data/Gen.json");
+				GeneticAlgorithm();
+				last_played_index = 0;
+
+				current_best_of_gen_id = 0;
+				current_best_of_gen_tiles_owned = 0;
+
+				generation_history->AddDataPoint(average_score_this_generation);
+				average_score_this_generation = 0;
+
+				// Create a new map after the generation has played their games
+				if (should_create_new_map)
 				{
-					map_button->ResetToUntoggledState();
+					should_create_new_map = false;
+					UIToggleButton* map_button = static_cast<UIToggleButton*> (get_button_by_name("NewMapButton"));
+					if (map_button)
+					{
+						map_button->ResetToUntoggledState();
+					}
+					server_sim->CreateNewMaps();
 				}
-				server_sim->CreateNewMaps();
 			}
-		}
 
-		if (bad_ai_enabled == true)
-		{
-			opponent = bad_ai;
-		}
-		else
-		{
-			opponent = simple_ai;
-		}
-
-		// Running agent vs. simpleAI
-		PlayGame(ai_agents.at(last_played_index), opponent);
-		
-		nn_display->SetNeuralNetPtr(static_cast<NeuralAI*>(ai_agents.at(last_played_index))->GetNeuralNet());
-	}
-
-	update_game_timer += dt;
-
-	if (!paused && update_game_timer >= should_update_game)
-	{
-		server_sim->Update();
-
-		for (AI* ai : ai_agents)
-		{
-			// Remove later TODO
-			if (ai->GetInGame())
+			if (bad_ai_enabled == true)
 			{
-				ai->Update();
+				opponent = bad_ai;
 			}
+			else
+			{
+				opponent = simple_ai;
+			}
+
+			// Running agent vs. simpleAI
+			PlayGame(ai_agents.at(last_played_index), opponent);
+		
+			nn_display->SetNeuralNetPtr(static_cast<NeuralAI*>(ai_agents.at(last_played_index))->GetNeuralNet());
 		}
 
-		opponent->Update();
-		update_game_timer = 0.0f;
+		update_game_timer += dt;
+
+		if (!paused && update_game_timer >= should_update_game)
+		{
+			server_sim->Update();
+
+			for (AI* ai : ai_agents)
+			{
+				// Remove later TODO
+				if (ai->GetInGame())
+				{
+					ai->Update();
+				}
+			}
+
+			opponent->Update();
+			update_game_timer = 0.0f;
+		}
 	}
 
 	// Handle events
@@ -977,11 +990,13 @@ void ConquestLocal::Update()
 
 	if (ui_enabled)
 	{
-		UpdateTileColors();
-		UpdateScoreboardIds();
-		UpdateScoreboardIds();
-		UpdateScorebarValues();
-		UpdateDebugRectanglePosition();
+		if (started)
+		{
+			UpdateTileColors();
+			UpdateScoreboardIds();
+			UpdateScorebarValues();
+			UpdateDebugRectanglePosition();
+		}
 	}
 
 	ClampGeneticAlgorithmVariables();
@@ -1438,21 +1453,37 @@ void ConquestLocal::UpdateTileBrightness()
 void ConquestLocal::SetTargetGameTimeLow()
 {
 	should_update_game = 1.0f;
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonLow"))->SetDarkoutActive(false);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonMed"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonHigh"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonUnlimited"))->SetDarkoutActive(true);
 }
 
 void ConquestLocal::SetTargetGameTimeMed()
 {
 	should_update_game = 0.1f;
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonLow"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonMed"))->SetDarkoutActive(false);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonHigh"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonUnlimited"))->SetDarkoutActive(true);
 }
 
 void ConquestLocal::SetTargetGameTimeHigh()
 {
 	should_update_game = 0.01667f;
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonLow"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonMed"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonHigh"))->SetDarkoutActive(false);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonUnlimited"))->SetDarkoutActive(true);
 }
 
 void ConquestLocal::SetTargetGameTimeUnlimited()
 {
 	should_update_game = 0.0f;
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonLow"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonMed"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonHigh"))->SetDarkoutActive(true);
+	static_cast<UIToggleButton*>(get_ui_by_name("FPSButtonUnlimited"))->SetDarkoutActive(false);
 }
 
 void ConquestLocal::UpdateScorebarValues()
@@ -1501,6 +1532,7 @@ void ConquestLocal::UpdateDebugRectanglePosition()
 	}
 
 	l->SetSize(k2d::vi2d(sight_size * tile_size));
+	l->SetActive(true);
 }
 
 void ConquestLocal::CalculateGenerationAverage()
