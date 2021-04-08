@@ -8,7 +8,6 @@ public:
 	NeuralNet(const std::vector<int>& topology);
 	NeuralNet(const NeuralNet& other);
 	void FeedForward(const std::vector<double>& input_values, std::vector<bool> taken_colors, bool smart);
-	void FeedForwardIgnoreOpponent(const std::vector<double>& input_values, int opponent_color);
 	void GetResults(std::vector<double>& result_values) const;
 
 	std::vector<std::vector<Neuron>>& GetLayers();

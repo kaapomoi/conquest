@@ -484,7 +484,7 @@ void NeuralAI::MutateTopology(float rate)
 			else if (r > (1.0f - rate))
 			{
 				//net[i].push_back(Neuron(net[i+1].size(), ));
-				net[i].insert(net[i].begin() + j, Neuron(net[i + 1].size(), j));
+				net[i].insert(net[i].begin() + j, Neuron(net[i + 1].size(), j, false));
 
 				// Move my_index of this layers nodes one forward	
 				for (size_t k = j + 1; k < net[i].size(); k++)
@@ -549,7 +549,7 @@ void NeuralAI::MutateSightSize(int epsilon)
 		new_first_layer.push_back(std::vector<Neuron>());
 		for (int x = 0; x < sight_size * 2; x++)
 		{
-			new_first_layer[y].push_back(Neuron(num_outputs, y * sight_size * 2 + x));
+			new_first_layer[y].push_back(Neuron(num_outputs, y * sight_size * 2 + x, false));
 		}
 	}
 	std::vector<Neuron> new_1d_layer;

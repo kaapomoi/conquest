@@ -1,16 +1,16 @@
 {
     "close_mutation_epsilon": 0.3,
-    "close_mutation_rate": 0.0009999999310821295,
-    "mutation_rate": 0.0010001014452427626,
+    "close_mutation_rate": 0.010000001639127731,
+    "mutation_rate": 0.010000105947256088,
     "mutation_type_chance": 0.800000011920929,
     "num_layers_mutation_chance": 0.5,
-    "num_maps": 10,
+    "num_maps": 1,
     "playstyle_mutation_epsilon": 0.30000001192092896,
     "playstyle_mutation_rate": 0.09999999403953552,
-    "population_size": 100,
+    "population_size": 30,
     "sight_size_mutation_epsilon": 3,
     "sight_size_mutation_rate": 0.09999985247850418,
-    "top_percentile": 0.30000001192092896,
+    "top_percentile": 0.20000000298023224,
     "topology_mutation_chance": 0.10000002384185791,
     "topology_mutation_rate": 0.004999999888241291
 }

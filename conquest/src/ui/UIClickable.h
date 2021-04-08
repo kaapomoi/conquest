@@ -3,8 +3,6 @@
 #include <core/Engine.h>
 #include <util/cFunction.h>
 
-//typedef void (*callback_function)();
-
 class UIClickable
 {
 public:

@@ -37,7 +37,7 @@ void ConquestLocal::Setup()
 	weight_selection_a = 200.0f;
 	weight_selection_b = 10.0f;
 
-	num_maps = 2;
+	should_update_game = 0.01667f;
 
 	// Init game
 	InitGeneticAlgorithmValues();
@@ -166,8 +166,8 @@ int ConquestLocal::create_ai()
 	bad_ai = new BadAI(0, server_sim);
 	simple_ai = new SimpleAI(1, server_sim);
 
-	opponent = bad_ai;
-	bad_ai_enabled = true;
+	opponent = simple_ai;
+	bad_ai_enabled = false;
 
 	running_agent_id = 2;
 	last_played_index = 0;
@@ -206,8 +206,8 @@ int ConquestLocal::create_ai()
 	int sight_size = 7;
 	std::vector<int> default_topology{
 		(sight_size * sight_size) + (int)server_sim->GetTakenColors().size(),
-		40,
 		30,
+		20,
 		(int)server_sim->GetTakenColors().size()};
 
 	for (size_t i = 0; i < population_size; i++)
@@ -241,7 +241,7 @@ int ConquestLocal::create_ui()
 		font1,
 		load_texture_from_cache("full"), 
 		sprite_batch);
-	generation_ids->AddBackground(k2d::Color(255));
+	generation_ids->AddBackground(k2d::Color(128));
 	generation_ids->AddLabel("Generation", "Generation: ", &epoch);
 	generation_ids->AddLabel("PreviousID", "Previousnn: ", &previous_id);
 	generation_ids->AddLabel("GenerationBestID", "Best of gen: ", &current_best_of_gen_id);
@@ -575,7 +575,7 @@ int ConquestLocal::create_ui()
 		k2d::vi2d(scaled_ui.x, scaled_ui.y * 0.5f),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
-		create_text("  Bad   Simple", 0.10f, 25.0f),
+		create_text("Simple   Bad ", 0.10f, 25.0f),
 		new k2d::Sprite(glm::vec2(0.0f, 0.0f),
 			scaled_ui.x * 0.5f, scaled_ui.y * 0.5f,
 			26.0f,
@@ -672,7 +672,7 @@ int ConquestLocal::create_ui()
 		create_text("Lo", 0.10f, 25.0f));
 	fps_button_low->SetActive(true);
 	fps_button_low->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
-	fps_button_low->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsLow);
+	fps_button_low->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeLow);
 	ui_buttons.push_back(fps_button_low);
 
 	UIButton* fps_button_med = new UIButton("FPSButtonMed",
@@ -683,7 +683,7 @@ int ConquestLocal::create_ui()
 		create_text("Me", 0.10f, 25.0f));
 	fps_button_med->SetActive(true);
 	fps_button_med->SetTextOffset(k2d::vf2d(-tile_size.x * 0.45f, -tile_size.y * 0.2f));
-	fps_button_med->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsMed);
+	fps_button_med->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeMed);
 	ui_buttons.push_back(fps_button_med);
 
 	UIButton* fps_button_high = new UIButton("FPSButtonHigh",
@@ -694,7 +694,7 @@ int ConquestLocal::create_ui()
 		create_text("Hi", 0.10f, 25.0f));
 	fps_button_high->SetActive(true);
 	fps_button_high->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
-	fps_button_high->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsHigh);
+	fps_button_high->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeHigh);
 	ui_buttons.push_back(fps_button_high);
 
 	UIButton* fps_button_unlimited = new UIButton("FPSButtonUnlimited",
@@ -705,7 +705,7 @@ int ConquestLocal::create_ui()
 		create_text("U", 0.10f, 25.0f));
 	fps_button_unlimited->SetActive(true);
 	fps_button_unlimited->SetTextOffset(k2d::vf2d(-tile_size.x * 0.25f, -tile_size.y * 0.2f));
-	fps_button_unlimited->AddCallbackFunction(this, &ConquestLocal::SetTargetFpsUnlimited);
+	fps_button_unlimited->AddCallbackFunction(this, &ConquestLocal::SetTargetGameTimeUnlimited);
 	ui_buttons.push_back(fps_button_unlimited);
 
 #pragma endregion buttons
@@ -725,7 +725,7 @@ int ConquestLocal::create_ui()
 		100, 1200, // max points, max_value
 		load_texture_from_cache("full"), sprite_batch);
 	generation_history->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
-	generation_history->SetBackground(k2d::Color(40, 255));
+	generation_history->SetBackground(k2d::Color(50, 255));
 	generation_history->AddTrendLine(k2d::Color(255, 0, 255, 255));
 	generation_history->AddText(create_text("Generation Average Fitness", k2d::vi2d(generation_history->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
@@ -737,7 +737,7 @@ int ConquestLocal::create_ui()
 		200, 1200, // max_points, max_value
 		load_texture_from_cache("full"), sprite_batch);
 	current_gen_tiles_owned_histogram->AddHorizontalLine(0.5f, k2d::Color(255, 0, 0, 128));
-	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(20, 255));
+	current_gen_tiles_owned_histogram->SetBackground(k2d::Color(60, 255));
 	current_gen_tiles_owned_histogram->AddTrendLine(k2d::Color(255, 0,255, 255));
 	current_gen_tiles_owned_histogram->AddText(create_text("Fitness", k2d::vi2d(current_gen_tiles_owned_histogram->GetPosition() + k2d::vf2d(-scaled_ui.x * 2.5f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
@@ -750,7 +750,7 @@ int ConquestLocal::create_ui()
 		std::lround(population_size * top_percentile),
 		find_max_local(0, std::lround(population_size * top_percentile)), // max_data_value
 		load_texture_from_cache("full"), sprite_batch);
-	pick_chance_graph->SetBackground(k2d::Color(20, 255));
+	pick_chance_graph->SetBackground(k2d::Color(50, 255));
 	pick_chance_graph->AddText(create_text("Selection chance", k2d::vi2d(pick_chance_graph->GetPosition() + k2d::vf2d(-scaled_ui.x * 1.25f, scaled_ui.y * 0.8f)), 0.12f, 24.9f));
 
 #pragma endregion
@@ -809,12 +809,13 @@ int ConquestLocal::create_ui()
 #pragma region NetDisplay
 
 	nn_display = new UINetDisplay("NetDisplay", 
-		k2d::vi2d(0 - scaled_ui.x * 6.75 + tile_size.x * 4, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
-		k2d::vi2d(scaled_ui.x * 5.0, scaled_ui.y * 8.0f + tile_size.y * 2),
+		k2d::vi2d(0 - scaled_ui.x * 7.0 + tile_size.x * 3.5f, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
+		k2d::vi2d(scaled_ui.x * 4.5, scaled_ui.y * 8.0f + tile_size.y * 2),
 		25.0f,
 		load_texture_from_cache("full"),
 		sprite_batch, this);
-	//nn_display->AddBackground(k2d::Color(255, 0, 255, 255));
+	nn_display->AddCallbackFunction(nn_display, &UINetDisplay::ToggleWeightsOnlyMode);
+	//nn_display->AddBackground(k2d::Color(255, 128, 255, 128));
 
 #pragma endregion
 
@@ -947,7 +948,9 @@ void ConquestLocal::Update()
 		nn_display->SetNeuralNetPtr(static_cast<NeuralAI*>(ai_agents.at(last_played_index))->GetNeuralNet());
 	}
 
-	if (!paused)
+	update_game_timer += dt;
+
+	if (!paused && update_game_timer >= should_update_game)
 	{
 		server_sim->Update();
 
@@ -961,6 +964,7 @@ void ConquestLocal::Update()
 		}
 
 		opponent->Update();
+		update_game_timer = 0.0f;
 	}
 
 	// Handle events
@@ -1431,24 +1435,24 @@ void ConquestLocal::UpdateTileBrightness()
 	}
 }
 
-void ConquestLocal::SetTargetFpsLow()
+void ConquestLocal::SetTargetGameTimeLow()
 {
-	engine->SetTargetFps(1.0f);
+	should_update_game = 1.0f;
 }
 
-void ConquestLocal::SetTargetFpsMed()
+void ConquestLocal::SetTargetGameTimeMed()
 {
-	engine->SetTargetFps(10.0f);
+	should_update_game = 0.1f;
 }
 
-void ConquestLocal::SetTargetFpsHigh()
+void ConquestLocal::SetTargetGameTimeHigh()
 {
-	engine->SetTargetFps(60.0f);
+	should_update_game = 0.01667f;
 }
 
-void ConquestLocal::SetTargetFpsUnlimited()
+void ConquestLocal::SetTargetGameTimeUnlimited()
 {
-	engine->SetTargetFps(100000.0f);
+	should_update_game = 0.0f;
 }
 
 void ConquestLocal::UpdateScorebarValues()

@@ -87,10 +87,10 @@ public:
 
 	void UpdateTileBrightness();
 
-	void SetTargetFpsLow();
-	void SetTargetFpsMed();
-	void SetTargetFpsHigh();
-	void SetTargetFpsUnlimited();
+	void SetTargetGameTimeLow();
+	void SetTargetGameTimeMed();
+	void SetTargetGameTimeHigh();
+	void SetTargetGameTimeUnlimited();
 
 	void UpdateScorebarValues();
 
@@ -243,9 +243,14 @@ private:
 	int		variable_change_multiplier;
 
 	std::vector<float> selection_weights;
-	// Is the simulation paused
+
+	// Timer to check if the game should be updated, used instead of modifying the fps for gamespeed
+	float update_game_timer;
+	float should_update_game;
+
 	bool ui_enabled;
 
+	// Is the simulation paused
 	bool paused;
 
 	bool bad_ai_enabled;

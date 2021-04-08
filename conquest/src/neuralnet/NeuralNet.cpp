@@ -16,7 +16,14 @@ NeuralNet::NeuralNet(const std::vector<int>& topology)
 		// Fill the layer with the amount of neurons specified in the topology
 		for (int neuron_index = 0; neuron_index < topology[layer_num]; neuron_index++)
 		{
-			layers.back().push_back(Neuron(num_outputs, neuron_index));
+			if (layer_num >= num_layers-1)
+			{
+				layers.back().push_back(Neuron(num_outputs, neuron_index, true));
+			}
+			else
+			{
+				layers.back().push_back(Neuron(num_outputs, neuron_index, false));
+			}
 			//k2d::KUSI_DEBUG("Made a neuron on layer %d!", layer_num);
 		}
 	}
@@ -64,37 +71,6 @@ void NeuralNet::FeedForward(const std::vector<double>& input_values, std::vector
 		}
 	}
 
-}
-
-void NeuralNet::FeedForwardIgnoreOpponent(const std::vector<double>& input_values, int opponent_color)
-{
-	assert(input_values.size() == layers[0].size());
-
-	// Assign the input values into the input neurons
-	for (int i = 0; i < input_values.size(); i++)
-	{
-		// Opponent color not the input color
-		if (opponent_color != input_values[i])
-		{
-			layers[0][i].SetOutputValue(input_values[i]);
-		}
-		else
-		{
-			// Opponent color == input color..."ignore it"
-			layers[0][i].SetOutputValue(-1.0);
-		}
-
-	}
-
-	// Forward propagation
-	for (int layer_num = 1; layer_num < layers.size(); layer_num++)
-	{
-		std::vector<Neuron>& prev_layer = layers[layer_num - 1];
-		for (int n = 0; n < layers[layer_num].size(); n++)
-		{
-			layers[layer_num][n].FeedForward(prev_layer);
-		}
-	}
 }
 
 void NeuralNet::GetResults(std::vector<double>& result_values) const

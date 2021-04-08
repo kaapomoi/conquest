@@ -2,9 +2,10 @@
 
 #include <core/Application.h>
 #include <ui/UIBase.h>
+#include <ui/UIClickable.h>
 #include <neuralnet/NeuralNet.h>
 
-class UINetDisplay : public UIBase
+class UINetDisplay : public UIBase, public UIClickable
 {
 public:
 	UINetDisplay(std::string name, k2d::vf2d position, k2d::vf2d size, float depth, k2d::GLTexture texture, k2d::SpriteBatch* sb, k2d::Application* app);
@@ -14,9 +15,13 @@ public:
 
 	void SetNeuralNetPtr(NeuralNet* nn);
 
-	void UpdatePositions();
+	void UpdateAlphas();
 
 	void AddBackground(k2d::Color color);
+
+	void OnClick() override;
+
+	void ToggleWeightsOnlyMode();
 
 private:
 	NeuralNet*					net;
@@ -24,6 +29,8 @@ private:
 	
 	k2d::GLTexture				texture;
 	k2d::SpriteBatch*			sb;
+
+	bool						weights_only_mode;
 
 	k2d::vf2d					node_size;
 	k2d::vf2d					weight_size;
