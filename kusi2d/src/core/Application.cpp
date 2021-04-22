@@ -47,6 +47,11 @@ namespace k2d
 		dt = engine->Update();
 	}
 
+	void Application::CleanUp()
+	{
+
+	}
+
 	k2d::Sprite* Application::FromToLineSprite(vf2d from, vf2d to, float depth, const char* texture_name)
 	{
 		float angle_rad = atan2(from.y - to.y, from.x - to.x);
@@ -83,6 +88,8 @@ namespace k2d
 
 			Update();
 		}
+
+		CleanUp();
 	}
 
 	/**

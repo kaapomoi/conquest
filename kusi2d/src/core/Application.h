@@ -19,6 +19,8 @@ namespace k2d
 
 		virtual void Update();
 
+		virtual void CleanUp();
+
 		k2d::Sprite* FromToLineSprite(vf2d from, vf2d to, float depth, const char* texture_name);
 
 		void ModifySpriteToLineSprite(vf2d from, vf2d to, k2d::Sprite* sprite);
