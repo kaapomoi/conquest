@@ -36,12 +36,11 @@ public:
 
 	void SetBackground(k2d::Color bg_color);
 
-	void SetIsActive(bool a);
-
 	void OnClick(k2d::vf2d relative_hit_pos) override;
 
+	void SetTextOffset(k2d::vi2d text_offset) { this->label->SetTextOffset(text_offset); }
+
 	k2d::Sprite* GetSprite() { return background; }
-	bool IsActive() { return active; }
 	bool IsHit() { return is_hit; }
 
 private:
@@ -49,9 +48,9 @@ private:
 	k2d::GLTexture				bar_texture;
 	k2d::Sprite*				background;
 	k2d::Label*					label;
+	k2d::vi2d					text_offset;
 
 	bool			modifiable;
 	int				variable_multiplier;
-	bool			active;
 	bool			is_hit;
 };

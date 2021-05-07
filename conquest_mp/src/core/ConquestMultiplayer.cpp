@@ -42,11 +42,27 @@ void ConquestMultiplayer::Setup()
 	k2d::Application::Setup();
 }
 
-void ConquestMultiplayer::StartGame()
+void ConquestMultiplayer::TryToConnectToServer()
 {
 	should_send_ready = true;
 	SendCommandToServer(80, should_send_ready);
 	//get_ui_by_name("StartButton")->SetActive(false);
+}
+
+void ConquestMultiplayer::StartGame()
+{
+	generate_input_buttons();
+	get_ui_by_name("StartButton")->SetActive(false);
+	nn_display->SetNeuralNetPtr(neural_ai->GetNeuralNet());
+	should_send_ready = true;
+	SendCommandToServer(80, should_send_ready);
+	RevealUI();
+	//get_ui_by_name("StartButton")->SetActive(false);
+}
+
+void ConquestMultiplayer::ReadyUpForNewGame()
+{
+	should_send_reset = true;
 }
 
 float ConquestMultiplayer::weight_selection_function(float x, float a, float b)
@@ -56,8 +72,6 @@ float ConquestMultiplayer::weight_selection_function(float x, float a, float b)
 
 int ConquestMultiplayer::init_game()
 {
-	
-
 	// Init with mapsize, colors
 	load_texture_into_cache("empty", "Textures/tiles/square100x100.png");
 	load_texture_into_cache("selected", "Textures/tiles/selection100x100.png");
@@ -94,7 +108,7 @@ int ConquestMultiplayer::init_game()
 	timer_counter = 0.0f;
 	map_size = { 0,0 };
 
-	player_id = Random::get(1000, 10000000);
+	player_id = Random::get(100, 100000);
 
 	result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -162,17 +176,12 @@ int ConquestMultiplayer::init_game()
 	map_size = {0, 0};
 	num_colors = 0;
 
-	sc.resize(8);
-	sc[0] = { 0,0 };
-	sc[1] = { map_size.x - 1, map_size.y - 1 };
-	sc[2] = { 0, map_size.y - 1 };
-	sc[3] = { map_size.x - 1 ,0 };
-	sc[4] = { 0, map_size.y / 2 - 1 };
-	sc[5] = { map_size.x - 1, map_size.y / 2 - 1 };
-	sc[6] = { map_size.x / 2 - 1, 0 };
-	sc[7] = { map_size.x / 2 - 1, map_size.y - 1 };
-
 	game_state = GameState::NOTCONNECTED;
+
+	connected_to_server = false;
+
+	frame_buffer = 2;
+	frame_buffer_counter = frame_buffer;
 
 	return 0;
 }
@@ -191,16 +200,30 @@ int ConquestMultiplayer::create_ai()
 	return 0;
 }
 
+void ConquestMultiplayer::generate_input_buttons()
+{
+	for (size_t i = 0; i < 10; i++)
+	{
+		UIButton* input_button = new UIButton("InputButton" + i,
+			k2d::vi2d(i * scaled_ui.x + scaled_ui.x /2 - tile_size.x/2, -scaled_ui.y),
+			k2d::vi2d(scaled_ui.x, scaled_ui.y),
+			25.0f,
+			CreateDefaultSprite("full", skins.at(i), 45.0f),
+			nullptr);
+		input_button->SetActive(true);
+		ui_input_buttons.push_back(input_button);
+	}
+}
+
 int ConquestMultiplayer::HandleAI()
 {
-
 	return current_ai->Update();
 }
 
 int ConquestMultiplayer::create_ui()
 {
 	scaled_ui = tile_size * 4;
-	tile_brightness = 0.5f;
+	tile_brightness = 0.75f;
 
 	variable_change_multiplier = 1;
 
@@ -210,6 +233,23 @@ int ConquestMultiplayer::create_ui()
 	/*
 		MULTILINE LABELS
 	*/
+
+	// Winner card
+	UIMultiLabel* winner_card = new UIMultiLabel("WinnerCard",
+		k2d::vi2d(scaled_ui.x * -3, scaled_ui.y * -0.5f),
+		k2d::vi2d(scaled_ui.x * 3, scaled_ui.y * 2),
+		tile_size.y,
+		0.15f,
+		30.0f,
+		font1,
+		load_texture_from_cache("full"),
+		sprite_batch);
+	winner_card->AddBackground(k2d::Color(255, 128));
+	winner_card->AddLabel("WinnerID", "ID: ", &winner_id);
+	winner_card->AddLabel("WinnerScore", "Score: ", &winner_tiles);
+	winner_card->SetActive(false);
+
+	ui_multilabels.push_back(winner_card);
 
 	// Generation Fitness values
 	UIMultiLabel* p0_scoreboard = new UIMultiLabel("P0Scoreboard",
@@ -223,6 +263,7 @@ int ConquestMultiplayer::create_ui()
 		sprite_batch);
 	p0_scoreboard->AddBackground(skins.at(0));
 	p0_scoreboard->AddLabel("P0Scoreboard", "ID: ", &p0_id);
+	p0_scoreboard->AddLabel("P0Scoreboard", "", &p0_tiles);
 	p0_scoreboard->SetActive(false);
 
 
@@ -240,15 +281,17 @@ int ConquestMultiplayer::create_ui()
 		sprite_batch);
 	p1_scoreboard->AddBackground(skins.at(1));
 	p1_scoreboard->AddLabel("P1Scoreboard", "ID: ", &p1_id);
+	p1_scoreboard->AddLabel("P1Scoreboard", "", &p1_tiles);
 	p1_scoreboard->SetActive(false);
 
 	ui_multilabels.push_back(p1_scoreboard);
 
 
+
+
 #pragma endregion Multilabels
 
 #pragma region ClickableLabels
-
 
 	/*
 		CLICKABLE LABELS
@@ -261,6 +304,7 @@ int ConquestMultiplayer::create_ui()
 		load_texture_from_cache("half"),
 		sprite_batch, font1,
 		0.10f, 26.0f, k2d::Color(255));
+	tile_brightness_label->SetActive(false);
 	tile_brightness_label->SetBackground(k2d::Color(129, 255));
 	tile_brightness_label->SetVariable(&tile_brightness);
 	tile_brightness_label->SetModifiable(true);
@@ -283,7 +327,7 @@ int ConquestMultiplayer::create_ui()
 		k2d::vi2d(0, 0),
 		load_texture_from_cache("empty"), sprite_batch, font1,
 		0.15f, 35.0f, k2d::Color(255));
-	turns_text->SetIsActive(false);
+	turns_text->SetActive(false);
 	turns_text->SetModifiable(false);
 	turns_text->SetVariable(&turns_played);
 
@@ -301,6 +345,7 @@ int ConquestMultiplayer::create_ui()
 	UIToggleButton* ai_choice = new UIToggleButton("AIChoice",
 		k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2),
 		k2d::vi2d(scaled_ui.x, scaled_ui.y * 0.5f),
+		k2d::vi2d(scaled_ui.x / 2, 0),
 		25.0f,
 		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
 		create_text("Neural   Bad ", 0.10f, 25.0f),
@@ -311,7 +356,7 @@ int ConquestMultiplayer::create_ui()
 	ai_choice->SetActive(false);
 	ai_choice->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, -4));
 	ai_choice->AddCallbackFunction(ai_choice, &UIToggleButton::ToggleFuncSideways);
-	ai_choice->AddCallbackFunction(this, &ConquestMultiplayer::ToggleAiType);
+	ai_choice->AddCallbackFunction(this, &ConquestMultiplayer::ToggleAIType);
 	// Ugly position init
 	ai_choice->GetDarkoutSprite()->SetPosition(glm::vec2(ai_choice->GetDarkoutSprite()->GetPosition().x + ai_choice->GetSize().x / 2, ai_choice->GetDarkoutSprite()->GetPosition().y));
 	ai_choice->SetDarkoutActive(true);
@@ -326,8 +371,37 @@ int ConquestMultiplayer::create_ui()
 		create_text("Connect", 0.12f, 25.0f));
 	start_button->SetActive(true);
 	start_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
-	start_button->AddCallbackFunction(this, &ConquestMultiplayer::StartGame);
+	start_button->AddCallbackFunction(this, &ConquestMultiplayer::TryToConnectToServer);
 	ui_buttons.push_back(start_button);
+
+	UIButton* ready_up_for_new_game_button = new UIButton("ReadyForNewGameButton",
+		k2d::vi2d(0, 0),
+		k2d::vi2d(scaled_ui.x, scaled_ui.y),
+		25.0f,
+		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
+		create_text("Ready!", 0.12f, 25.0f));
+	ready_up_for_new_game_button->SetActive(true);
+	ready_up_for_new_game_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
+	ready_up_for_new_game_button->AddCallbackFunction(this, &ConquestMultiplayer::ReadyUpForNewGame);
+	ui_buttons.push_back(ready_up_for_new_game_button);
+
+	UIToggleButton* ai_enable_button = new UIToggleButton("AIEnableButton",
+		k2d::vi2d(0, 0),
+		k2d::vi2d(scaled_ui.x, scaled_ui.y),
+		k2d::vi2d(0, 0),
+		25.0f,
+		CreateDefaultSprite("full", k2d::Color(255, 255), 25.0f),
+		create_text("AI Enable", 0.12f, 25.0f),
+		new k2d::Sprite(glm::vec2(0.0f, 0.0f),
+			scaled_ui.x * 0.5f, scaled_ui.y * 0.5f,
+			26.0f,
+			glm::vec4(0.f, 0.f, 1.f, 1.f), k2d::Color(0, 128), load_texture_from_cache("full"), sprite_batch));
+	ai_enable_button->SetActive(false);
+	ai_enable_button->SetTextOffset(k2d::vf2d(-scaled_ui.x * 0.5f, 0));
+	ai_enable_button->SetDarkoutActive(false);
+	ai_enable_button->AddCallbackFunction(ai_enable_button, &UIToggleButton::ToggleFuncOnOff);
+	ai_enable_button->AddCallbackFunction(this, &ConquestMultiplayer::ToggleAIEnable);
+	ui_buttons.push_back(ai_enable_button);
 
 #pragma endregion buttons
 
@@ -342,6 +416,7 @@ int ConquestMultiplayer::create_ui()
 	scorebar->AddBackground(k2d::Color(64, 255));
 	scorebar->SetMaxTileCount(map_size.x * map_size.y);
 	scorebar->SetVariablePointers(&p0_tiles, &p0_color, &p1_tiles, &p1_color);
+	scorebar->AddMarker(&halfway, k2d::Color(255));
 	scorebar->SetActive(false);
 
 #pragma endregion
@@ -349,7 +424,7 @@ int ConquestMultiplayer::create_ui()
 
 #pragma region Rectangles
 
-	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 50.0f, CreateDefaultSprite("full", k2d::Color(128, 0, 128, 128)));
+	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 50.0f, CreateDefaultSprite("full", k2d::Color(255, 255, 0, 128)));
 	nn_vision_rect->SetActive(false);
 
 #pragma endregion
@@ -357,16 +432,16 @@ int ConquestMultiplayer::create_ui()
 #pragma region NetDisplay
 
 	nn_display = new UINetDisplay("NetDisplay", 
-		k2d::vi2d(0 - scaled_ui.x * 7.0 + tile_size.x * 3.5f, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
+		k2d::vi2d(0 - scaled_ui.x * 7.0 + tile_size.x * 3.5, +scaled_ui.y * 4.5f - tile_size.y * 1.5),
 		k2d::vi2d(scaled_ui.x * 4.5, scaled_ui.y * 8.0f + tile_size.y * 2),
 		25.0f,
 		load_texture_from_cache("full"),
 		sprite_batch, this);
 	nn_display->AddCallbackFunction(nn_display, &UINetDisplay::ToggleWeightsOnlyMode);
+	nn_display->SetActive(false);
 	//nn_display->AddBackground(k2d::Color(255, 128, 255, 128));
 
 #pragma endregion
-
 
 	// Insert all the freshly created ui elements into this vector
 	all_of_the_ui.insert(all_of_the_ui.end(), ui_buttons.begin(), ui_buttons.end());
@@ -441,6 +516,7 @@ void ConquestMultiplayer::Update()
 		{
 			// read whose turn it is
 			read(buffer, &turn_id, sizeof(int), &offset);
+			read(buffer, &turns_played, sizeof(int), &offset);
 
 			read(buffer, &num_players, sizeof(num_players), &offset);
 			read(buffer, &players, sizeof(player_t) * num_players, &offset);
@@ -468,8 +544,6 @@ void ConquestMultiplayer::Update()
 			}
 
 			tilemap.clear();
-
-			
 
 			// Populate the tilemap
 			for (uint8_t y = 0; y < map_size.y; y++)
@@ -504,11 +578,36 @@ void ConquestMultiplayer::Update()
 
 			//engine->SetCameraPosition((k2d::vf2d(board_width / 2, board_height / 2)));
 
-			
-
-			if (turn_id == player_id && AI_CONTROL)
+			if (!connected_to_server)
 			{
-				input_num = HandleAI();
+				StartGame();
+				connected_to_server = true;
+			}
+			halfway = (map_size.x * map_size.y) / 2;
+			sc.resize(8);
+			sc[0] = { 0,0 };
+			sc[1] = { map_size.x - 1, map_size.y - 1 };
+			sc[2] = { 0, map_size.y - 1 };
+			sc[3] = { map_size.x - 1 ,0 };
+			sc[4] = { 0, map_size.y / 2 - 1 };
+			sc[5] = { map_size.x - 1, map_size.y / 2 - 1 };
+			sc[6] = { map_size.x / 2 - 1, 0 };
+			sc[7] = { map_size.x / 2 - 1, map_size.y - 1 };
+
+			for (size_t i = 0; i < num_players; i++)
+			{
+				if (players[i].id == player_id)
+				{
+					current_ai->SetWhichPlayerAmI(i);
+					current_ai->SetStartingPosition(sc[i]);
+					current_ai->SetCurrentColorOwned(i);
+					current_ai->SetMapSize(k2d::vi2d(map_size.x, map_size.y));
+				}
+			}
+
+			if (game_over == false)
+			{
+				game_state = GameState::INGAME;
 			}
 
 			break;
@@ -542,46 +641,58 @@ void ConquestMultiplayer::Update()
 			read(buffer, &winner_id, sizeof(winner_id), &offset);
 			read(buffer, &turns_played, sizeof(turns_played), &offset);
 
+			this->winner_id = winner_id;
+
 			// Loop through players and search the one with winner id
 			for (size_t i = 0; i < 8; i++)
 			{
 				if (players[i].id == winner_id)
 				{
 					winner_index = i;
-
+					this->winner_tiles = players[i].tiles_owned;
 					break;
 				}
 			}
 
+			game_state = GameState::GAME_OVER;
 			game_over = true;
+			frame_buffer_counter = frame_buffer;
 			break;
 		}
 		default:
 			break;
 		}
-		RevealUI();
-		game_state = GameState::INGAME;
 	}
-
 
 	if (ui_enabled)
 	{
-		if (game_state == GameState::INGAME)
+		if (game_state == GameState::INGAME || frame_buffer_counter > 0)
 		{
+			UnDisplayWinner();
 			UpdateUIElementPositions();
 			UpdateTileColors();
 			UpdateScoreboardIds();
 			UpdateScorebarValues();
+			UpdateValidInputButtons();
 			if (current_ai == neural_ai && AI_CONTROL)
 			{
 				UpdateDebugRectanglePosition();
-				nn_display->SetNeuralNetPtr(neural_ai->GetNeuralNet());
 			}
 			else
 			{
 				get_ui_by_name("VisionRect")->SetActive(false);
 				get_ui_by_name("NetDisplay")->SetActive(false);
 			}
+
+			if (turn_id == player_id && AI_CONTROL && game_state == GameState::INGAME)
+			{
+				input_num = HandleAI();
+			}
+			frame_buffer_counter--;
+		}
+		else if (game_state == GameState::GAME_OVER)
+		{
+			DisplayWinner();
 		}
 	}
 
@@ -596,6 +707,11 @@ void ConquestMultiplayer::Update()
 		for (UIBase* ui : all_of_the_ui)
 		{
 			ui->Update(dt);
+		}
+
+		for (UIBase* b : ui_input_buttons)
+		{
+			b->Update(dt);
 		}
 	}
 
@@ -693,6 +809,28 @@ void ConquestMultiplayer::update_input()
 				dy = click_pos.y - button_pos.y;
 
 				click_this->OnClick(k2d::vf2d(dx, dy));
+			}
+		}
+
+		for (int i = 0; i < ui_input_buttons.size(); i++) 
+		{
+			if (ui_input_buttons.at(i)->IsActive())
+			{
+				k2d::vf2d button_pos;
+				button_pos.x = ui_input_buttons[i]->GetPosition().x - ui_input_buttons[i]->GetSize().x / 2;
+				button_pos.y = ui_input_buttons[i]->GetPosition().y - ui_input_buttons[i]->GetSize().y / 2;
+				k2d::vf2d button_dims;
+				button_dims.x = ui_input_buttons[i]->GetSize().x;
+				button_dims.y = ui_input_buttons[i]->GetSize().y;
+
+				int dx = click_pos.x - button_pos.x;
+				int dy = click_pos.y - button_pos.y;
+				// Check if its a hit
+				if (dx > 0 && dx < button_dims.x
+					&& dy > 0 && dy < button_dims.y)
+				{
+					input_num = i;
+				}
 			}
 		}
 
@@ -846,6 +984,10 @@ void ConquestMultiplayer::UpdateTileColors()
 			}
 		}
 	}
+	for (size_t i = 0; i < ui_input_buttons.size(); i++)
+	{
+		ui_input_buttons.at(i)->GetSprite()->SetColor(skins.at(i));
+	}
 }
 
 void ConquestMultiplayer::UpdateScoreboardIds()
@@ -887,10 +1029,11 @@ void ConquestMultiplayer::UpdateScorebarValues()
 	if (ui)
 	{
 		ui->UpdateBar();
+		ui->SetSize(k2d::vi2d(tile_size.x * map_size.x, tile_size.y * 2));
 	}
 }
 
-void ConquestMultiplayer::ToggleAiType()
+void ConquestMultiplayer::ToggleAIType()
 {
 	if (current_ai == simple_ai)
 	{
@@ -907,6 +1050,22 @@ void ConquestMultiplayer::ClampTileBrightness()
 	k2d::clamp(tile_brightness, 0.0f, 1.0f);
 }
 
+void ConquestMultiplayer::UpdateValidInputButtons()
+{
+	for (size_t i = 0; i < ui_input_buttons.size(); i++)
+	{
+		// Check if we have the color at all and check if its taken, if its taken, don't show it
+		if (i < taken_colors.size() && taken_colors.at(i) != true)
+		{
+			ui_input_buttons.at(i)->SetActive(true);
+		}
+		else
+		{
+			ui_input_buttons.at(i)->SetActive(false);
+		}
+	}
+}
+
 void ConquestMultiplayer::UpdateUIElementPositions()
 {
 	scaled_ui = 4 * tile_size;
@@ -917,9 +1076,11 @@ void ConquestMultiplayer::UpdateUIElementPositions()
 
 	get_ui_by_name("NRTurnsLabel")->SetPosition(k2d::vi2d(0, tile_size.y * (map_size.y) + tile_size.y * 3 - tile_size.y / 2));
 	get_ui_by_name("AIChoice")->SetPosition(k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y / 2 - tile_size.y / 2));
-	get_ui_by_name("StartButton")->SetPosition(k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2.5f));
+	//get_ui_by_name("StartButton")->SetPosition(k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2.5f));
+	get_ui_by_name("AIEnableButton")->SetPosition(k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y - scaled_ui.y - tile_size.y * 2.5f));
+	get_ui_by_name("ReadyForNewGameButton")->SetPosition(k2d::vi2d(tile_size.x * map_size.x + scaled_ui.x - ((tile_size.x / 2) * 3), tile_size.y * map_size.y - scaled_ui.y*2.25 - scaled_ui.y - tile_size.y * 2.5f));
 	get_ui_by_name("ScoreBar")->SetPosition(k2d::vf2d(-tile_size.x * 0.5f + tile_size.x * map_size.x * 0.5f, tile_size.y * map_size.y + tile_size.y * 2.5f));
-	get_ui_by_name("NetDisplay")->SetPosition(k2d::vi2d(0 - scaled_ui.x * 7.0 + tile_size.x * 3.5f, +scaled_ui.y * 4.5f - tile_size.y * 1.5));
+	get_ui_by_name("NetDisplay")->SetPosition(k2d::vi2d(0 - scaled_ui.x * 7.0 + tile_size.x * 3.5, +scaled_ui.y * 4.5f - tile_size.y * 1.5));
 
 	scorebar->SetMaxTileCount(map_size.x * map_size.y);
 }
@@ -941,9 +1102,28 @@ void ConquestMultiplayer::RevealUI()
 
 	get_ui_by_name("NRTurnsLabel")->SetActive(true);
 	get_ui_by_name("AIChoice")->SetActive(true);
-	get_ui_by_name("StartButton")->SetActive(true);
+	
+	//get_ui_by_name("StartButton")->SetActive(true);
+	get_ui_by_name("AIEnableButton")->SetActive(true);
 	get_ui_by_name("ScoreBar")->SetActive(true);
 	get_ui_by_name("NetDisplay")->SetActive(true);
+}
+
+void ConquestMultiplayer::ToggleAIEnable()
+{
+	AI_CONTROL = !AI_CONTROL;
+}
+
+void ConquestMultiplayer::DisplayWinner()
+{
+	get_ui_by_name("WinnerCard")->SetActive(true);
+	get_ui_by_name("ReadyForNewGameButton")->SetActive(true);
+}
+
+void ConquestMultiplayer::UnDisplayWinner()
+{
+	get_ui_by_name("WinnerCard")->SetActive(false);
+	get_ui_by_name("ReadyForNewGameButton")->SetActive(false);
 }
 
 void ConquestMultiplayer::UpdateDebugRectanglePosition()

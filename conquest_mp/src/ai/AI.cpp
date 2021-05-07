@@ -5,6 +5,9 @@ AI::AI(std::vector<std::vector<tile>>* tilemap_ptr, std::vector<bool>* taken_col
 {
 	this->tilemap = tilemap_ptr;
 	this->taken_colors = taken_colors_ptr;
+	this->map_size = {0, 0};
+	this->current_color_owned = 0;
+	this->which_player_am_i = 0;
 }
 
 AI::~AI()
@@ -36,6 +39,21 @@ void AI::AddGamePlayed()
 void AI::AddGameWon()
 {
 	games_won++;
+}
+
+void AI::SetCurrentColorOwned(int color)
+{
+	current_color_owned = color;
+}
+
+void AI::SetStartingPosition(k2d::vi2d pos)
+{
+	this->starting_position = pos;
+}
+
+void AI::SetMapSize(k2d::vi2d map_size)
+{
+	this->map_size = map_size;
 }
 
 int AI::GetGamesPlayed()

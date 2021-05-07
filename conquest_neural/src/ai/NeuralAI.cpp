@@ -220,14 +220,28 @@ void NeuralAI::Update()
 			}*/
 			//Random::get(0, (int) end_tiles.size()-1)
 			std::vector<float> weights;
+			float sum = 0.0f;
 			for (size_t i = 0; i < end_tiles.size(); i++)
 			{
-				weights.push_back(100 / (float) (i + 1));
+				float val = 100 / (float)(i + 10);
+				weights.push_back(val);
+				sum += val;
 			}
-			std::discrete_distribution<int> distribution(weights.begin(), weights.begin() + end_tiles.size());
-			std::mt19937 r_engine;
 
-			best_tile = end_tiles.at(distribution(r_engine));
+			float sample_at = Random::get(0.0f, sum);
+			float iterative = 0.0f;
+			int index_of_selected_tile = 0;
+			for (size_t i = 0; i < end_tiles.size(); i++)
+			{
+				iterative += weights.at(i);
+				if (sample_at < iterative || i == end_tiles.size() - 1)
+				{
+					index_of_selected_tile = i;
+					break;
+				}
+			}
+
+			best_tile = end_tiles.at(index_of_selected_tile);
 
 			vision_grid_position = best_tile;
 			k2d::vi2d& t = vision_grid_position;

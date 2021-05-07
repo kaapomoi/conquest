@@ -72,8 +72,5 @@ void UIMultiLabel::SetPosition(k2d::vf2d pos)
 	{
 		background->SetPosition(pos);
 	}
-	for (size_t i = 0; i < label_rows.size(); i++)
-	{
-		label_rows.at(i)->SetPosition(pos);
-	}
+	UIBase::SetPosition(pos);
 }

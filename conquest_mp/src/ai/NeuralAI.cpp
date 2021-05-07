@@ -81,14 +81,29 @@ int NeuralAI::Update()
 
 
 	std::vector<float> weights;
+	float sum = 0.0f;
 	for (size_t i = 0; i < end_tiles.size(); i++)
 	{
-		weights.push_back(100 / (float) (i + 1));
+		float val = 100 / (float)(i + 10);
+		weights.push_back(val);
+		sum += val;
 	}
-	std::discrete_distribution<int> distribution(weights.begin(), weights.begin() + end_tiles.size());
-	std::mt19937 r_engine;
 
-	best_tile = end_tiles.at(distribution(r_engine));
+	float sample_at = Random::get(0.0f, sum);
+	float iterative = 0.0f;
+	int index_of_selected_tile = 0;
+	for (size_t i = 0; i < end_tiles.size(); i++)
+	{
+		iterative += weights.at(i);
+		if (sample_at < iterative || i == end_tiles.size() - 1)
+		{
+			index_of_selected_tile = i;
+			break;
+		}
+	}
+
+	best_tile = end_tiles.at(index_of_selected_tile);
+	//best_tile = end_tiles.at(Random::get(0, (int)weights.size()-1));
 
 	vision_grid_position = best_tile;
 	k2d::vi2d& t = vision_grid_position;
@@ -116,7 +131,6 @@ int NeuralAI::Update()
 	{
 		t.y += margin_top;
 	}
-
 
 	//// Convert the 2d array into a single dimension array of doubles
 	for (size_t i = t.y - s_h_l; i < t.y + s_h_r; i++)
@@ -179,7 +193,7 @@ NeuralNet* NeuralAI::GetNeuralNet()
 
 void NeuralAI::get_end_tiles()
 {
-	auto tiles = *tilemap;
+	auto& tiles = *tilemap;
 	end_tiles.clear();
 
 	k2d::vi2d map_size = {(int)tiles[0].size(), (int)tiles.size()};
@@ -211,7 +225,7 @@ void NeuralAI::get_end_tiles()
 	// run until the queue is empty
 	while (!the_queue.empty())
 	{
-		bool new_found = false;
+		bool already_added = false;
 		// Extrating front pair
 		std::pair<uint8_t, uint8_t> coord = the_queue.front();
 		x = coord.first;
@@ -222,46 +236,95 @@ void NeuralAI::get_end_tiles()
 		// Poping front pair of queue
 		the_queue.pop();
 
+		//// Down
+		//if (valid_tile(x, y + 1, map_size)
+		//	&& v[y + 1][x] == 0
+		//	&& (tiles[y + 1][x].owner == which_player_am_i))
+		//{
+		//	the_queue.push({ x, y + 1 });
+		//	v[y + 1][x] = 1;
+		//	new_found = true;
+		//}
 		// Down
-		if (valid_tile(x, y + 1, map_size)
-			&& v[y + 1][x] == 0
-			&& (tiles[y + 1][x].owner == which_player_am_i))
+		if (valid_tile(x, y + 1, map_size) && v[y + 1][x] == 0)
 		{
-			the_queue.push({ x, y + 1 });
-			v[y + 1][x] = 1;
-			new_found = true;
+			if (tiles[y + 1][x].owner == which_player_am_i)
+			{
+				the_queue.push({ x, y + 1 });
+				v[y + 1][x] = 1;
+			}
+			else if(already_added == false)
+			{
+				already_added = true;
+				end_tiles.push_back({x, y});
+			}
 		}
+		//// Up
+		//if (valid_tile(x, y - 1, map_size)
+		//	&& v[y - 1][x] == 0
+		//	&& (tiles[y - 1][x].owner == which_player_am_i))
+		//{
+		//	the_queue.push({ x, y - 1 });
+		//	v[y - 1][x] = 1;
+		//	new_found = true;
+		//}
 		// Up
-		if (valid_tile(x, y - 1, map_size)
-			&& v[y - 1][x] == 0
-			&& (tiles[y - 1][x].owner == which_player_am_i))
+		if (valid_tile(x, y - 1, map_size) && v[y - 1][x] == 0)
 		{
-			the_queue.push({ x, y - 1 });
-			v[y - 1][x] = 1;
-			new_found = true;
+			if (tiles[y - 1][x].owner == which_player_am_i)
+			{
+				the_queue.push({ x, y - 1 });
+				v[y - 1][x] = 1;
+			}
+			else if(already_added == false)
+			{
+				already_added = true;
+				end_tiles.push_back({ x, y });
+			}
 		}
-		// Right
-		if (valid_tile(x + 1, y, map_size)
-			&& v[y][x + 1] == 0
-			&& (tiles[y][x + 1].owner == which_player_am_i))
+		//// Right
+		//if (valid_tile(x + 1, y, map_size)
+		//	&& v[y][x + 1] == 0
+		//	&& (tiles[y][x + 1].owner == which_player_am_i))
+		//{
+		//	the_queue.push({ x + 1, y });
+		//	v[y][x + 1] = 1;
+		//}
+		// RIGHT
+		if (valid_tile(x + 1, y, map_size) && v[y][x + 1] == 0)
 		{
-			the_queue.push({ x + 1, y });
-			v[y][x + 1] = 1;
-			new_found = true;
+			if (tiles[y][x + 1].owner == which_player_am_i)
+			{
+				the_queue.push({ x + 1, y });
+				v[y][x + 1] = 1;
+			}
+			else if (already_added == false)
+			{
+				already_added = true;
+				end_tiles.push_back({ x, y });
+			}
 		}
-		// Left
-		if (valid_tile(x - 1, y, map_size)
-			&& v[y][x - 1] == 0
-			&& (tiles[y][x - 1].owner == which_player_am_i))
+		//// Left
+		//if (valid_tile(x - 1, y, map_size)
+		//	&& v[y][x - 1] == 0
+		//	&& (tiles[y][x - 1].owner == which_player_am_i))
+		//{
+		//	the_queue.push({ x - 1, y });
+		//	v[y][x - 1] = 1;
+		//}
+		// RIGHT
+		if (valid_tile(x - 1, y, map_size) && v[y][x - 1] == 0)
 		{
-			the_queue.push({ x - 1, y });
-			v[y][x - 1] = 1;
-			new_found = true;
-		}
-
-		if (!new_found)
-		{
-			end_tiles.push_back({x, y});
+			if (tiles[y][x - 1].owner == which_player_am_i)
+			{
+				the_queue.push({ x - 1, y });
+				v[y][x - 1] = 1;
+			}
+			else if (already_added == false)
+			{
+				already_added = true;
+				end_tiles.push_back({ x, y });
+			}
 		}
 	}
 

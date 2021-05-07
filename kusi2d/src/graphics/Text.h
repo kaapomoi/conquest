@@ -35,14 +35,14 @@ namespace k2d
 		//Text(std::string _text, std::string _font_file, float _x, float _y, float _scale, float _depth, Color _color, SpriteBatch &_sprite_batch);
 		Text(std::string _text, std::map<GLchar, Character>& _font, float _x, float _y,
 			float _scale, float _depth, Color _color, SpriteBatch* _sprite_batch);
-		~Text();
+		virtual ~Text();
 
 		/// Sends the text sprites to the spritebatch
 		void Update();
 
 		/// Sets text to render
 		void SetText(std::string _text) { text = _text; }
-		void SetPosition(vf2d pos) { x = pos.x; y = pos.y; }
+		virtual void SetPosition(vf2d pos) { x = pos.x; y = pos.y; }
 		void SetDepth(float d) { this->depth = d; }
 
 		std::string GetText() { return text; }

@@ -38,6 +38,8 @@ namespace k2d
 		void SetBaseMultiplier(float f);
 		void SetBaseMultiplier(double d);
 
+		void SetTextOffset(k2d::vi2d text_offset);
+
 		void SetPrecision(int decimal_points);
 
 		void SetVariableMultiplier(int mul);
@@ -49,9 +51,10 @@ namespace k2d
 
 		/// Sets text to render
 		void SetLabelText(std::string _text) { label_text = _text; }
-		void SetPosition(vf2d pos) { x = pos.x; y = pos.y; }
+		void SetPosition(vf2d pos) override { x = pos.x; y = pos.y; Text::SetPosition(pos + text_offset); }
 
 		vf2d GetPosition() { return vf2d(x, y); }
+
 
 	private:
 		pretty_print_func print_func;
@@ -65,6 +68,8 @@ namespace k2d
 
 		int				print_precision;
 		std::string		value;
+
+		vi2d			text_offset;
 
 		int base_mul_int;
 		float base_mul_float;

@@ -25,21 +25,24 @@ UINetDisplay::~UINetDisplay()
 
 void UINetDisplay::Update(double dt)
 {
-	if (net)
+	if (active) 
 	{
-		UpdateAlphas();
-		for (k2d::Sprite* s : node_sprites)
+		if (net)
 		{
-			s->Tick();
+			UpdateAlphas();
+			for (k2d::Sprite* s : node_sprites)
+			{
+				s->Tick();
+			}
+			for (k2d::Sprite* s : weight_sprites)
+			{
+				s->Tick();
+			}
 		}
-		for (k2d::Sprite* s : weight_sprites)
+		if (background_sprite)
 		{
-			s->Tick();
+			background_sprite->Tick();
 		}
-	}
-	if (background_sprite)
-	{
-		background_sprite->Tick();
 	}
 }
 
@@ -53,6 +56,7 @@ void UINetDisplay::SetNeuralNetPtr(NeuralNet* nn)
 	{
 		delete s;
 	}
+	node_positions.clear();
 	node_sprites.clear();
 	weight_sprites.clear();
 

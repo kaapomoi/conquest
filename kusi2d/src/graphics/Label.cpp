@@ -118,6 +118,12 @@ namespace k2d
 		base_mul_double = d;
 	}
 
+	void Label::SetTextOffset(k2d::vi2d text_offset)
+	{
+		this->text_offset = text_offset;
+		this->SetPosition(GetPosition());
+	}
+
 	void Label::SetPrecision(int decimal_points)
 	{
 		print_precision = decimal_points;

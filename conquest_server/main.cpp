@@ -391,6 +391,28 @@ void create_game(tile** map, vc2d& map_size, uint8_t& nr_colors,
     num_turns = 0;
 }
 
+void create_new_game_and_reset_player_tiles(tile** map, vc2d& map_size, uint8_t& nr_colors,
+    std::vector<bool>& taken_colors, int& whose_turn, std::vector<player_t>& players,
+    std::vector<vec2d>& sc, int& num_turns) {
+    create_game(map, map_size, nr_colors, taken_colors, whose_turn, players.size(), sc, num_turns);
+    for (size_t i = 0; i < players.size(); i++)
+    {
+        // Setup taken colors
+        taken_colors.at(i) = true;
+        // Players own the colors in order
+        players.at(i).num_owned = i;
+        // see create_game
+        if (i < 4)
+        {
+            players.at(i).tiles_owned = 3;
+        }
+        else
+        {
+            players.at(i).tiles_owned = 1;
+        }
+    }
+}
+
 int main(void)
 {
     // Set nonblocking to not block, receive data constantly
@@ -673,23 +695,8 @@ int main(void)
                     else if (code == 100)
                     {
                         // Create a new game
-                        create_game(tilemap, map_size, NR_OF_COLORS, taken_colors, whose_turn, players.size(), sc, num_turns);
-                        for (size_t i = 0; i < players.size(); i++)
-                        {
-                            // Setup taken colors
-                            taken_colors.at(i) = true;
-                            // Players own the colors in order
-                            players.at(i).num_owned = i;
-                            // see create_game
-                            if (i < 4)
-                            {
-                                players.at(i).tiles_owned = 3;
-                            }
-                            else
-                            {
-                                players.at(i).tiles_owned = 1;
-                            }
-                        }
+                        create_new_game_and_reset_player_tiles(tilemap, map_size, NR_OF_COLORS, taken_colors, whose_turn, players, sc, num_turns);
+                        
                     }
                     break;
                 }
@@ -704,8 +711,9 @@ int main(void)
                 players.push_back(new_player(id, players.size(), &sender_address));
                 found = true;
                 found_index = players.size() - 1;
+                create_new_game_and_reset_player_tiles(tilemap, map_size, NR_OF_COLORS, taken_colors, whose_turn, players, sc, num_turns);
+                printf("New player entered the server: %i , player_count: %i, creating new map\n", id, players.size());
 
-                printf("New player entered the server: %i , player_count: %i\n", id, players.size());
             }
             if (found) {
                 int num_players = players.size();
@@ -722,6 +730,7 @@ int main(void)
 
                     // Write whose turn it is                  
                     write(buffer, &players.at(whose_turn).id, sizeof(int), &offset);
+                    write(buffer, &num_turns, sizeof(int), &offset);
 
                     // Total number of players 
                     write(buffer, &num_players, sizeof(num_players), &offset);

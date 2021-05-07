@@ -25,6 +25,10 @@ public:
 	virtual void AddGamePlayed();
 	virtual void AddGameWon();
 
+	virtual void SetCurrentColorOwned(int color);
+	virtual void SetStartingPosition(k2d::vi2d pos);
+	virtual void SetMapSize(k2d::vi2d map_size);
+
 	// Getters
 	virtual int GetGamesPlayed();
 	virtual int GetGamesWon();
@@ -33,6 +37,9 @@ public:
 protected:
 	std::vector<std::vector<tile>>* tilemap;
 	std::vector<bool>* taken_colors;
+	k2d::vi2d map_size;
+	k2d::vi2d starting_position;
+	int current_color_owned;
 
 	int games_played;
 	int games_won;

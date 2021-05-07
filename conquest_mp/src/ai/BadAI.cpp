@@ -14,5 +14,5 @@ int BadAI::Update()
 	// Check the server event queue for updates
 
 
-	return rand() % (int) taken_colors->size();
+	return Random::get(0, (int)taken_colors->size());
 }

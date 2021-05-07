@@ -812,7 +812,7 @@ int ConquestLocal::create_ui()
 
 #pragma region Rectangles
 
-	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(128, 0, 128, 128)));
+	nn_vision_rect = new UIRectangle("VisionRect", 0, 0, 30.0f, CreateDefaultSprite("full", k2d::Color(255, 255, 0, 128)));
 	nn_vision_rect->SetActive(false);
 
 #pragma endregion

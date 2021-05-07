@@ -36,6 +36,8 @@ void UIScoreBar::Update(double dt)
 
 		if (background_sprite)
 		{
+			background_sprite->SetWidth(size.x);
+			background_sprite->SetHeight(size.y);
 			background_sprite->Tick();
 		}
 

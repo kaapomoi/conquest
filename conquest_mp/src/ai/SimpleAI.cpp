@@ -1,7 +1,7 @@
 #include <ai/SimpleAI.h>
 
 SimpleAI::SimpleAI(std::vector<std::vector<tile>>* tilemap_ptr, std::vector<bool>* taken_colors_ptr):
-	AI(tilemap_ptr, taken_colors_ptr), current_color_owned(0), tilemap(0)
+	AI(tilemap_ptr, taken_colors_ptr)
 {
 	rand_engine.seed(time(NULL));
 }
@@ -64,7 +64,7 @@ int SimpleAI::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x
 		// Down
 		if (valid_tile(x, y + 1, map_size)
 			&& v[y + 1][x] == 0
-			&& ((tilemap[y + 1][x].color == our_color && tilemap[y + 1][x].owner == owner) || tilemap[y + 1][x].color == new_color))
+			&& (((*tilemap)[y + 1][x].color == our_color && (*tilemap)[y + 1][x].owner == owner) || (*tilemap)[y + 1][x].color == new_color))
 		{
 			the_queue.push({ x, y + 1 });
 			v[y + 1][x] = 1;
@@ -72,7 +72,7 @@ int SimpleAI::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x
 		// Up
 		if (valid_tile(x, y - 1, map_size)
 			&& v[y - 1][x] == 0
-			&& ((tilemap[y - 1][x].color == our_color && tilemap[y - 1][x].owner == owner) || tilemap[y - 1][x].color == new_color))
+			&& (((*tilemap)[y - 1][x].color == our_color && (*tilemap)[y - 1][x].owner == owner) || (*tilemap)[y - 1][x].color == new_color))
 		{
 			the_queue.push({ x, y - 1 });
 			v[y - 1][x] = 1;
@@ -80,7 +80,7 @@ int SimpleAI::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x
 		// Right
 		if (valid_tile(x + 1, y, map_size)
 			&& v[y][x + 1] == 0
-			&& ((tilemap[y][x + 1].color == our_color && tilemap[y][x + 1].owner == owner) || tilemap[y][x + 1].color == new_color))
+			&& (((*tilemap)[y][x + 1].color == our_color && (*tilemap)[y][x + 1].owner == owner) || (*tilemap)[y][x + 1].color == new_color))
 		{
 			the_queue.push({ x + 1, y });
 			v[y][x + 1] = 1;
@@ -88,7 +88,7 @@ int SimpleAI::bfs(uint8_t our_color, uint8_t new_color, uint8_t owner, uint8_t x
 		// Left
 		if (valid_tile(x - 1, y, map_size)
 			&& v[y][x - 1] == 0
-			&& ((tilemap[y][x - 1].color == our_color && tilemap[y][x - 1].owner == owner) || tilemap[y][x - 1].color == new_color))
+			&& (((*tilemap)[y][x - 1].color == our_color && (*tilemap)[y][x - 1].owner == owner) || (*tilemap)[y][x - 1].color == new_color))
 		{
 			the_queue.push({ x - 1, y });
 			v[y][x - 1] = 1;

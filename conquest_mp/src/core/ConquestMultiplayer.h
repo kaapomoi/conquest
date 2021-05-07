@@ -41,6 +41,7 @@ namespace {
 enum class GameState {
 	NOTCONNECTED = 0,
 	INGAME,
+	GAME_OVER
 };
 
 using Random = effolkronium::random_static;
@@ -67,16 +68,20 @@ public:
 
 	int create_ai();
 
+	void generate_input_buttons();
+
 	int HandleAI();
 
 	void UpdateTileColors();
 	void UpdateScoreboardIds();
 
+	void TryToConnectToServer();
 	void StartGame();
+	void ReadyUpForNewGame();
 
 	void ClampTileBrightness();
 
-	
+	void UpdateValidInputButtons();
 	void UpdateUIElementPositions();
 	void UpdateTileBrightness();
 
@@ -84,7 +89,11 @@ public:
 	
 	void UpdateScorebarValues();
 
-	void ToggleAiType();
+	void ToggleAIType();
+	void ToggleAIEnable();
+
+	void DisplayWinner();
+	void UnDisplayWinner();
 
 	void UpdateDebugRectanglePosition();
 
@@ -137,8 +146,6 @@ public:
 		uint8_t y;
 	} vc2d;
 
-	
-
 	enum class TURN
 	{
 		PLAYER1 = 0,
@@ -181,6 +188,7 @@ private:
 	std::vector<UIClickableLabel*>	ui_clickable_labels;
 	std::vector<UIProgressBar*>		ui_progressbars;
 	std::vector<UIBase*>			all_of_the_ui;
+	std::vector<UIButton*>			ui_input_buttons;
 
 	UIScoreBar* scorebar;
 	UIRectangle* nn_vision_rect;
@@ -203,6 +211,8 @@ private:
 	/// <summary>
 	/// The client sends this value to the server
 	/// </summary>
+	bool connected_to_server;
+
 	int input_num;
 
 	float send_packets_every_ms;
@@ -274,10 +284,19 @@ private:
 	k2d::Color p0_color;
 	k2d::Color p1_color;
 	
+	int halfway;
+
+	// Winner card variables
+	int winner_id;
+	int winner_tiles;
+
 	// UI variables
 	int		variable_change_multiplier;
 
 	bool	ui_enabled;
+
+	int frame_buffer;
+	int frame_buffer_counter;
 
 	// Game variables
 	int turns_played;

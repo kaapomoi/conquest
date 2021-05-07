@@ -8,6 +8,7 @@ UIClickableLabel::UIClickableLabel(std::string name, std::string label_text, k2d
 	this->size = size;
 	this->bar_texture = tex;
 	this->sb = sb;
+	this->text_offset = text_offset;
 	this->active = true;
 	this->is_hit = false;
 	this->modifiable = false;
@@ -15,7 +16,8 @@ UIClickableLabel::UIClickableLabel(std::string name, std::string label_text, k2d
 	this->background = nullptr;
 	this->variable_multiplier = 1;
 	// TODO : fix position to accomodate offsets
-	label = new k2d::Label(label_text, _font, position.x + text_offset.x, position.y + text_offset.y, _scale, _depth, _color, sb);
+	label = new k2d::Label(label_text, _font, position.x, position.y, _scale, _depth, _color, sb);
+	this->SetTextOffset(text_offset);
 }
 
 UIClickableLabel::~UIClickableLabel()
@@ -39,7 +41,6 @@ void UIClickableLabel::Update(double dt)
 		}
 	}
 }
-
 
 void UIClickableLabel::SetPosition(k2d::vf2d new_pos)
 {
@@ -119,11 +120,6 @@ void UIClickableLabel::SetBackground(k2d::Color bg_color)
 	{
 		background->SetColor(bg_color);
 	}
-}
-
-void UIClickableLabel::SetIsActive(bool a)
-{
-	this->active = a;
 }
 
 void UIClickableLabel::OnClick(k2d::vf2d relative_hit_pos)
