@@ -63,7 +63,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{6EB59D7D-850D-4690-9A17-390DD0339A06}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>skrengine</RootNamespace>
+    <RootNamespace>k2d</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>kusi2d</ProjectName>
   </PropertyGroup>
